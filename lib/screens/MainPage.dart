@@ -1,8 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:solif/components/NavigationButton.dart';
-import 'package:solif/components/SalfhTile.dart';
+import 'package:solif/components/BottomBar.dart';
+import 'package:solif/screens/MyChatsScreen.dart';
+import 'package:solif/screens/PublicChatsScreen.dart';
 
 class MainPage extends StatefulWidget {
   @override
@@ -10,54 +9,46 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  int curPageIndex = 0;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.lightBlue[100],
-      body: Padding(
-        padding: const EdgeInsets.only(top: 40.0),
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: ListView(
-                children: getSalfhTiles(),
-              ),
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.grey[100],
+        floatingActionButton: FloatingActionButton(
+          elevation: 2.0,
+          child: Icon(Icons.add),
+          onPressed: () {
+            //TODO: display two extra buttons when pressed
+          },
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+
+        // custom widget
+        bottomNavigationBar: BottomBar(
+          centerText: "افتح سالفة",
+          onTap: (value) {
+            setState(() {
+              curPageIndex = value;
+            });
+          },
+          items: [
+            BottomBarItem(
+              title: "سواليفي",
+              icon: Icons.chat_bubble_outline,
             ),
-            Container(
-              color: Colors.blueGrey,
-              height: 60,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  NavigationButton(title: "11"),
-                  NavigationButton(title: "2"),
-                  NavigationButton(title: "3"),
-                ],
-              ),
+            BottomBarItem(
+              title: "سواليفهم",
+              icon: Icons.chat_bubble,
             ),
           ],
         ),
+        body: curPageIndex == 0 ? MyChatsScreen() : PublicChatsScreen(),
       ),
     );
   }
 
-
-
-
   // test method to generate 20 random tiles
-  List<SalfhTile> getSalfhTiles() { 
-    List<SalfhTile> tiles = List<SalfhTile>();
 
-    for (int i = 0; i < 20; i++) {
-      tiles.add(SalfhTile(
-        title: "title$i",
-        category: "category$i",
-        color: Colors.primaries[
-            Random().nextInt(Colors.primaries.length)], // random color;
-      ));
-    }
-    return tiles;
-  }
 }
-
-
