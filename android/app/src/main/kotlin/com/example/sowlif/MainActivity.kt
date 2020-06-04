@@ -1,4 +1,4 @@
-package com.example.sowlif
+package com.example.solif
 
 import io.flutter.embedding.android.FlutterActivity
 
