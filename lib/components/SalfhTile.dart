@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solif/screens/ChatScreen.dart';
 
 class SalfhTile extends StatelessWidget {
   final String title;
@@ -13,8 +14,8 @@ class SalfhTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // go to the salfh screen.
-        print("testing salfh tile tap[");
+        
+        Navigator.push(context,MaterialPageRoute(builder: (context) => ChatScreen(title: this.title,color: this.color,)));
       },
       child: Container(
         height: 70,

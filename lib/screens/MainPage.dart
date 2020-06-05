@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:solif/components/BottomBar.dart';
+import 'package:solif/constants.dart';
 import 'package:solif/screens/MyChatsScreen.dart';
 import 'package:solif/screens/PublicChatsScreen.dart';
 
@@ -15,7 +16,7 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.grey[100],
+        backgroundColor: kMainColor,
         floatingActionButton: FloatingActionButton(
           elevation: 2.0,
           child: Icon(Icons.add),
