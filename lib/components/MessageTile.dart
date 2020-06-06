@@ -15,6 +15,7 @@ class MessageTile extends StatelessWidget {
         width: double.infinity,
         height: 70,
         decoration: BoxDecoration(
+          boxShadow: kElevationToShadow[2],
           color: color,
           borderRadius: BorderRadius.circular(1),
         ),

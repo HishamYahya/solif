@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:solif/components/ChatInputBox.dart';
 import 'package:solif/components/MessageTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/Message.dart';
@@ -10,7 +11,7 @@ import 'package:solif/models/Salfh.dart';
 final firestore = Firestore.instance;
 
 class ChatScreen extends StatefulWidget {
-  final String title; 
+  final String title;
   final Color color;
 
   ChatScreen({this.title, this.color});
@@ -20,13 +21,16 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  String messageValue;
   List<MessageTile> messages = getMessages();
-  final TextEditingController messageController = TextEditingController();
+  String inputMessage;
 
   static List<MessageTile> getMessages() {
     List<MessageTile> tiles = List<MessageTile>();
-    List<Color> colors = [Colors.red[300], Colors.yellow, Colors.green[300]];
+    List<Color> colors = [
+      Colors.red[300],
+      Colors.blueAccent,
+      Colors.green[300]
+    ];
 
     Random r = Random();
     for (int i = 0; i < 6; i++) {
@@ -43,9 +47,6 @@ class _ChatScreenState extends State<ChatScreen> {
   // holds salfh id
   String salfhID;
   void saveDoc() async {
-
-    
-
     /////////////////// approach without using models kinda
     // try {
     //   final ref = await firestore.collection("Swalf").add({
@@ -75,7 +76,7 @@ class _ChatScreenState extends State<ChatScreen> {
             type: "type",
             userIDs: ["sdjfsdf", "oisdfiosj", "sdifjo"],
           ).toMap());
-    } catch (e) {}  
+    } catch (e) {}
   }
 
   void addMessage() {
@@ -143,44 +144,21 @@ class _ChatScreenState extends State<ChatScreen> {
             Divider(
               height: 4,
               color: Colors.white,
-              thickness: 1.5, 
+              thickness: 1.5,
             ),
-            Container(
-              padding: EdgeInsets.only(left: 20,top: 5),
-              height: 70,
-              //margin: EdgeInsets.symmetric(horizontal: 5),
-              decoration: BoxDecoration(
-                color: widget.color ,
-                // borderRadius: BorderRadius.circular(20),
-              ),
-              child: TextField(
-                decoration: InputDecoration.collapsed(
-
-                  hoverColor: Colors.white,
-                  hintText: "Type a message",
-                  hintStyle: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 16,
-                  
-
-                  )
-                ),
-                controller: messageController,
-                onChanged: (String value){
-
-                   messageValue = value;
-
-                },
-                onSubmitted: (_) {
-                  setState(() {
-                    messages.add(MessageTile(
-                      message: messageValue,
-                      color: widget.color,  
-                    ));
-                    messageController.clear();
-                  });
-                },
-              ),
+            ChatInputBox(
+              color: widget.color,
+              onChanged: (String value) {
+                inputMessage = value;
+              },
+              onSubmit: (_) {
+                setState(() {
+                  messages.add(MessageTile(
+                    color: widget.color,
+                    message: inputMessage,
+                  ));
+                });
+              },
             )
           ],
         ));
