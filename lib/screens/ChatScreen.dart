@@ -10,7 +10,7 @@ import 'package:solif/models/Salfh.dart';
 final firestore = Firestore.instance;
 
 class ChatScreen extends StatefulWidget {
-  final String title;
+  final String title; 
   final Color color;
 
   ChatScreen({this.title, this.color});
@@ -20,6 +20,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  String messageValue;
   List<MessageTile> messages = getMessages();
   final TextEditingController messageController = TextEditingController();
 
@@ -42,6 +43,9 @@ class _ChatScreenState extends State<ChatScreen> {
   // holds salfh id
   String salfhID;
   void saveDoc() async {
+
+    
+
     /////////////////// approach without using models kinda
     // try {
     //   final ref = await firestore.collection("Swalf").add({
@@ -71,7 +75,7 @@ class _ChatScreenState extends State<ChatScreen> {
             type: "type",
             userIDs: ["sdjfsdf", "oisdfiosj", "sdifjo"],
           ).toMap());
-    } catch (e) {}
+    } catch (e) {}  
   }
 
   void addMessage() {
@@ -116,9 +120,9 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
         appBar: AppBar(
           title: Text(widget.title),
-          backgroundColor: widget.color,
+          backgroundColor: widget.color.withOpacity(0.8),
         ),
-        backgroundColor: kMainColor,
+        backgroundColor: widget.color.withOpacity(0.8),
         body: Column(
           children: <Widget>[
             // StreamBuilder<QuerySnapshot>(
@@ -137,24 +141,41 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             Divider(
+              height: 4,
               color: Colors.white,
-              thickness: 1.5,
+              thickness: 1.5, 
             ),
             Container(
+              padding: EdgeInsets.only(left: 20,top: 5),
               height: 70,
               //margin: EdgeInsets.symmetric(horizontal: 5),
               decoration: BoxDecoration(
-                color: Colors.grey,
+                color: widget.color ,
                 // borderRadius: BorderRadius.circular(20),
               ),
               child: TextField(
-                decoration: InputDecoration.collapsed(hintText: "Write..."),
+                decoration: InputDecoration.collapsed(
+
+                  hoverColor: Colors.white,
+                  hintText: "Type a message",
+                  hintStyle: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 16,
+                  
+
+                  )
+                ),
                 controller: messageController,
-                onSubmitted: (msg) {
+                onChanged: (String value){
+
+                   messageValue = value;
+
+                },
+                onSubmitted: (_) {
                   setState(() {
                     messages.add(MessageTile(
-                      message: msg,
-                      color: widget.color,
+                      message: messageValue,
+                      color: widget.color,  
                     ));
                     messageController.clear();
                   });
