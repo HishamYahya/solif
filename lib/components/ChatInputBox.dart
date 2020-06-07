@@ -22,7 +22,7 @@ class ChatInputBox extends StatelessWidget {
           // color: color,
           // borderRadius: BorderRadius.circular(20),
         ),
-        child: TextForm(
+        child: TextField(
           autocorrect: false,
           keyboardAppearance: Brightness.light,
           style: TextStyle(
