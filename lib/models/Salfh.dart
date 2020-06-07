@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:solif/models/Message.dart';
 
 class Salfh {
-  List<String> userIDs;
+  Map<String,String> userIDs;
   String id;
   int maxUsers;
   String type;

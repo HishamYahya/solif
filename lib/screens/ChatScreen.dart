@@ -13,8 +13,9 @@ final firestore = Firestore.instance;
 class ChatScreen extends StatefulWidget {
   final String title;
   final Color color;
+  final String id; 
 
-  ChatScreen({this.title, this.color});
+  ChatScreen({this.title, this.color,this.id});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -27,16 +28,18 @@ class _ChatScreenState extends State<ChatScreen> {
   static List<MessageTile> getMessages() {
     List<MessageTile> tiles = List<MessageTile>();
     List<Color> colors = [
-      Colors.red[300],
-      Colors.blueAccent,
-      Colors.green[300]
+      Color(0xff4A154B),
+      Color(0xff2EBD7D),
+      Color(0xffECB22E),
+      Color(0xffE01E5A),
+      Color(0xff36C5F0)
     ];
 
     Random r = Random();
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 20; i++) {
       tiles.add(MessageTile(
         message: "message$i",
-        color: colors[r.nextInt(3)],
+        color: colors[r.nextInt(5)],
       ));
     }
     return tiles;
@@ -71,10 +74,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
       // save salfh info
       await firestore.collection('Swalf').document(salfhID).setData(Salfh(
-            id: salfhID,
+       //   id: salfhID,
             maxUsers: 3,
-            type: "type",
-            userIDs: ["sdjfsdf", "oisdfiosj", "sdifjo"],
+            type: "type", 
+            userIDs: {"green":"sdjfsdf", "red":"oisdfiosj", "blue":"sdifjo"},
           ).toMap());
     } catch (e) {}
   }
@@ -109,6 +112,9 @@ class _ChatScreenState extends State<ChatScreen> {
     // TODO: implement initState
     super.initState();
 
+        //print(firestore.collection("Swalf").document();
+
+
     // creates new salfh
     saveDoc();
   }
@@ -116,14 +122,16 @@ class _ChatScreenState extends State<ChatScreen> {
 ///////////////////////////////////////////////////////////////////////
   @override
   Widget build(BuildContext context) {
+    Color backGround = Colors.white;
     //////////////////// hot reload to add message
     addMessage();
     return Scaffold(
         appBar: AppBar(
-          title: Text(widget.title),
-          backgroundColor: widget.color.withOpacity(0.8),
+          title: Text(widget.title,
+          ),
+          backgroundColor: widget.color//.withOpacity(0.8),
         ),
-        backgroundColor: widget.color.withOpacity(0.8),
+        backgroundColor: Colors.white,
         body: Column(
           children: <Widget>[
             // StreamBuilder<QuerySnapshot>(

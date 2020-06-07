@@ -9,21 +9,24 @@ class MessageTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(children: <Widget>[
-      Container(
-        padding: EdgeInsets.all(20),
-        margin: EdgeInsets.only(bottom:4),
-        width: double.infinity,
-        height: 70,
-        decoration: BoxDecoration(
-          boxShadow: kElevationToShadow[2],
-          color: color,
-          borderRadius: BorderRadius.circular(1),
-        ),
-        child: Text(
-          message,
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.white,
+      Padding(
+        padding: const EdgeInsets.all(15),
+        child: Container(
+          padding: EdgeInsets.all(20),
+         // margin: EdgeInsets.only(bottom:4),
+          width: double.infinity,
+          height: 70,
+          decoration: BoxDecoration(
+            boxShadow: kElevationToShadow[2],
+            color: color,
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Text(
+            message,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.white,
+            ),
           ),
         ),
       ),
