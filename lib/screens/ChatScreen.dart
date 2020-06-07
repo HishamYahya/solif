@@ -132,43 +132,63 @@ class _ChatScreenState extends State<ChatScreen> {
           backgroundColor: widget.color//.withOpacity(0.8),
         ),
         backgroundColor: Colors.white,
-        body: Column(
-          children: <Widget>[
-            // StreamBuilder<QuerySnapshot>(
-            //   stream: Firestore.instance.collection("messages").snapshots(),
-            // collection structure neeeded first.
-            // ),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8,horizontal: 16),
+          child: Column(
+            children: <Widget>[
+              // StreamBuilder<QuerySnapshot>(
+              //   stream: Firestore.instance.collection("messages").snapshots(),
+              // collection structure neeeded first.
+              // ),
 
-            Expanded(
-              child: ListView.builder(
-                reverse: true,
-                // padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
-                itemCount: messages.length,
-                itemBuilder: (context, index) {
-                  return messages[messages.length - index - 1];
-                },
+              Expanded(
+                child: ListView.builder(
+                  reverse: true,
+                  // padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    return messages[messages.length - index - 1];
+                  },
+                ),
               ),
-            ),
-            Divider(
-              height: 4,
-              color: Colors.white,
-              thickness: 1.5,
-            ),
-            ChatInputBox(
-              color: widget.color,
-              onChanged: (String value) {
-                inputMessage = value;
-              },
-              onSubmit: (_) {
-                setState(() {
-                  messages.add(MessageTile(
-                    color: widget.color,
-                    message: inputMessage,
-                  ));
-                });
-              },
-            )
-          ],
+              Divider(
+                height: 4,
+                color: Colors.white,
+                thickness: 1.5,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                children: <Widget>[
+                  Expanded(
+                                      child: ChatInputBox(
+                      color: widget.color,
+                      onChanged: (String value) {
+                        inputMessage = value;
+                      },
+                      onSubmit: (_) {
+                        setState(() {
+                          messages.add(MessageTile(
+                            color: widget.color,
+                            message: inputMessage,
+                          ));
+                        });
+                      },
+                      
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  FloatingActionButton(
+                    backgroundColor: widget.color,
+                    child: Icon(Icons.send),
+                    onPressed: () {
+
+                    },
+                  )
+                ],
+              ),
+              
+            ],
+          ),
         ));
   }
 }

@@ -1,0 +1,6 @@
+{
+    "liveshare.allowGuestDebugControl": true,
+    "liveshare.allowGuestTaskControl": true,
+    "liveshare.increasedGuestLimit": false,
+    "liveshare.languages.allowGuestCommandControl": true
+}
