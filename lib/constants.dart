@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 
-const kMainColor = Colors.white;
+const kMainColor = Colors.blueGrey;
 
+const kHeadingTextStyle = TextStyle(
+  fontSize: 40,
+  color: Colors.white,
+  fontWeight: FontWeight.bold,
+);
 
-// const kPurple = Color(0xff4A154B);
-// const kGreen = Color(0xff2EBD7D);
-// const kOrange = Color(0xffECB22E);
+const kTextFieldBorder = UnderlineInputBorder(
+  borderSide: BorderSide(
+    color: Colors.white,
+  ),
+);
+
+final kHintTextStyle = TextStyle(
+  fontSize: 30,
+  color: Colors.white54,
+);
