@@ -27,7 +27,7 @@ class Message {
       'id': id,
       'content': content,
       'timeSent': timeSent,
-      'senderID': messageColor,
+      'color': messageColor,
       'hasRead': hasRead
     };
   }

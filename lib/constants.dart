@@ -22,6 +22,8 @@ final kHintTextStyle = TextStyle(
 const List<String> kColorNames = ["purple","green","yellow","red","blue"]; 
 // makes changing color names in the future easier, if ever needed
 // always use this when refering to colors.
+// use example to get the first color:
+// color: kOurColors[kColorNames[0]];
 
 
 final Map<String, Color> kOurColors = {

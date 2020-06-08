@@ -27,16 +27,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   static List<MessageTile> getMessages() {
     List<MessageTile> tiles = List<MessageTile>();
-    List<Color> colors = [];
-    for (int i = 0; i < kColorNames.length; i++) {
-      colors.add(kOurColors[kColorNames[i]]);
-    }
 
     Random r = Random();
     for (int i = 0; i < 20; i++) {
       tiles.add(MessageTile(
         message: "message$i",
-        color: colors[r.nextInt(5)],
+        color: kColorNames[r.nextInt(5)],
       ));
     }
     return tiles;
@@ -81,7 +77,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void addMessage(String messageContent) {
     String salfhID = widget.salfhID; // to avoid avoid using widget everytime.
-    print(salfhID);
+    //print(salfhID);
 
     if (salfhID != null) {
       // generate unique message key
@@ -121,7 +117,6 @@ class _ChatScreenState extends State<ChatScreen> {
     Color backGround = Colors.white;
     Color currentColor = kOurColors[widget.color];
     //////////////////// hot reload to add message
-    addMessage("XD");
     return Scaffold(
         appBar: AppBar(
             title: Text(
@@ -134,20 +129,40 @@ class _ChatScreenState extends State<ChatScreen> {
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           child: Column(
             children: <Widget>[
-              // StreamBuilder<QuerySnapshot>(
-              //   stream: Firestore.instance.collection("messages").snapshots(),
-              // collection structure neeeded first.
-              // ),
-
-              Expanded(
+              StreamBuilder<QuerySnapshot>(
+                stream: firestore
+                    .collection("Swalf")
+                    .document(widget.salfhID)
+                    .collection('messages').orderBy("timeSent")
+                    .snapshots(), 
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Text("ok");
+                  }
+                  //return Text("XD");
+                  final messages = snapshot.data.documents.reversed;
+                  List<MessageTile> messageTiles = [];
+                  for (var message in messages) {
+                    messageTiles.add(MessageTile(
+                      color: message['color'],
+                      message: message["content"],
+                      //
+                      // add stuff here when you update messageTile
+                      // time: message["time"],
+                      //
+                    ));
+                  }
+                return  Expanded(
                 child: ListView.builder(
                   reverse: true,
                   // padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
-                    return messages[messages.length - index - 1];
+                    return messageTiles[index];
                   },
                 ),
+              );
+                },
               ),
               Divider(
                 height: 4,
@@ -166,7 +181,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       onSubmit: (_) {
                         setState(() {
                           messages.add(MessageTile(
-                            color: currentColor,
+                            color: widget.color,
                             message: inputMessage,
                           ));
                         });
@@ -191,12 +206,14 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 void checkIfDocumentExisits() async {
-  final snapShot =
-      await Firestore.instance.collection('Swalf').document("00test").get();
+  // testing method.
 
-  if (snapShot.exists) {
-    print("there");
-  } else {
-    print("Not there");
-  }
+  // final snapShot =
+  //     await Firestore.instance.collection('Swalf').document("00test").get();
+
+  // if (snapShot.exists) {
+  //   print("there");
+  // } else {
+  //   print("Not there");
+  // }
 }

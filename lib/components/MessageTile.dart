@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:solif/constants.dart';
 
 class MessageTile extends StatelessWidget {
   final String message;
-  final Color color;
+  final String color;
 
   const MessageTile({Key key, this.message, this.color});
 
@@ -18,7 +19,7 @@ class MessageTile extends StatelessWidget {
           height: 70,
           decoration: BoxDecoration(
             boxShadow: kElevationToShadow[2],
-            color: color,
+            color: kOurColors[color],
             borderRadius: BorderRadius.circular(15),
           ),
           child: Text(
