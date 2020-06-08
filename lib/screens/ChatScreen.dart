@@ -1,12 +1,10 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:solif/components/ChatInputBox.dart';
 import 'package:solif/components/MessageTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/Message.dart';
-import 'package:solif/models/Salfh.dart';
 
 final firestore = Firestore.instance;
 
@@ -37,85 +35,19 @@ class _ChatScreenState extends State<ChatScreen> {
     }
     return tiles;
   }
-
-  //////////////////////////////////////////////////////////////////////////////
-
-  // holds salfh id
-  // String salfhID;
-  // void saveDoc() async {
-  //   /////////////////// approach without using models kinda
-  //   // try {
-  //   //   final ref = await firestore.collection("Swalf").add({
-  //   //     'messages': ["oisdfjsf", "soidfjsd", "isofj"],
-  //   //     'users': ['a', 'b', 'c'],
-  //   //     'category': "category",
-  //   //     'numOfUsers': 2,
-  //   //     'type': "type"
-  //   //   });
-
-  //   //   await firestore
-  //   //       .collection('Swalf')
-  //   //       .document(ref.documentID)
-  //   //       .setData({'id': ref.documentID}, merge: true);
-  //   // } catch (e) {
-  //   //   print(e);
-  //   // }
-
-  //   try {
-  //     // generate unique id for salfh
-  //     //salfhID = firestore.collection("Swalf").document().documentID;
-
-  //     // save salfh info
-  //     await firestore.collection('Swalf').document(salfhID).setData(Salfh(
-  //      //   id: salfhID,
-  //           maxUsers: 3,
-  //           type: "type",
-  //           userIDs: {"green":"sdjfsdf", "red":"oisdfiosj", "blue":"sdifjo"},
-  //         ).toMap());
-  //   } catch (e) {}
-  // }
-
-  void addMessage(String messageContent) {
-    String salfhID = widget.salfhID; // to avoid avoid using widget everytime.
-    //print(salfhID);
-
-    if (salfhID != null) {
-      // generate unique message key
-      final messageKey = firestore
-          .collection("Swalf")
-          .document(salfhID)
-          .collection("messages")
-          .document()
-          .documentID;
-
-      // save message with generated key
-      firestore
-          .collection("Swalf")
-          .document(salfhID)
-          .collection("messages")
-          .document(messageKey)
-          .setData(Message(
-                  id: messageKey,
-                  content: messageContent,
-                  timeSent: DateTime.now(),
-                  messageColor: widget.color)
-              .toMap());
-    }
-  }
+ 
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-
-    // print(firestore.collection("Swalf").document()
   }
-
-///////////////////////////////////////////////////////////////////////
   @override
   Widget build(BuildContext context) {
+
     Color backGround = Colors.white;
     Color currentColor = kOurColors[widget.color];
+    final TextEditingController messageController = TextEditingController();
     //////////////////// hot reload to add message
     return Scaffold(
         appBar: AppBar(
@@ -173,7 +105,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Container(
-                  decoration: BoxDecoration(
+                  decoration: BoxDecoration(  
                     border: Border.all(
                       width: 0,
                       color: Colors.grey[200],
@@ -191,16 +123,13 @@ class _ChatScreenState extends State<ChatScreen> {
                         Expanded(
                           child: ChatInputBox(
                             color: currentColor,
+                            messageController: messageController,
                             onChanged: (String value) {
                               inputMessage = value;
                             },
                             onSubmit: (_) {
-                              setState(() {
-                                messages.add(MessageTile(
-                                  color: widget.color,
-                                  message: inputMessage,
-                                ));
-                              });
+                              addMessage(inputMessage, widget.color, widget.salfhID);
+                              messageController.clear();
                             },
                           ),
                         ),
@@ -212,8 +141,8 @@ class _ChatScreenState extends State<ChatScreen> {
                             if (inputMessage == "" || inputMessage == null) {
                               return;
                             }
-                            addMessage(inputMessage);
-                            //checkIfDocumentExisits();
+                            addMessage(inputMessage,widget.color,widget.salfhID);
+                            messageController.clear();
                           },
                         )
                       ],
@@ -225,17 +154,4 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ));
   }
-}
-
-void checkIfDocumentExisits() async {
-  // testing method.
-
-  // final snapShot =
-  //     await Firestore.instance.collection('Swalf').document("00test").get();
-
-  // if (snapShot.exists) {
-  //   print("there");
-  // } else {
-  //   print("Not there");
-  // }
 }

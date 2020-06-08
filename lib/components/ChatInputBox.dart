@@ -5,9 +5,10 @@ class ChatInputBox extends StatelessWidget {
   final Color color;
   final Function(String) onChanged;
   final Function(String) onSubmit;
-  ChatInputBox({this.color, this.onSubmit, this.onChanged});
+  final TextEditingController messageController;
+  ChatInputBox({this.color, this.onSubmit, this.onChanged,@required this.messageController});
 
-  final TextEditingController messageController = TextEditingController();
+  
   String messageValue;
 
   @override
