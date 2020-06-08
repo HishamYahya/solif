@@ -124,86 +124,105 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             backgroundColor: currentColor //.withOpacity(0.8),
             ),
-        backgroundColor: Colors.white,
-        body: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          child: Column(
-            children: <Widget>[
-              StreamBuilder<QuerySnapshot>(
-                stream: firestore
-                    .collection("Swalf")
-                    .document(widget.salfhID)
-                    .collection('messages').orderBy("timeSent")
-                    .snapshots(), 
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return Text("ok");
-                  }
-                  //return Text("XD");
-                  final messages = snapshot.data.documents.reversed;
-                  List<MessageTile> messageTiles = [];
-                  for (var message in messages) {
-                    messageTiles.add(MessageTile(
-                      color: message['color'],
-                      message: message["content"],
-                      //
-                      // add stuff here when you update messageTile
-                      // time: message["time"],
-                      //
-                    ));
-                  }
-                return  Expanded(
-                child: ListView.builder(
-                  reverse: true,
-                  // padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    return messageTiles[index];
-                  },
-                ),
-              );
-                },
-              ),
-              Divider(
-                height: 4,
-                color: Colors.white,
-                thickness: 1.5,
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                children: <Widget>[
-                  Expanded(
-                    child: ChatInputBox(
-                      color: currentColor,
-                      onChanged: (String value) {
-                        inputMessage = value;
-                      },
-                      onSubmit: (_) {
-                        setState(() {
-                          messages.add(MessageTile(
-                            color: widget.color,
-                            message: inputMessage,
-                          ));
-                        });
+        backgroundColor: Colors.blueAccent[50],
+        body: Column(
+          children: <Widget>[
+            StreamBuilder<QuerySnapshot>(
+              stream: firestore
+                  .collection("Swalf")
+                  .document(widget.salfhID)
+                  .collection('messages')
+                  .orderBy("timeSent")
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Text("ok");
+                }
+                //return Text("XD");
+                final messages = snapshot.data.documents.reversed;
+                List<MessageTile> messageTiles = [];
+                for (var message in messages) {
+                  print(message['color'] == widget.color);
+                  messageTiles.add(MessageTile(
+                    color: message['color'],
+                    message: message["content"],
+                    fromUser: message['color'] == widget.color,
+                    //
+                    // add stuff here when you update messageTile
+                    // time: message["time"],
+                    //
+                  ));
+                }
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: ListView.builder(
+                      reverse: true,
+                      // padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        return messageTiles[index];
                       },
                     ),
                   ),
-                  SizedBox(width: 10),
-                  FloatingActionButton(
-                    backgroundColor: currentColor,
-                    child: Icon(Icons.send),
-                    onPressed: () {
-                      if(inputMessage == "" || inputMessage == null){
-                        return;
-                      }
-                      addMessage(inputMessage);
-                      //checkIfDocumentExisits();
-                    },
-                  )
-                ],
+                );
+              },
+            ),
+            Container(
+              color: Colors.grey[50],
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      width: 0,
+                      color: Colors.grey[200],
+                    ),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(150),
+                    ),
+                    color: kOurColors[widget.color].withAlpha(70),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: <Widget>[
+                        Expanded(
+                          child: ChatInputBox(
+                            color: currentColor,
+                            onChanged: (String value) {
+                              inputMessage = value;
+                            },
+                            onSubmit: (_) {
+                              setState(() {
+                                messages.add(MessageTile(
+                                  color: widget.color,
+                                  message: inputMessage,
+                                ));
+                              });
+                            },
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        FloatingActionButton(
+                          backgroundColor: currentColor,
+                          child: Icon(Icons.send),
+                          onPressed: () {
+                            if (inputMessage == "" || inputMessage == null) {
+                              return;
+                            }
+                            addMessage(inputMessage);
+                            //checkIfDocumentExisits();
+                          },
+                        )
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ));
   }
 }

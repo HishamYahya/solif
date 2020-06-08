@@ -20,39 +20,42 @@ class ChatInputBox extends StatelessWidget {
           // color: color,
           // borderRadius: BorderRadius.circular(20),
           ),
-      child: TextField(
-        autocorrect: false,
-        keyboardAppearance: Brightness.light,
-        style: TextStyle(
-          fontSize: 16,
-          color: Colors.black,
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: TextField(
+          autocorrect: false,
+          keyboardAppearance: Brightness.light,
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.black,
+          ),
+          showCursor: true,
+          decoration: InputDecoration(
+              // focusedBorder: OutlineInputBorder(
+              //   borderRadius: BorderRadius.circular(15),
+              //   borderSide: BorderSide(
+              //     width: 4,
+              //     color: color,
+              //   ),
+              // ),
+              // enabledBorder: OutlineInputBorder(
+              //   borderRadius: BorderRadius.circular(15),
+              //   borderSide: BorderSide(
+              //     width: 4,
+              //     color: color,
+              //   ),
+              // ),
+              border: InputBorder.none,
+              hoverColor: Colors.white,
+              hintText: "Type a message",
+              hintStyle: TextStyle(
+                color: Colors.grey,
+                fontSize: 16,
+              )),
+          controller: messageController,
+          onChanged: onChanged,
+          onSubmitted: onSubmit,
         ),
-        showCursor: true,
-        decoration: InputDecoration(
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide(
-                width: 4,
-                color: color,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide(
-                width: 4,
-                color: color,
-              ),
-            ),
-            hoverColor: Colors.white,
-            hintText: "Type a message",
-            hintStyle: TextStyle(
-              color: Colors.grey,
-              fontSize: 16,
-            )),
-        controller: messageController,
-        onChanged: onChanged,
-        onSubmitted: onSubmit,
-      
       ),
     );
   }
