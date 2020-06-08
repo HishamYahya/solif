@@ -193,8 +193,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     backgroundColor: currentColor,
                     child: Icon(Icons.send),
                     onPressed: () {
+                      if(inputMessage == "" || inputMessage == null){
+                        return;
+                      }
                       addMessage(inputMessage);
-                      checkIfDocumentExisits();
+                      //checkIfDocumentExisits();
                     },
                   )
                 ],
