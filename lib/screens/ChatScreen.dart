@@ -12,10 +12,10 @@ final firestore = Firestore.instance;
 
 class ChatScreen extends StatefulWidget {
   final String title;
-  final Color color;
-  final String id; 
+  final String color;
+  final String salfhID;
 
-  ChatScreen({this.title, this.color,this.id});
+  ChatScreen({this.title, this.color, this.salfhID = "00test"});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -27,13 +27,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   static List<MessageTile> getMessages() {
     List<MessageTile> tiles = List<MessageTile>();
-    List<Color> colors = [
-      Color(0xff4A154B),
-      Color(0xff2EBD7D),
-      Color(0xffECB22E),
-      Color(0xffE01E5A),
-      Color(0xff36C5F0)
-    ];
+    List<Color> colors = [];
+    for (int i = 0; i < kColorNames.length; i++) {
+      colors.add(kOurColors[kColorNames[i]]);
+    }
 
     Random r = Random();
     for (int i = 0; i < 20; i++) {
@@ -48,41 +45,44 @@ class _ChatScreenState extends State<ChatScreen> {
   //////////////////////////////////////////////////////////////////////////////
 
   // holds salfh id
-  String salfhID;
-  void saveDoc() async {
-    /////////////////// approach without using models kinda
-    // try {
-    //   final ref = await firestore.collection("Swalf").add({
-    //     'messages': ["oisdfjsf", "soidfjsd", "isofj"],
-    //     'users': ['a', 'b', 'c'],
-    //     'category': "category",
-    //     'numOfUsers': 2,
-    //     'type': "type"
-    //   });
+  // String salfhID;
+  // void saveDoc() async {
+  //   /////////////////// approach without using models kinda
+  //   // try {
+  //   //   final ref = await firestore.collection("Swalf").add({
+  //   //     'messages': ["oisdfjsf", "soidfjsd", "isofj"],
+  //   //     'users': ['a', 'b', 'c'],
+  //   //     'category': "category",
+  //   //     'numOfUsers': 2,
+  //   //     'type': "type"
+  //   //   });
 
-    //   await firestore
-    //       .collection('Swalf')
-    //       .document(ref.documentID)
-    //       .setData({'id': ref.documentID}, merge: true);
-    // } catch (e) {
-    //   print(e);
-    // }
+  //   //   await firestore
+  //   //       .collection('Swalf')
+  //   //       .document(ref.documentID)
+  //   //       .setData({'id': ref.documentID}, merge: true);
+  //   // } catch (e) {
+  //   //   print(e);
+  //   // }
 
-    try {
-      // generate unique id for salfh
-      salfhID = firestore.collection("Swalf").document().documentID;
+  //   try {
+  //     // generate unique id for salfh
+  //     //salfhID = firestore.collection("Swalf").document().documentID;
 
-      // save salfh info
-      await firestore.collection('Swalf').document(salfhID).setData(Salfh(
-       //   id: salfhID,
-            maxUsers: 3,
-            type: "type", 
-            userIDs: {"green":"sdjfsdf", "red":"oisdfiosj", "blue":"sdifjo"},
-          ).toMap());
-    } catch (e) {}
-  }
+  //     // save salfh info
+  //     await firestore.collection('Swalf').document(salfhID).setData(Salfh(
+  //      //   id: salfhID,
+  //           maxUsers: 3,
+  //           type: "type",
+  //           userIDs: {"green":"sdjfsdf", "red":"oisdfiosj", "blue":"sdifjo"},
+  //         ).toMap());
+  //   } catch (e) {}
+  // }
 
-  void addMessage() {
+  void addMessage(String messageContent) {
+    String salfhID = widget.salfhID; // to avoid avoid using widget everytime.
+    print(salfhID);
+
     if (salfhID != null) {
       // generate unique message key
       final messageKey = firestore
@@ -100,9 +100,9 @@ class _ChatScreenState extends State<ChatScreen> {
           .document(messageKey)
           .setData(Message(
                   id: messageKey,
-                  content: "contenttt",
+                  content: messageContent,
                   timeSent: DateTime.now(),
-                  senderID: "siodfjiosdf")
+                  messageColor: widget.color)
               .toMap());
     }
   }
@@ -112,28 +112,26 @@ class _ChatScreenState extends State<ChatScreen> {
     // TODO: implement initState
     super.initState();
 
-        //print(firestore.collection("Swalf").document();
-
-
-    // creates new salfh
-    saveDoc();
+    // print(firestore.collection("Swalf").document()
   }
 
 ///////////////////////////////////////////////////////////////////////
   @override
   Widget build(BuildContext context) {
     Color backGround = Colors.white;
+    Color currentColor = kOurColors[widget.color];
     //////////////////// hot reload to add message
-    addMessage();
+    addMessage("XD");
     return Scaffold(
         appBar: AppBar(
-          title: Text(widget.title,
-          ),
-          backgroundColor: widget.color//.withOpacity(0.8),
-        ),
+            title: Text(
+              widget.title,
+            ),
+            backgroundColor: currentColor //.withOpacity(0.8),
+            ),
         backgroundColor: Colors.white,
         body: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8,horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           child: Column(
             children: <Widget>[
               // StreamBuilder<QuerySnapshot>(
@@ -160,35 +158,45 @@ class _ChatScreenState extends State<ChatScreen> {
                 mainAxisSize: MainAxisSize.max,
                 children: <Widget>[
                   Expanded(
-                                      child: ChatInputBox(
-                      color: widget.color,
+                    child: ChatInputBox(
+                      color: currentColor,
                       onChanged: (String value) {
                         inputMessage = value;
                       },
                       onSubmit: (_) {
                         setState(() {
                           messages.add(MessageTile(
-                            color: widget.color,
+                            color: currentColor,
                             message: inputMessage,
                           ));
                         });
                       },
-                      
                     ),
                   ),
                   SizedBox(width: 10),
                   FloatingActionButton(
-                    backgroundColor: widget.color,
+                    backgroundColor: currentColor,
                     child: Icon(Icons.send),
                     onPressed: () {
-
+                      addMessage(inputMessage);
+                      checkIfDocumentExisits();
                     },
                   )
                 ],
               ),
-              
             ],
           ),
         ));
+  }
+}
+
+void checkIfDocumentExisits() async {
+  final snapShot =
+      await Firestore.instance.collection('Swalf').document("00test").get();
+
+  if (snapShot.exists) {
+    print("there");
+  } else {
+    print("Not there");
   }
 }

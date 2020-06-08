@@ -17,9 +17,9 @@ class ChatInputBox extends StatelessWidget {
       // height: 70,
       //margin: EdgeInsets.symmetric(horizontal: 5),
       decoration: BoxDecoration(
-        // color: color,
-        // borderRadius: BorderRadius.circular(20),
-      ),
+          // color: color,
+          // borderRadius: BorderRadius.circular(20),
+          ),
       child: TextField(
         autocorrect: false,
         keyboardAppearance: Brightness.light,
@@ -27,37 +27,32 @@ class ChatInputBox extends StatelessWidget {
           fontSize: 16,
           color: Colors.black,
         ),
-
-        
-
         showCursor: true,
         decoration: InputDecoration(
-          focusedBorder: OutlineInputBorder(
-            
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              width: 4,
-              color: color,
-            ),),
-          enabledBorder: OutlineInputBorder(
-            
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              width: 4,
-              color: color,
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(
+                width: 4,
+                color: color,
+              ),
             ),
-
-            
-          ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(
+                width: 4,
+                color: color,
+              ),
+            ),
             hoverColor: Colors.white,
             hintText: "Type a message",
             hintStyle: TextStyle(
               color: Colors.grey,
-              fontSize: 16,  
+              fontSize: 16,
             )),
         controller: messageController,
         onChanged: onChanged,
         onSubmitted: onSubmit,
+      
       ),
     );
   }
