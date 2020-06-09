@@ -100,14 +100,14 @@ class _MainPageState extends State<MainPage>
         // close the add popup when dragging down
         body: GestureDetector(
           onVerticalDragDown: (details) {
-            setState(() {
-              isAdding = false;
-            });
-            if (isAdding) {
-              _animationController.forward();
-            } else {
-              _animationController.reverse();
-            }
+            // setState(() {
+            //   isAdding = false;
+            // });
+            // if (isAdding) {
+            //   _animationController.forward();
+            // } else {
+            //   _animationController.reverse();
+            // }
           },
           child: curPageIndex == 0 ? MyChatsScreen() : PublicChatsScreen(),
         ),

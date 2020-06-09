@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:solif/constants.dart';
 import 'package:solif/screens/ChatScreen.dart';
 
 class SalfhTile extends StatelessWidget {
   final String title;
-  final Color color;
+  final String color;
   final String category;
   // add type (1 on 1, group)
   // change to stateful and add remaining slots
@@ -12,6 +13,9 @@ class SalfhTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final Color tileColor = kOurColors[color];
+
     return GestureDetector(
       onTap: () {
         
@@ -23,7 +27,7 @@ class SalfhTile extends StatelessWidget {
         margin: EdgeInsets.only(bottom: 7.5, right: 8, left: 20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(15),
-          color: color,
+          color: tileColor,
         ),
         child: Column(
           children: <Widget>[
