@@ -43,11 +43,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                 if (snapshot.hasError) {
                   return Text("Error");
                 }
-                List<SalfhTile> swalf = snapshot.data ?? [];
-
-                if(swalf.length == 0){
-                  return Text("loading");
-                }
+                List<SalfhTile> swalf = snapshot.data;
                 return ListView.builder(
                   itemCount: swalf.length,
                   itemBuilder: (context, index) {
@@ -66,19 +62,21 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
 Future<List<SalfhTile>> getSalfhTiles(String userID) async {
   final firestore = Firestore.instance;
 
+  int x=1;
   final salfhDoc = await firestore.collection('users').document(userID).get();
   List<SalfhTile> salfhTiles = [];
-  Map<String, dynamic> userSwalf = salfhDoc['userSwalf'];
-  userSwalf.forEach((salfhID, userColor) async {
+  Map<String, dynamic> userSwalf = await salfhDoc['userSwalf'];
+  for(var entry in userSwalf.entries) {
     var currentSalfh =
-        await firestore.collection('Swalf').document(salfhID).get();
+        await firestore.collection('Swalf').document(entry.key).get();
 
-    salfhTiles.add(SalfhTile(
+      salfhTiles.add(SalfhTile(
       category: currentSalfh["category"],
-      color: userColor,
+      color: entry.value,
       title: currentSalfh['title'], 
       id: currentSalfh.documentID,
     ));
-  });
+  };
+
   return salfhTiles;
 }
