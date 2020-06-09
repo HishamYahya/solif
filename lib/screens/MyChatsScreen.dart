@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/screens/ChatScreen.dart';
@@ -31,6 +32,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
     return Padding(
       padding: const EdgeInsets.only(top: 10.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Text("MY CHATS"),
           Expanded(
@@ -38,7 +40,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
               future: salfhTiles,
               builder: (context, snapshot) {
                 if (snapshot.connectionState != ConnectionState.done) {
-                  return Text("loading");
+                  return LoadingWidget();
                 }
                 if (snapshot.hasError) {
                   return Text("Error");

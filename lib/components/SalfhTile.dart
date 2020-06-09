@@ -21,6 +21,9 @@ class SalfhTile extends StatelessWidget {
       onTap: () {
         
         Navigator.push(context,MaterialPageRoute(builder: (context) => ChatScreen(title: this.title,color: this.color,salfhID: id,)));
+
+
+    
       },
       child: Container(
         height: 70,

@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:solif/components/ChatInputBox.dart';
+import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/MessageTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/Message.dart';
@@ -68,7 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return Text("ok");
+                  return LoadingWidget();
                 }
                 //return Text("XD");
                 final messages = snapshot.data.documents.reversed;
