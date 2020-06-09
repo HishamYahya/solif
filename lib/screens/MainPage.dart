@@ -11,19 +11,29 @@ class MainPage extends StatefulWidget {
   _MainPageState createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage>
-    with SingleTickerProviderStateMixin {
+class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   int curPageIndex = 0;
   bool isAdding = false;
   AnimationController _animationController;
   Animation _rotateAnimation;
   Animation whiteToBlueAnimation;
   Animation blueToWhiteAnimation;
+  TabController _tabController;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    _tabController = TabController(vsync: this, length: 2);
+
+    _tabController.addListener(() {
+      if (_tabController.index != curPageIndex) {
+        setState(() {
+          curPageIndex = _tabController.index;
+        });
+      }
+    });
+
     _animationController =
         AnimationController(vsync: this, duration: Duration(milliseconds: 200));
 
@@ -36,6 +46,16 @@ class _MainPageState extends State<MainPage>
 
     blueToWhiteAnimation = ColorTween(begin: Colors.blue, end: Colors.white)
         .animate(_animationController);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+
+    _animationController.dispose();
+
+    _tabController.dispose();
   }
 
   @override
@@ -79,9 +99,11 @@ class _MainPageState extends State<MainPage>
         bottomNavigationBar: BottomBar(
           centerText: "افتح سالفة",
           isAdding: isAdding,
+          selectedIndex: curPageIndex,
           onTap: (value) {
             setState(() {
               curPageIndex = value;
+              _tabController.animateTo(value);
               isAdding = false;
               _animationController.reverse();
             });
@@ -109,7 +131,10 @@ class _MainPageState extends State<MainPage>
             //   _animationController.reverse();
             // }
           },
-          child: curPageIndex == 0 ? MyChatsScreen() : PublicChatsScreen(),
+          child: TabBarView(
+            controller: _tabController,
+            children: <Widget>[MyChatsScreen(), PublicChatsScreen()],
+          ),
         ),
       ),
     );
