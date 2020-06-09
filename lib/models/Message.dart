@@ -37,13 +37,12 @@ class Message {
 void addMessage(String messageContent, String color, String id) {
   String salfhID = id; // to avoid avoid using widget everytime.
   //print(salfhID);
-  final firestore = Firestore.instance; 
-  
+  final firestore = Firestore.instance;
 
   if (salfhID != null) {
     // generate unique message key
-    final messageKey = 
-        firestore.collection("Swalf")
+    final messageKey = firestore
+        .collection("Swalf")
         .document(salfhID)
         .collection("messages")
         .document()

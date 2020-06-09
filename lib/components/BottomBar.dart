@@ -107,7 +107,9 @@ class _BottomBarState extends State<BottomBar>
         child: InkWell(
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
-          onTap: () => onPress(index),
+          onTap: () {
+            onPress(index);
+          },
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,

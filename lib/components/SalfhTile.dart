@@ -7,10 +7,11 @@ class SalfhTile extends StatelessWidget {
   final String title;
   final String color;
   final String category;
+  final bool disabled;
   // add type (1 on 1, group)
   // change to stateful and add remaining slots
 
-  SalfhTile({this.title, this.color, this.category});
+  SalfhTile({this.title, this.color, this.category, this.disabled});
 
   @override
   Widget build(BuildContext context) {
@@ -31,13 +32,16 @@ class SalfhTile extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
+        if (!disabled)
+          Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => ChatScreen(
-                      title: this.title,
-                      color: this.color,
-                    )));
+              builder: (context) => ChatScreen(
+                title: this.title,
+                color: this.color,
+              ),
+            ),
+          );
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),

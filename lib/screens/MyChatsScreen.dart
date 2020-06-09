@@ -1,25 +1,29 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:solif/components/CustomSliverAppBar.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/constants.dart';
 
 // Same as PublicChatsScreen but with different title for now
 class MyChatsScreen extends StatelessWidget {
+  final bool disabled;
+
+  MyChatsScreen(this.disabled);
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10.0),
-      child: Column(
-        children: <Widget>[
-          Text("MY CHATS"),
-          Expanded(
-            child: ListView(
-              children: getSalfhTiles(),
-            ),
+    return CustomScrollView(
+      slivers: <Widget>[
+        CustomSliverAppBar(
+          title: Text(
+            "سواليفي",
+            style: TextStyle(color: Colors.blue),
           ),
-        ],
-      ),
+        ),
+        SliverList(
+          delegate: SliverChildListDelegate(getSalfhTiles()),
+        )
+      ],
     );
   }
 
@@ -29,6 +33,7 @@ class MyChatsScreen extends StatelessWidget {
     Random r = Random();
     for (int i = 0; i < 20; i++) {
       tiles.add(SalfhTile(
+          disabled: disabled,
           title:
               "title$i dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
           category: "category$i",

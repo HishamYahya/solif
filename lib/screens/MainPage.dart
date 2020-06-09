@@ -101,12 +101,14 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           isAdding: isAdding,
           selectedIndex: curPageIndex,
           onTap: (value) {
-            setState(() {
-              curPageIndex = value;
-              _tabController.animateTo(value);
-              isAdding = false;
-              _animationController.reverse();
-            });
+            if (curPageIndex != value) {
+              setState(() {
+                curPageIndex = value;
+                _tabController.animateTo(value);
+                isAdding = false;
+                _animationController.reverse();
+              });
+            }
           },
           items: [
             BottomBarItem(
@@ -122,18 +124,27 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         // close the add popup when dragging down
         body: GestureDetector(
           onVerticalDragDown: (details) {
-            // setState(() {
-            //   isAdding = false;
-            // });
-            // if (isAdding) {
-            //   _animationController.forward();
-            // } else {
-            //   _animationController.reverse();
-            // }
+            if (isAdding) {
+              setState(() {
+                isAdding = false;
+              });
+              _animationController.reverse();
+            }
+          },
+          onTap: () {
+            if (isAdding) {
+              _animationController.reverse();
+              setState(() {
+                isAdding = false;
+              });
+            }
           },
           child: TabBarView(
             controller: _tabController,
-            children: <Widget>[MyChatsScreen(), PublicChatsScreen()],
+            children: <Widget>[
+              MyChatsScreen(isAdding),
+              PublicChatsScreen(isAdding)
+            ],
           ),
         ),
       ),
