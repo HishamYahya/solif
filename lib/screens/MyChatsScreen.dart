@@ -26,15 +26,13 @@ class MyChatsScreen extends StatelessWidget {
   List<SalfhTile> getSalfhTiles() {
     List<SalfhTile> tiles = List<SalfhTile>();
 
-
     Random r = Random();
     for (int i = 0; i < 20; i++) {
       tiles.add(SalfhTile(
-        
-        title: "title$i",
-        category: "category$i",
-        color: kColorNames[r.nextInt(5)]
-      ));
+          title:
+              "title$i dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          category: "category$i",
+          color: kColorNames[r.nextInt(5)]));
     }
     return tiles;
   }
