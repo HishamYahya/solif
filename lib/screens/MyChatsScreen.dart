@@ -20,7 +20,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
     super.initState();
     String userID = '00user';
     print("here");
-    salfhTiles = getSalfhTilesIthink(userID);
+    salfhTiles = getSalfhTiles(userID);
   }
 
   @override
@@ -81,10 +81,4 @@ Future<List<SalfhTile>> getSalfhTiles(String userID) async {
     ));
   });
   return salfhTiles;
-}
-
-Future<List<SalfhTile>> getSalfhTilesIthink(String userID) async {
-  List<SalfhTile> result = [];
-  result = await getSalfhTiles(userID);
-  return result;
 }
