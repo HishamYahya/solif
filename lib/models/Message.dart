@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../constants.dart';
 
 class Message {
-  String id;
   String content;
   DateTime timeSent;
   String messageColor;
@@ -17,7 +16,6 @@ class Message {
   };
 
   Message({
-    @required this.id,
     @required this.content,
     @required this.timeSent,
     @required this.messageColor,
@@ -25,7 +23,6 @@ class Message {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'content': content,
       'timeSent': timeSent,
       'color': messageColor,
@@ -34,29 +31,18 @@ class Message {
   }
 }
 
-void addMessage(String messageContent, String color, String id) {
-  String salfhID = id; // to avoid avoid using widget everytime.
+void addMessage(String messageContent, String color, String salfhID) async{
+  
   //print(salfhID);
   final firestore = Firestore.instance; 
   
 
   if (salfhID != null) {
-    // generate unique message key
-    final messageKey = 
-        firestore.collection("Swalf")
-        .document(salfhID)
-        .collection("messages")
-        .document()
-        .documentID;
-
-    // save message with   generated key
-    firestore
+    await firestore 
         .collection("Swalf")
         .document(salfhID)
         .collection("messages")
-        .document(messageKey)
-        .setData(Message(
-                id: messageKey,
+        .add(Message(
                 content: messageContent,
                 timeSent: DateTime.now(),
                 messageColor: color)

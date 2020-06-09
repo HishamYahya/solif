@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:solif/constants.dart';
+import 'package:solif/models/Salfh.dart';
 
 class AddScreen extends StatefulWidget {
   final bool isAdding;
@@ -45,10 +46,8 @@ class _AddScreenState extends State<AddScreen> {
                       child: Directionality(
                         textDirection: TextDirection.rtl,
                         child: TextFormField(
-                          onChanged: (value) {
-                            setState(() {
+                          onChanged: (value) {  
                               salfhName = value;
-                            });
                           },
                           maxLength: 50,
                           style: kHintTextStyle.copyWith(color: Colors.white),
@@ -116,7 +115,13 @@ class _AddScreenState extends State<AddScreen> {
                     FlatButton(
                       onPressed: () {
                         if (_formKey.currentState.validate()) {
-                          saveSalfh();
+                          saveSalfh(
+                            createrColor: kColorNames[0],
+                            maxUsers: groupSize,
+                            category: "category",
+                            title: salfhName + " ",// avoid null title for now, maybe let min 3 characters later. 
+
+                          );
                         }
                       },
                       color: Colors.white,
@@ -137,8 +142,5 @@ class _AddScreenState extends State<AddScreen> {
       ),
     );
   }
-
-  void saveSalfh() {
-    //TODO: save salfh logic
-  }
 }
+

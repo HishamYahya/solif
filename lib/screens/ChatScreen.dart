@@ -13,7 +13,7 @@ class ChatScreen extends StatefulWidget {
   final String color;
   final String salfhID;
 
-  ChatScreen({this.title, this.color, this.salfhID = "00test"});
+  ChatScreen({this.title, this.color, this.salfhID = "000test"});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
