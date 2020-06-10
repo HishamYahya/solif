@@ -31,18 +31,22 @@ class Message {
   }
 }
 
-void addMessage(String messageContent, String color, String salfhID) async{
-  
+void addMessage(String messageContent, String color, String salfhID) async {
   //print(salfhID);
-  final firestore = Firestore.instance; 
-  
+  final firestore = Firestore.instance;
 
   if (salfhID != null) {
-    await firestore 
+    // generate unique message key
+    final messageKey = firestore
         .collection("Swalf")
         .document(salfhID)
         .collection("messages")
-        .add(Message(
+        .document()
+        .documentID;
+
+    // save message with   generated key
+    firestore.collection("Swalf").document(salfhID).collection("messages").add(
+        Message(
                 content: messageContent,
                 timeSent: DateTime.now(),
                 messageColor: color)

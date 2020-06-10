@@ -11,23 +11,34 @@ class MainPage extends StatefulWidget {
   Future<List<SalfhTile>> usersSalfhTiles = getUsersChatScreenTiles("00user");
   Future<List<SalfhTile>> publicSalfhTiles = getPublicChatScreenTiles();
 
+  
   @override
   _MainPageState createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage>
-    with SingleTickerProviderStateMixin {
+class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   int curPageIndex = 0;
   bool isAdding = false;
   AnimationController _animationController;
   Animation _rotateAnimation;
   Animation whiteToBlueAnimation;
   Animation blueToWhiteAnimation;
+  TabController _tabController; 
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    _tabController = TabController(vsync: this, length: 2);
+
+    _tabController.addListener(() {
+      if (_tabController.index != curPageIndex) {
+        setState(() {
+          curPageIndex = _tabController.index;
+        });
+      }
+    });
+
     _animationController =
         AnimationController(vsync: this, duration: Duration(milliseconds: 200));
 
@@ -40,6 +51,16 @@ class _MainPageState extends State<MainPage>
 
     blueToWhiteAnimation = ColorTween(begin: Colors.blue, end: Colors.white)
         .animate(_animationController);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+
+    _animationController.dispose();
+
+    _tabController.dispose();
   }
 
   @override
@@ -84,12 +105,16 @@ class _MainPageState extends State<MainPage>
         bottomNavigationBar: BottomBar(
           centerText: "افتح سالفة",
           isAdding: isAdding,
+          selectedIndex: curPageIndex,
           onTap: (value) {
-            setState(() {
-              curPageIndex = value;
-              isAdding = false;
-              _animationController.reverse();
-            });
+            if (curPageIndex != value) {
+              setState(() {
+                curPageIndex = value;
+                _tabController.animateTo(value);
+                isAdding = false;
+                _animationController.reverse();
+              });
+            }
           },
           items: [
             BottomBarItem(
@@ -105,29 +130,40 @@ class _MainPageState extends State<MainPage>
         // close the add popup when dragging down`
         body: GestureDetector(
           onVerticalDragDown: (details) {
-            // setState(() {
-            //   isAdding = false;
-            // });
-            // if (isAdding) {
-            //   _animationController.forward();
-            // } else {
-            //   _animationController.reverse();
-            // }
+            if (isAdding) {
+              setState(() {
+                isAdding = false;
+              });
+              _animationController.reverse();
+            }
           },
-          child: curPageIndex == 0
-              ? MyChatsScreen(
+          onTap: () {
+            if (isAdding) {
+              _animationController.reverse();
+              setState(() {
+                isAdding = false;
+              });
+            }
+          },
+          child: TabBarView(
+            controller: _tabController,
+            children: <Widget>[
+              MyChatsScreen(
+                disabled: isAdding,
                   salfhTiles: widget.usersSalfhTiles,
                   onUpdate: (Future<List<SalfhTile>> updatedUserSwalf){
                     widget.usersSalfhTiles = updatedUserSwalf;
-                    
                   },
-                )
-              : PublicChatsScreen(
+                ),
+              PublicChatsScreen(
+                  disabled: isAdding,
                   salfhTiles: widget.publicSalfhTiles,
                   onUpdate: (Future<List<SalfhTile>> updatedPublicSwalf) {
                     widget.publicSalfhTiles = updatedPublicSwalf;
                   }
-                ),
+                )
+            ],
+          ),
         ),
       ),
     );

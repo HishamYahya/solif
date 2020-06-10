@@ -13,8 +13,14 @@ class BottomBar extends StatefulWidget {
   final List<BottomBarItem> items;
   final String centerText;
   final bool isAdding;
+  final int selectedIndex;
 
-  BottomBar({this.onTap, this.items, this.centerText, this.isAdding});
+  BottomBar(
+      {this.onTap,
+      this.items,
+      this.centerText,
+      this.isAdding,
+      this.selectedIndex});
 
   @override
   _BottomBarState createState() => _BottomBarState();
@@ -22,7 +28,6 @@ class BottomBar extends StatefulWidget {
 
 class _BottomBarState extends State<BottomBar>
     with SingleTickerProviderStateMixin {
-  int selectedIndex = 0;
   AnimationController controller;
   Animation whiteToBlueAnimation;
   Animation blueToWhiteAnimation;
@@ -89,14 +94,12 @@ class _BottomBarState extends State<BottomBar>
 
   void updateIndex(int index) {
     widget.onTap(index);
-    setState(() {
-      selectedIndex = index;
-    });
   }
 
   Widget buildItem({BottomBarItem item, int index, ValueChanged<int> onPress}) {
-    Color color =
-        selectedIndex == index ? blueToWhiteAnimation.value : Colors.grey[400];
+    Color color = widget.selectedIndex == index
+        ? blueToWhiteAnimation.value
+        : Colors.grey[400];
 
     return Expanded(
       child: Material(
@@ -104,7 +107,9 @@ class _BottomBarState extends State<BottomBar>
         child: InkWell(
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
-          onTap: () => onPress(index),
+          onTap: () {
+            onPress(index);
+          },
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,

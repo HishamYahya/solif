@@ -8,10 +8,7 @@ class LoadingWidget extends StatefulWidget {
 class _LoadingWidgetState extends State<LoadingWidget> {
   @override
   Widget build(BuildContext context) {
-    return CircularProgressIndicator(
 
-    
-      
-    );
+    return Text("Loading"); 
   }
 }

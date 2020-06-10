@@ -14,7 +14,9 @@ class ChatScreen extends StatefulWidget {
   final String color;
   final String salfhID;
 
-  ChatScreen({this.title, this.color, this.salfhID = "000test"});
+  final VoidCallback onUpdate;
+
+  ChatScreen({this.title, this.color, this.salfhID = "000test",this.onUpdate});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -36,16 +38,15 @@ class _ChatScreenState extends State<ChatScreen> {
     }
     return tiles;
   }
- 
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
-
     Color backGround = Colors.white;
     Color currentColor = kOurColors[widget.color];
     final TextEditingController messageController = TextEditingController();
@@ -75,7 +76,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 final messages = snapshot.data.documents.reversed;
                 List<MessageTile> messageTiles = [];
                 for (var message in messages) {
-                  print(message['color'] == widget.color);
                   messageTiles.add(MessageTile(
                     color: message['color'],
                     message: message["content"],
@@ -106,7 +106,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Container(
-                  decoration: BoxDecoration(  
+                  decoration: BoxDecoration(
                     border: Border.all(
                       width: 0,
                       color: Colors.grey[200],
@@ -129,7 +129,8 @@ class _ChatScreenState extends State<ChatScreen> {
                               inputMessage = value;
                             },
                             onSubmit: (_) {
-                              addMessage(inputMessage, widget.color, widget.salfhID);
+                              addMessage(
+                                  inputMessage, widget.color, widget.salfhID);
                               messageController.clear();
                             },
                           ),
@@ -142,7 +143,8 @@ class _ChatScreenState extends State<ChatScreen> {
                             if (inputMessage == "" || inputMessage == null) {
                               return;
                             }
-                            addMessage(inputMessage,widget.color,widget.salfhID);
+                            addMessage(
+                                inputMessage, widget.color, widget.salfhID);
                             messageController.clear();
                           },
                         )
@@ -156,3 +158,6 @@ class _ChatScreenState extends State<ChatScreen> {
         ));
   }
 }
+
+
+
