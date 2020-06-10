@@ -2,11 +2,17 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:solif/components/BottomBar.dart';
+import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/constants.dart';
+import 'package:solif/models/Salfh.dart';
 import 'package:solif/screens/MyChatsScreen.dart';
 import 'package:solif/screens/PublicChatsScreen.dart';
 
 class MainPage extends StatefulWidget {
+
+  final Future<List<SalfhTile>> usersSalfhTiles = getUsersChatScreenTiles("00user");
+
+
   @override
   _MainPageState createState() => _MainPageState();
 }
@@ -36,6 +42,9 @@ class _MainPageState extends State<MainPage>
 
     blueToWhiteAnimation = ColorTween(begin: Colors.blue, end: Colors.white)
         .animate(_animationController);
+
+        
+        
   }
 
   @override
@@ -97,7 +106,7 @@ class _MainPageState extends State<MainPage>
             ),
           ],
         ),
-        // close the add popup when dragging down`  
+        // close the add popup when dragging down`
         body: GestureDetector(
           onVerticalDragDown: (details) {
             // setState(() {
@@ -109,7 +118,7 @@ class _MainPageState extends State<MainPage>
             //   _animationController.reverse();
             // }
           },
-          child: curPageIndex == 0 ? MyChatsScreen() : PublicChatsScreen(),
+          child: curPageIndex == 0 ? MyChatsScreen(salfhTiles: widget.usersSalfhTiles ) : PublicChatsScreen(),
         ),
       ),
     );

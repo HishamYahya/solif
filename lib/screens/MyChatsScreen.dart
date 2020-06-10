@@ -8,24 +8,12 @@ import 'package:solif/constants.dart';
 import 'package:solif/screens/ChatScreen.dart';
 
 // Same as PublicChatsScreen but with different title for now
-class MyChatsScreen extends StatefulWidget {
-  @override
-  _MyChatsScreenState createState() => _MyChatsScreenState();
-}
+class MyChatsScreen extends StatelessWidget {
+  final Future<List<SalfhTile>> salfhTiles;
 
-class _MyChatsScreenState extends State<MyChatsScreen> {
-  Future<List<SalfhTile>> salfhTiles;
+  const MyChatsScreen({this.salfhTiles});
 
-  @override
-  void initState() {
-    super.initState();
-    String userID = '00user';
-    print("here");
-    salfhTiles = getSalfhTiles(userID);
-  }
 
-  @override
-  
 
   @override
   Widget build(BuildContext context) {
@@ -61,24 +49,8 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
   }
 }
 
-Future<List<SalfhTile>> getSalfhTiles(String userID) async {
-  final firestore = Firestore.instance;
 
-  int x=1;
-  final salfhDoc = await firestore.collection('users').document(userID).get();
-  List<SalfhTile> salfhTiles = [];
-  Map<String, dynamic> userSwalf = await salfhDoc['userSwalf'];
-  for(var entry in userSwalf.entries) {
-    var currentSalfh =
-        await firestore.collection('Swalf').document(entry.key).get();
 
-      salfhTiles.add(SalfhTile(
-      category: currentSalfh["category"],
-      color: entry.value,
-      title: currentSalfh['title'], 
-      id: currentSalfh.documentID,
-    ));
-  };
 
-  return salfhTiles;
-}
+
+
