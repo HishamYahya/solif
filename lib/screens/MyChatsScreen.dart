@@ -2,19 +2,24 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/screens/ChatScreen.dart';
 
 // Same as PublicChatsScreen but with different title for now
-class MyChatsScreen extends StatelessWidget {
-  final Future<List<SalfhTile>> salfhTiles;
+class MyChatsScreen extends StatefulWidget {
+  Future<List<SalfhTile>> salfhTiles;
+  final Function() onUpdate;
 
-  const MyChatsScreen({this.salfhTiles});
+  MyChatsScreen({this.salfhTiles,this.onUpdate});
 
+  @override
+  _MyChatsScreenState createState() => _MyChatsScreenState();
+}
 
-
+class _MyChatsScreenState extends State<MyChatsScreen> {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -22,10 +27,16 @@ class MyChatsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Text("MY CHATS"),
+          GestureDetector(child: Text("MY CHATS"),onTap: (){
+
+            setState(() {
+              widget.salfhTiles =  getUsersChatScreenTiles("00user");
+            });
+            
+          }),
           Expanded(
             child: FutureBuilder<List<SalfhTile>>(
-              future: salfhTiles,
+              future: widget.salfhTiles,
               builder: (context, snapshot) {
                 if (snapshot.connectionState != ConnectionState.done) {
                   return LoadingWidget();
@@ -34,6 +45,8 @@ class MyChatsScreen extends StatelessWidget {
                   return Text("Error");
                 }
                 List<SalfhTile> swalf = snapshot.data;
+                
+                print("length here${swalf.length}");
                 return ListView.builder(
                   itemCount: swalf.length,
                   itemBuilder: (context, index) {

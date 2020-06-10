@@ -75,25 +75,3 @@ Map<String,bool> getInitialColorStatus(String createrColor){
 
 
 
-
-Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
-  final firestore = Firestore.instance;
-
-  int x=1;
-  final salfhDoc = await firestore.collection('users').document(userID).get();
-  List<SalfhTile> salfhTiles = [];
-  Map<String, dynamic> userSwalf = await salfhDoc['userSwalf'];
-  for(var entry in userSwalf.entries) {
-    var currentSalfh =
-        await firestore.collection('Swalf').document(entry.key).get();
-
-      salfhTiles.add(SalfhTile(
-      category: currentSalfh["category"],
-      color: entry.value,
-      title: currentSalfh['title'], 
-      id: currentSalfh.documentID,
-    ));
-  };
-
-  return salfhTiles;
-}

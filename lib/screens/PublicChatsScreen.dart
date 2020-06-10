@@ -2,45 +2,52 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:solif/Services/FirebaseServices.dart';
+import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/constants.dart';
 
-class PublicChatsScreen extends StatelessWidget {
-  final firestore = Firestore.instance;
-  Random random = Random();
+class PublicChatsScreen extends StatefulWidget {
+
+  Future<List<SalfhTile>> salfhTiles; 
+
+  PublicChatsScreen({this.salfhTiles});
+
+  @override
+  _PublicChatsScreenState createState() => _PublicChatsScreenState();
+}
+
+class _PublicChatsScreenState extends State<PublicChatsScreen> {
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 10.0),
       child: Column(
         children: <Widget>[
-          Text("PUBLIC CHATS"),
+          GestureDetector(child: Text("PUBLIC CHATS"),onTap:(){
 
-          StreamBuilder<QuerySnapshot>(
-            stream: firestore.collection("Swalf").snapshots(),
+            setState(() {
+              widget.salfhTiles = getPublicChatScreenTiles();
+            });
+            
+
+          },),
+          FutureBuilder<List<SalfhTile>>(
+            future: widget.salfhTiles,
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return Text("ok");
-              }
-
-              final salfhDocs = snapshot.data.documents;
-              List<SalfhTile> salfhTiles = [];
-              for (var salfh in salfhDocs) {
-                salfhTiles.add(SalfhTile(
-                  category: salfh["category"],
-                  color: kColorNames[random
-                      .nextInt(kColorNames.length)], //salfh['colorStatus'],
-                  title: salfh['title'],
-                  id: salfh.documentID,
-                  
-                ));
-              }
+             if (snapshot.connectionState != ConnectionState.done) {
+                  return LoadingWidget();
+                }
+                if (snapshot.hasError) {
+                  return Text("Error");
+                }
+                List<SalfhTile> swalf = snapshot.data;
 
               return Expanded(
                 child: ListView.builder(
-                  itemCount: salfhDocs.length,
+                  itemCount: swalf.length,
                   itemBuilder: (context, index) {
-                    return salfhTiles[index];
+                    return swalf[index];
                   },
                 ),
               );
@@ -49,20 +56,5 @@ class PublicChatsScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  List<SalfhTile> getSalfhTiles() {
-    List<SalfhTile> tiles = List<SalfhTile>();
-
-    Random r = Random();
-    for (int i = 0; i < 20; i++) {
-      tiles.add(SalfhTile(
-          title: "title$i",
-          category: "category$i",
-          color: kColorNames[r.nextInt(5)]
-          //
-          ));
-    }
-    return tiles;
   }
 }

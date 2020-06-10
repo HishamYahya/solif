@@ -1,17 +1,15 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/BottomBar.dart';
 import 'package:solif/components/SalfhTile.dart';
-import 'package:solif/constants.dart';
-import 'package:solif/models/Salfh.dart';
 import 'package:solif/screens/MyChatsScreen.dart';
 import 'package:solif/screens/PublicChatsScreen.dart';
 
 class MainPage extends StatefulWidget {
-
-  final Future<List<SalfhTile>> usersSalfhTiles = getUsersChatScreenTiles("00user");
-
+  Future<List<SalfhTile>> usersSalfhTiles = getUsersChatScreenTiles("00user");
+  Future<List<SalfhTile>> publicSalfhTiles = getPublicChatScreenTiles();
 
   @override
   _MainPageState createState() => _MainPageState();
@@ -42,13 +40,11 @@ class _MainPageState extends State<MainPage>
 
     blueToWhiteAnimation = ColorTween(begin: Colors.blue, end: Colors.white)
         .animate(_animationController);
-
-        
-        
   }
 
   @override
   Widget build(BuildContext context) {
+
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.grey[100],
@@ -118,7 +114,13 @@ class _MainPageState extends State<MainPage>
             //   _animationController.reverse();
             // }
           },
-          child: curPageIndex == 0 ? MyChatsScreen(salfhTiles: widget.usersSalfhTiles ) : PublicChatsScreen(),
+          child: curPageIndex == 0
+              ? MyChatsScreen(
+                  salfhTiles: widget.usersSalfhTiles,
+                )
+              : PublicChatsScreen(
+                  salfhTiles: widget.publicSalfhTiles,
+                ),
         ),
       ),
     );
