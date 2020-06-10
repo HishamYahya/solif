@@ -7,19 +7,11 @@ class SalfhTile extends StatelessWidget {
   final String title;
   final String color;
   final String category;
-<<<<<<< HEAD
   final bool disabled;
   // add type (1 on 1, group)
   // change to stateful and add remaining slots
 
   SalfhTile({this.title, this.color, this.category, this.disabled});
-=======
-  final String id;
-  // add type (1 on 1, group)
-  // change to stateful and add remaining slots
-
-  SalfhTile({this.title, this.color, this.category,this.id});
->>>>>>> implementing-firebase-in-AddScreen
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +32,6 @@ class SalfhTile extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-<<<<<<< HEAD
         if (!disabled)
           Navigator.push(
             context,
@@ -51,10 +42,6 @@ class SalfhTile extends StatelessWidget {
               ),
             ),
           );
-=======
-        
-        Navigator.push(context,MaterialPageRoute(builder: (context) => ChatScreen(title: this.title,color: this.color,salfhID: id,)));
->>>>>>> implementing-firebase-in-AddScreen
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
