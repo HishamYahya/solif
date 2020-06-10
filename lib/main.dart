@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:solif/models/AppData.dart';
 import 'package:solif/screens/MainPage.dart';
 
 void main() {
@@ -15,8 +17,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: MainPage(),
+    return ChangeNotifierProvider<AppData>(
+      create: (context) => AppData(),
+      child: MaterialApp(
+        home: MainPage(),
+      ),
     );
   }
 }

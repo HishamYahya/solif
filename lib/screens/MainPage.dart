@@ -8,9 +8,6 @@ import 'package:solif/screens/MyChatsScreen.dart';
 import 'package:solif/screens/PublicChatsScreen.dart';
 
 class MainPage extends StatefulWidget {
-  Future<List<SalfhTile>> usersSalfhTiles = getUsersChatScreenTiles("00user");
-  Future<List<SalfhTile>> publicSalfhTiles = getPublicChatScreenTiles();
-
   @override
   _MainPageState createState() => _MainPageState();
 }
@@ -50,6 +47,8 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
     blueToWhiteAnimation = ColorTween(begin: Colors.blue, end: Colors.white)
         .animate(_animationController);
+
+    print("df");
   }
 
   @override
@@ -148,19 +147,10 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             children: <Widget>[
               MyChatsScreen(
                 disabled: isAdding,
-                salfhTiles: widget.usersSalfhTiles,
-                onUpdate: (Future<List<SalfhTile>> updatedUserSwalf) {
-                  widget.usersSalfhTiles = updatedUserSwalf;
-                },
               ),
               PublicChatsScreen(
-                  disabled: isAdding,
-                  salfhTiles: widget.publicSalfhTiles,
-                  onUpdate: (Future<List<SalfhTile>> updatedPublicSwalf) {
-                    setState(() {
-                      widget.publicSalfhTiles = updatedPublicSwalf;
-                    });
-                  })
+                disabled: isAdding,
+              )
             ],
           ),
         ),
