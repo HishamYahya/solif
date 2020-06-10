@@ -11,7 +11,7 @@ import 'package:solif/screens/ChatScreen.dart';
 // Same as PublicChatsScreen but with different title for now
 class MyChatsScreen extends StatefulWidget {
   Future<List<SalfhTile>> salfhTiles;
-  final Function() onUpdate;
+  final Function onUpdate;
 
   MyChatsScreen({this.salfhTiles,this.onUpdate});
 
@@ -28,10 +28,10 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           GestureDetector(child: Text("MY CHATS"),onTap: (){
-
-            setState(() {
-              widget.salfhTiles =  getUsersChatScreenTiles("00user");
-            });
+                  setState(() {
+                widget.salfhTiles = getUsersChatScreenTiles("00user");
+                widget.onUpdate(widget.salfhTiles);
+              });
             
           }),
           Expanded(

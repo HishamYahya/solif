@@ -117,9 +117,16 @@ class _MainPageState extends State<MainPage>
           child: curPageIndex == 0
               ? MyChatsScreen(
                   salfhTiles: widget.usersSalfhTiles,
+                  onUpdate: (Future<List<SalfhTile>> updatedUserSwalf){
+                    widget.usersSalfhTiles = updatedUserSwalf;
+                    
+                  },
                 )
               : PublicChatsScreen(
                   salfhTiles: widget.publicSalfhTiles,
+                  onUpdate: (Future<List<SalfhTile>> updatedPublicSwalf) {
+                    widget.publicSalfhTiles = updatedPublicSwalf;
+                  }
                 ),
         ),
       ),

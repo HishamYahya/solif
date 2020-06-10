@@ -8,10 +8,10 @@ import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/constants.dart';
 
 class PublicChatsScreen extends StatefulWidget {
+  Future<List<SalfhTile>> salfhTiles = getPublicChatScreenTiles();
+  final Function onUpdate;
 
-  Future<List<SalfhTile>> salfhTiles; 
-
-  PublicChatsScreen({this.salfhTiles});
+  PublicChatsScreen({this.salfhTiles, this.onUpdate});
 
   @override
   _PublicChatsScreenState createState() => _PublicChatsScreenState();
@@ -24,24 +24,25 @@ class _PublicChatsScreenState extends State<PublicChatsScreen> {
       padding: const EdgeInsets.only(top: 10.0),
       child: Column(
         children: <Widget>[
-          GestureDetector(child: Text("PUBLIC CHATS"),onTap:(){
-
-            setState(() {
-              widget.salfhTiles = getPublicChatScreenTiles();
-            });
-            
-
-          },),
+          GestureDetector(
+            child: Text("PUBLIC CHATS"),
+            onTap: () {
+              setState(() {
+                widget.salfhTiles = getPublicChatScreenTiles();
+                widget.onUpdate(widget.salfhTiles);
+              });
+            },
+          ),
           FutureBuilder<List<SalfhTile>>(
             future: widget.salfhTiles,
             builder: (context, snapshot) {
-             if (snapshot.connectionState != ConnectionState.done) {
-                  return LoadingWidget();
-                }
-                if (snapshot.hasError) {
-                  return Text("Error");
-                }
-                List<SalfhTile> swalf = snapshot.data;
+              if (snapshot.connectionState != ConnectionState.done) {
+                return LoadingWidget();
+              }
+              if (snapshot.hasError) {
+                return Text("Error");
+              }
+              List<SalfhTile> swalf = snapshot.data;
 
               return Expanded(
                 child: ListView.builder(
