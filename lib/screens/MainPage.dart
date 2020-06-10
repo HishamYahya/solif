@@ -11,7 +11,6 @@ class MainPage extends StatefulWidget {
   Future<List<SalfhTile>> usersSalfhTiles = getUsersChatScreenTiles("00user");
   Future<List<SalfhTile>> publicSalfhTiles = getPublicChatScreenTiles();
 
-  
   @override
   _MainPageState createState() => _MainPageState();
 }
@@ -23,7 +22,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   Animation _rotateAnimation;
   Animation whiteToBlueAnimation;
   Animation blueToWhiteAnimation;
-  TabController _tabController; 
+  TabController _tabController;
 
   @override
   void initState() {
@@ -65,7 +64,6 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.grey[100],
@@ -150,18 +148,19 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             children: <Widget>[
               MyChatsScreen(
                 disabled: isAdding,
-                  salfhTiles: widget.usersSalfhTiles,
-                  onUpdate: (Future<List<SalfhTile>> updatedUserSwalf){
-                    widget.usersSalfhTiles = updatedUserSwalf;
-                  },
-                ),
+                salfhTiles: widget.usersSalfhTiles,
+                onUpdate: (Future<List<SalfhTile>> updatedUserSwalf) {
+                  widget.usersSalfhTiles = updatedUserSwalf;
+                },
+              ),
               PublicChatsScreen(
                   disabled: isAdding,
                   salfhTiles: widget.publicSalfhTiles,
                   onUpdate: (Future<List<SalfhTile>> updatedPublicSwalf) {
-                    widget.publicSalfhTiles = updatedPublicSwalf;
-                  }
-                )
+                    setState(() {
+                      widget.publicSalfhTiles = updatedPublicSwalf;
+                    });
+                  })
             ],
           ),
         ),

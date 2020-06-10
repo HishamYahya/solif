@@ -1,7 +1,9 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/CustomSliverAppBar.dart';
@@ -22,46 +24,56 @@ class MyChatsScreen extends StatefulWidget {
 }
 
 class _MyChatsScreenState extends State<MyChatsScreen> {
+  RefreshController _refreshController =
+      RefreshController(initialRefresh: false);
+
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: <Widget>[
-        CustomSliverAppBar(
-          onScrollStretch: () {
-            setState(() {
-              print("strech scroll"); // didn't work
-              widget.salfhTiles = getPublicChatScreenTiles();
-              widget.onUpdate(widget.salfhTiles);
-            });
-          },
-          title: Text(
-            "سوالفي2",
-            style: TextStyle(color: Colors.blue),
+    return SmartRefresher(
+      controller: _refreshController,
+      header: WaterDropMaterialHeader(
+        offset: 50,
+        distance: 35,
+      ),
+      child: CustomScrollView(
+        slivers: <Widget>[
+          CustomSliverAppBar(
+            onScrollStretch: () {
+              setState(() {
+                print("strech scroll"); // didn't work
+                widget.salfhTiles = getPublicChatScreenTiles();
+                widget.onUpdate(widget.salfhTiles);
+              });
+            },
+            title: Text(
+              "سوالفي2",
+              style: TextStyle(color: Colors.blue),
+            ),
           ),
-        ),
-        FutureBuilder<List<SalfhTile>>(
-          future: widget.salfhTiles,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
+          FutureBuilder<List<SalfhTile>>(
+            future: widget.salfhTiles,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return SliverList(
+                  delegate: SliverChildListDelegate(
+                      List.generate(1, (index) => LoadingWidget())),
+                );
+              }
+              if (snapshot.hasError) {
+                return Text("Error");
+              }
+              List<SalfhTile> swalf = snapshot.data;
+
               return SliverList(
                 delegate: SliverChildListDelegate(
-                    List.generate(1, (index) => LoadingWidget())),
+                    List.generate(swalf.length, (index) {
+                  return swalf[index];
+                })),
               );
-            }
-            if (snapshot.hasError) {
-              return Text("Error");
-            }
-            List<SalfhTile> swalf = snapshot.data;
-
-            return SliverList(
-              delegate:
-                  SliverChildListDelegate(List.generate(swalf.length, (index) {
-                return swalf[index];
-              })),
-            );
-          },
-        )
-      ],
+            },
+          )
+        ],
+      ),
     );
   }
 }
