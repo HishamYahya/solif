@@ -36,15 +36,22 @@ class _PublicChatsScreenState extends State<PublicChatsScreen> {
     _refreshController.refreshFailed();
   }
 
+  void onLoading() async {
+    //TODO: Load more data when scrolling up at the end
+    _refreshController.loadNoData();
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isLoaded = Provider.of<AppData>(context).isPublicTilesLoaded();
     return SmartRefresher(
       controller: _refreshController,
       onRefresh: onRefresh,
+      onLoading: onLoading,
+      enablePullUp: true,
       header: WaterDropMaterialHeader(
-        offset: 50,
-        distance: 35,
+        offset: 55,
+        distance: 40,
       ),
       child: CustomScrollView(
         slivers: <Widget>[

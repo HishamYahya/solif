@@ -10,8 +10,8 @@ class CustomSliverAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      onStretchTrigger: onScrollStretch, 
-      stretchTriggerOffset: 2,// testing 
+      onStretchTrigger: onScrollStretch,
+      stretchTriggerOffset: 2, // testing
       expandedHeight: 50,
       centerTitle: true,
       title: title,
