@@ -16,7 +16,7 @@ class ChatScreen extends StatefulWidget {
 
   final VoidCallback onUpdate;
 
-  ChatScreen({this.title, this.color, this.salfhID = "000test",this.onUpdate});
+  ChatScreen({this.title, this.color, this.salfhID = "000test", this.onUpdate});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -70,7 +70,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return LoadingWidget();
+                  return Expanded(
+                    child: LoadingWidget(),
+                  );
                 }
                 //return Text("XD");
                 final messages = snapshot.data.documents.reversed;
@@ -158,6 +160,3 @@ class _ChatScreenState extends State<ChatScreen> {
         ));
   }
 }
-
-
-
