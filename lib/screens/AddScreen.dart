@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/constants.dart';
+import 'package:solif/models/AppData.dart';
 import 'package:solif/models/Salfh.dart';
+import 'package:solif/screens/ChatScreen.dart';
 
 class AddScreen extends StatefulWidget {
   final bool isAdding;
@@ -17,7 +21,61 @@ final disabledColor = Colors.grey[400];
 class _AddScreenState extends State<AddScreen> {
   String salfhName;
   int groupSize = 1;
+  bool loading = false;
   final _formKey = GlobalKey<FormState>();
+
+  void createSalfh() async {
+    setState(() {
+      loading = true;
+    });
+    String newSalfhId = await saveSalfh(
+      creatorID: Provider.of<AppData>(context, listen: false).currentUserID,
+      maxUsers: groupSize,
+      title: salfhName,
+    );
+    if (newSalfhId != null) {
+      Provider.of<AppData>(context, listen: false).reloadUsersSalfhTiles();
+      final salfh = await getSalfh(newSalfhId);
+      print(salfh);
+      var colorName;
+      salfh['colorsStatus'].forEach((name, id) {
+        id == Provider.of<AppData>(context, listen: false).currentUserID
+            ? colorName = name
+            : null;
+      });
+      print(colorName);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            title: salfh['title'],
+            color: colorName,
+            salfhID: newSalfhId,
+          ),
+        ),
+      );
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+
+  Widget getLoadingWidget() {
+    return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      CircularProgressIndicator(
+        backgroundColor: Colors.white,
+        strokeWidth: 5,
+      ),
+      SizedBox(
+        height: 20,
+      ),
+      Text(
+        "...نفتح سالفتك",
+        style: kHeadingTextStyle,
+        textAlign: TextAlign.end,
+      ),
+    ]);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,118 +87,116 @@ class _AddScreenState extends State<AddScreen> {
       curve: Curves.decelerate,
       child: Form(
         key: _formKey,
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          child: !widget.isAdding
-              ? null
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    Text(
-                      "سالفتك؟",
-                      style: kHeadingTextStyle,
-                      textAlign: TextAlign.end,
-                    ),
-                    Container(
-                      child: Directionality(
-                        textDirection: TextDirection.rtl,
-                        child: TextFormField(
-                          onChanged: (value) {  
-                              salfhName = value;
-                          },
-                          maxLength: 50,
-                          style: kHintTextStyle.copyWith(color: Colors.white),
-                          decoration: InputDecoration(
-                              enabledBorder: kTextFieldBorder,
-                              focusedBorder: kTextFieldBorder,
-                              errorBorder: kTextFieldBorder,
-                              fillColor: Colors.white,
-                              hintText: 'وش تبي تسولف عنه؟',
-                              hintStyle: kHintTextStyle,
-                              contentPadding: EdgeInsets.only(
-                                  bottom: 40, left: 10, right: 10),
-                              counterStyle:
-                                  TextStyle(fontSize: 15, color: Colors.white)),
-                        ),
-                      ),
-                    ),
-                    Text(
-                      'مع كم واحد؟',
-                      style: kHeadingTextStyle,
-                      textAlign: TextAlign.end,
-                    ),
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        child: loading
+            ? getLoadingWidget()
+            : Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                child: !widget.isAdding
+                    ? null
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
-                          GestureDetector(
-                            onTap: () {
-                              if (groupSize > 1) {
-                                setState(() {
-                                  groupSize--;
-                                });
-                              }
-                            },
-                            child: Icon(
-                              Icons.remove_circle_outline,
-                              size: 50,
-                              color:
-                                  groupSize > 1 ? Colors.white : disabledColor,
+                          Text(
+                            "سالفتك؟",
+                            style: kHeadingTextStyle,
+                            textAlign: TextAlign.end,
+                          ),
+                          Container(
+                            child: Directionality(
+                              textDirection: TextDirection.rtl,
+                              child: TextFormField(
+                                onChanged: (value) {
+                                  salfhName = value;
+                                },
+                                maxLength: 50,
+                                style: kHintTextStyle.copyWith(
+                                    color: Colors.white),
+                                decoration: InputDecoration(
+                                    enabledBorder: kTextFieldBorder,
+                                    focusedBorder: kTextFieldBorder,
+                                    errorBorder: kTextFieldBorder,
+                                    fillColor: Colors.white,
+                                    hintText: 'وش تبي تسولف عنه؟',
+                                    hintStyle: kHintTextStyle,
+                                    contentPadding: EdgeInsets.only(
+                                        bottom: 40, left: 10, right: 10),
+                                    counterStyle: TextStyle(
+                                        fontSize: 15, color: Colors.white)),
+                              ),
                             ),
                           ),
                           Text(
-                            '$groupSize',
+                            'مع كم واحد؟',
                             style: kHeadingTextStyle,
+                            textAlign: TextAlign.end,
                           ),
-                          GestureDetector(
-                            onTap: () {
-                              if (groupSize < maxNumOfUsers) {
-                                setState(() {
-                                  groupSize++;
-                                });
-                              }
-                            },
-                            child: Icon(
-                              Icons.add_circle_outline,
-                              size: 50,
-                              color: groupSize < maxNumOfUsers
-                                  ? Colors.white
-                                  : disabledColor,
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: <Widget>[
+                                GestureDetector(
+                                  onTap: () {
+                                    if (groupSize > 1) {
+                                      setState(() {
+                                        groupSize--;
+                                      });
+                                    }
+                                  },
+                                  child: Icon(
+                                    Icons.remove_circle_outline,
+                                    size: 50,
+                                    color: groupSize > 1
+                                        ? Colors.white
+                                        : disabledColor,
+                                  ),
+                                ),
+                                Text(
+                                  '$groupSize',
+                                  style: kHeadingTextStyle,
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    if (groupSize < maxNumOfUsers) {
+                                      setState(() {
+                                        groupSize++;
+                                      });
+                                    }
+                                  },
+                                  child: Icon(
+                                    Icons.add_circle_outline,
+                                    size: 50,
+                                    color: groupSize < maxNumOfUsers
+                                        ? Colors.white
+                                        : disabledColor,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                          FlatButton(
+                            onPressed: () {
+                              if (_formKey.currentState.validate()) {
+                                createSalfh();
+                              }
+                            },
+                            color: Colors.white,
+                            shape: StadiumBorder(
+                              side: BorderSide(color: Colors.white),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                "افتح السالفة",
+                                style:
+                                    TextStyle(color: Colors.blue, fontSize: 20),
+                              ),
+                            ),
+                          )
                         ],
                       ),
-                    ),
-                    FlatButton(
-                      onPressed: () {
-                        if (_formKey.currentState.validate()) {
-                          saveSalfh(
-                            createrColor: kColorNames[0],
-                            maxUsers: groupSize,
-                            category: "category",
-                            title: salfhName + " ",// avoid null title for now, maybe let min 3 characters later. 
-
-                          );
-                        }
-                      },
-                      color: Colors.white,
-                      shape: StadiumBorder(
-                        side: BorderSide(color: Colors.white),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          "افتح السالفة",
-                          style: TextStyle(color: Colors.blue, fontSize: 20),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-        ),
+              ),
       ),
     );
   }
 }
-

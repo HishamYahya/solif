@@ -13,7 +13,7 @@ Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
   final salfhDoc = await firestore.collection('users').document(userID).get();
   List<SalfhTile> salfhTiles = [];
   Map<String, dynamic> userSwalf = await salfhDoc['userSwalf'];
-  if(userSwalf == null) return []; 
+  if (userSwalf == null) return [];
   for (var entry in userSwalf.entries) {
     var currentSalfh =
         await firestore.collection('Swalf').document(entry.key).get();
@@ -35,7 +35,7 @@ Future<List<SalfhTile>> getPublicChatScreenTiles() async {
   final salfhDocs = await firestore.collection('Swalf').getDocuments();
 
   List<SalfhTile> salfhTiles = [];
-  Random random = Random(); 
+  Random random = Random();
   for (var salfh in salfhDocs.documents) {
     salfhTiles.add(SalfhTile(
       category: salfh["category"],
@@ -47,4 +47,12 @@ Future<List<SalfhTile>> getPublicChatScreenTiles() async {
   }
   print(salfhTiles.length);
   return salfhTiles;
+}
+
+getSalfh(salfhID) async {
+  final ref = await firestore.collection('Swalf').document(salfhID).get();
+  if (ref.exists) {
+    return ref.data;
+  }
+  return null;
 }

@@ -41,4 +41,9 @@ class AppData with ChangeNotifier {
     publicSalfhTiles = salfhTiles;
     notifyListeners();
   }
+
+  reloadUsersSalfhTiles() async {
+    usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
+    notifyListeners();
+  }
 }

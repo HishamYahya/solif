@@ -8,7 +8,7 @@ import 'package:solif/models/User.dart';
 import '../constants.dart';
 
 class Salfh {
-  final Map<String, bool> colorsStatus;
+  final Map<String, String> colorsStatus;
   int maxUsers;
   String category;
   String title;
@@ -21,57 +21,38 @@ class Salfh {
   });
 
   Map<String, dynamic> toMap() {
-    return {'colorsStatus': colorsStatus, 'maxUsers': maxUsers, 'category': category,'title':title};
+    return {
+      'colorsStatus': colorsStatus,
+      'maxUsers': maxUsers,
+      'category': category,
+      'title': title
+    };
   }
 }
 
+Future<String> saveSalfh(
+    {String creatorID, int maxUsers, String category, String title}) async {
+  final firestore = Firestore.instance;
 
-
-
-void saveSalfh({String createrColor,int maxUsers,String category,String title}) async{
-  final firestore = Firestore.instance; 
-
-   DocumentReference salfhId =  await firestore
-        .collection("Swalf")  
-        .add(Salfh(
+  DocumentReference salfhId = await firestore.collection("Swalf").add(Salfh(
           maxUsers: maxUsers,
           category: category,
-          colorsStatus: getInitialColorStatus(createrColor),
-          title: title
-          
-
-        ) 
-            .toMap());
-
-  addSalfhToUser("00user", salfhId.documentID, createrColor);
-  }
-
-
-
-
-
-
-
-
-
-
-  
-Map<String,bool> getInitialColorStatus(String createrColor){
-
-  Map<String,bool> res = Map<String,bool>();
-
-  for(String color in kColorNames){
-    if(color == createrColor){
-      res[color] = true;
-    }
-    else{
-      res[color] = false;
-    }
-  }
-  return res; 
-
+          colorsStatus: getInitialColorStatus(creatorID),
+          title: title)
+      .toMap());
+  return salfhId.documentID;
 }
 
+Map<String, String> getInitialColorStatus(String creatorID) {
+  Map<String, String> res = Map<String, String>();
+  String colorName = kColorNames[Random().nextInt(5)];
 
-
-
+  for (String color in kColorNames) {
+    if (color == colorName) {
+      res[color] = creatorID;
+    } else {
+      res[color] = null;
+    }
+  }
+  return res;
+}

@@ -15,11 +15,9 @@ import 'package:solif/screens/ChatScreen.dart';
 
 // Same as PublicChatsScreen but with different title for now
 class MyChatsScreen extends StatefulWidget {
-  Future<List<SalfhTile>> salfhTiles;
-  final Function onUpdate;
   final bool disabled;
 
-  MyChatsScreen({this.salfhTiles, this.onUpdate, this.disabled});
+  MyChatsScreen({this.disabled});
 
   @override
   _MyChatsScreenState createState() => _MyChatsScreenState();
@@ -35,13 +33,6 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
     return CustomScrollView(
       slivers: <Widget>[
         CustomSliverAppBar(
-          onScrollStretch: () {
-            setState(() {
-              print("strech scroll"); // didn't work
-              widget.salfhTiles = getPublicChatScreenTiles();
-              widget.onUpdate(widget.salfhTiles);
-            });
-          },
           title: Text(
             "سوالفي2",
             style: TextStyle(color: Colors.blue),
