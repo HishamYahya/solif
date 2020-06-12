@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:solif/components/ColoredDot.dart';
@@ -24,6 +25,7 @@ class SalfhTile extends StatefulWidget {
 
 class _SalfhTileState extends State<SalfhTile> {
   String colorName;
+  Map colorsStatus;
   List<Widget> dots = [];
   bool isFull = false;
 
@@ -31,13 +33,25 @@ class _SalfhTileState extends State<SalfhTile> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    colorsStatus = widget.colorsStatus;
     updateTileColor();
+    firestore
+        .collection('Swalf')
+        .document(widget.id)
+        .snapshots()
+        .listen((snapshot) {
+      if (!mapEquals(colorsStatus, snapshot.data['colorsStatus'])) {
+        colorsStatus = snapshot.data['colorsStatus'];
+        updateTileColor();
+      }
+    });
   }
 
   //gets color of tile
   updateTileColor() {
     String newColorName;
-    widget.colorsStatus.forEach((name, value) {
+
+    colorsStatus.forEach((name, value) {
       if (value == null) {
         newColorName = name;
       }
@@ -45,6 +59,7 @@ class _SalfhTileState extends State<SalfhTile> {
     setState(() {
       //TODO: design full mode
       if (newColorName != null) {
+        isFull = false;
         colorName = newColorName;
       } else {
         isFull = true;
@@ -87,7 +102,7 @@ class _SalfhTileState extends State<SalfhTile> {
           width: double.infinity,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: kOurColors[colorName],
+            color: isFull ? Colors.white : kOurColors[colorName],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -124,10 +139,12 @@ class _SalfhTileState extends State<SalfhTile> {
                               .document(widget.id)
                               .snapshots(),
                           builder: (context, snapshot) {
-                            if (snapshot.hasData)
+                            if (snapshot.hasData) {
+                              colorsStatus = snapshot.data['colorsStatus'];
                               return Row(
                                 children: generateDots(snapshot.data),
                               );
+                            }
                             return Padding(padding: EdgeInsets.all(5));
                           }),
                     )
