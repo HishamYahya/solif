@@ -23,16 +23,20 @@ Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
       colorsStatus: currentSalfh['colorsStatus'],
       title: currentSalfh['title'],
       id: currentSalfh.documentID,
+      lastMessageSentTime: (currentSalfh['lastMessageSentTime'] as Timestamp).toDate()
     ));
   }
-  ;
+
+  salfhTiles.sort((a,b){
+    return b.lastMessageSentTime.compareTo(a.lastMessageSentTime);  // sort using datetime comparator. 
+  });
 
   print(salfhTiles.length);
   return salfhTiles;
 }
 
 Future<List<SalfhTile>> getPublicChatScreenTiles() async {
-  final salfhDocs = await firestore.collection('Swalf').getDocuments();
+  final salfhDocs = await firestore.collection('Swalf').orderBy('timeCreated',descending: true).getDocuments();
 
   List<SalfhTile> salfhTiles = [];
   Random random = Random();

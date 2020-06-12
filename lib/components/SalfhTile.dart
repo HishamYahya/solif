@@ -14,10 +14,12 @@ class SalfhTile extends StatefulWidget {
   final String category;
   final String id;
   final Map colorsStatus;
+
+  final DateTime lastMessageSentTime; // to sort user messages according to most recent message, maybe display it somewhere later on.
   // add type (1 on 1, group)
   // change to stateful and add remaining slots
 
-  SalfhTile({this.title, this.category, this.id, this.colorsStatus});
+  SalfhTile({this.title, this.category, this.id, this.colorsStatus, this.lastMessageSentTime});
 
   @override
   _SalfhTileState createState() => _SalfhTileState();

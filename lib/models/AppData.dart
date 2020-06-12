@@ -64,7 +64,7 @@ class AppData with ChangeNotifier {
   }
 
   setPublicSalfhTiles(List<SalfhTile> salfhTiles) {
-    publicSalfhTiles = salfhTiles;
+    publicSalfhTiles = salfhTiles;    
     notifyListeners();
   }
 
