@@ -10,6 +10,7 @@ class BottomBarItem {
 
 class BottomBar extends StatefulWidget {
   final ValueChanged<int> onTap;
+  final Function onClose;
   final List<BottomBarItem> items;
   final String centerText;
   final bool isAdding;
@@ -17,6 +18,7 @@ class BottomBar extends StatefulWidget {
 
   BottomBar(
       {this.onTap,
+      this.onClose,
       this.items,
       this.centerText,
       this.isAdding,
@@ -85,9 +87,7 @@ class _BottomBarState extends State<BottomBar>
             ),
           ),
         ),
-        AddScreen(
-          isAdding: widget.isAdding,
-        ),
+        AddScreen(isAdding: widget.isAdding, onClose: widget.onClose),
       ],
     );
   }

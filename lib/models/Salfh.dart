@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/User.dart';
 
@@ -33,14 +34,20 @@ class Salfh {
 Future<String> saveSalfh(
     {String creatorID, int maxUsers, String category, String title}) async {
   final firestore = Firestore.instance;
-
-  DocumentReference salfhId = await firestore.collection("Swalf").add(Salfh(
+  DocumentReference salfhID = await firestore.collection("Swalf").add(Salfh(
           maxUsers: maxUsers,
           category: category,
           colorsStatus: getInitialColorStatus(creatorID),
           title: title)
       .toMap());
-  return salfhId.documentID;
+
+  String color =
+      await getColorOfUser(userID: creatorID, salfhID: salfhID.documentID);
+  if (salfhID != null) {
+    print('yooo');
+    addSalfhToUser(creatorID, salfhID.documentID, color);
+  }
+  return salfhID.documentID;
 }
 
 Map<String, String> getInitialColorStatus(String creatorID) {
@@ -55,4 +62,14 @@ Map<String, String> getInitialColorStatus(String creatorID) {
     }
   }
   return res;
+}
+
+Future<String> getColorOfUser({String userID, String salfhID}) async {
+  final salfh = await getSalfh(salfhID);
+  print(salfh);
+  String colorName;
+  salfh['colorsStatus'].forEach((name, id) {
+    id == userID ? colorName = name : null;
+  });
+  return colorName;
 }

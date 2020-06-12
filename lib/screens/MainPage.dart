@@ -113,6 +113,12 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
               });
             }
           },
+          onClose: () {
+            setState(() {
+              isAdding = false;
+              _animationController.reverse();
+            });
+          },
           items: [
             BottomBarItem(
               title: "سواليفي",

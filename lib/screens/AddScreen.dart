@@ -8,8 +8,9 @@ import 'package:solif/screens/ChatScreen.dart';
 
 class AddScreen extends StatefulWidget {
   final bool isAdding;
+  final Function onClose;
 
-  AddScreen({this.isAdding});
+  AddScreen({this.isAdding, this.onClose});
 
   @override
   _AddScreenState createState() => _AddScreenState();
@@ -25,25 +26,26 @@ class _AddScreenState extends State<AddScreen> {
   final _formKey = GlobalKey<FormState>();
 
   void createSalfh() async {
+    // show spinner
     setState(() {
       loading = true;
     });
+
+    //create new salfh
     String newSalfhId = await saveSalfh(
       creatorID: Provider.of<AppData>(context, listen: false).currentUserID,
       maxUsers: groupSize,
       title: salfhName,
     );
+
+    //if suceeded
     if (newSalfhId != null) {
       Provider.of<AppData>(context, listen: false).reloadUsersSalfhTiles();
+      String colorName = await getColorOfUser(
+        userID: Provider.of<AppData>(context, listen: false).currentUserID,
+        salfhID: newSalfhId,
+      );
       final salfh = await getSalfh(newSalfhId);
-      print(salfh);
-      var colorName;
-      salfh['colorsStatus'].forEach((name, id) {
-        id == Provider.of<AppData>(context, listen: false).currentUserID
-            ? colorName = name
-            : null;
-      });
-      print(colorName);
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -57,6 +59,7 @@ class _AddScreenState extends State<AddScreen> {
       setState(() {
         loading = false;
       });
+      widget.onClose();
     }
   }
 

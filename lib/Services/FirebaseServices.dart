@@ -51,6 +51,7 @@ Future<List<SalfhTile>> getPublicChatScreenTiles() async {
 
 getSalfh(salfhID) async {
   final ref = await firestore.collection('Swalf').document(salfhID).get();
+  print(ref);
   if (ref.exists) {
     return ref.data;
   }
