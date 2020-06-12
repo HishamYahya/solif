@@ -20,7 +20,7 @@ Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
 
     salfhTiles.add(SalfhTile(
       category: currentSalfh["category"],
-      color: entry.value,
+      colorsStatus: currentSalfh['colorsStatus'],
       title: currentSalfh['title'],
       id: currentSalfh.documentID,
     ));
@@ -39,8 +39,8 @@ Future<List<SalfhTile>> getPublicChatScreenTiles() async {
   for (var salfh in salfhDocs.documents) {
     salfhTiles.add(SalfhTile(
       category: salfh["category"],
-      color: kColorNames[
-          random.nextInt(kColorNames.length)], //salfh['colorStatus'],
+      // color now generated in SalfhTile
+      colorsStatus: salfh['colorsStatus'],
       title: salfh['title'],
       id: salfh.documentID,
     ));

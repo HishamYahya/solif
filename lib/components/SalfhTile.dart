@@ -10,39 +10,52 @@ final firestore = Firestore.instance;
 
 class SalfhTile extends StatefulWidget {
   final String title;
-  final String color;
   final String category;
   final String id;
+  final Map colorsStatus;
   // add type (1 on 1, group)
   // change to stateful and add remaining slots
 
-  SalfhTile({this.title, this.color, this.category, this.id});
+  SalfhTile({this.title, this.category, this.id, this.colorsStatus});
 
   @override
   _SalfhTileState createState() => _SalfhTileState();
 }
 
 class _SalfhTileState extends State<SalfhTile> {
-  Color tileColor;
+  String colorName;
   List<Widget> dots = [];
+  bool isFull = false;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    tileColor = kOurColors[widget.color];
-    // firestore
-    //     .collection('Swalf')
-    //     .document(widget.id)
-    //     .snapshots()
-    //     .listen((snapshot) {
-    //   updateTile(snapshot.data);
-    // });
+    updateTileColor();
+  }
+
+  //gets color of tile
+  updateTileColor() {
+    String newColorName;
+    widget.colorsStatus.forEach((name, value) {
+      if (value == null) {
+        newColorName = name;
+      }
+    });
+    setState(() {
+      //TODO: design full mode
+      if (newColorName != null) {
+        colorName = newColorName;
+      } else {
+        isFull = true;
+      }
+    });
   }
 
   List<Widget> generateDots(data) {
     List<Widget> newDots = [];
     data['colorsStatus'].forEach((name, id) {
+      // if it's not the current user and someone is in the salfh with that color
       if (id != null && Provider.of<AppData>(context).currentUserID != id) {
         newDots.add(Padding(
           padding: const EdgeInsets.all(5.0),
@@ -53,18 +66,6 @@ class _SalfhTileState extends State<SalfhTile> {
     return newDots;
   }
 
-  List<ColoredDot> initialiseDots() {
-    // List<Widget> dots = [];
-    // kOurColors.forEach((key, value) {
-    //   if (key != widget.color) {
-    //     dots.add(Padding(
-    //       padding: const EdgeInsets.all(5.0),
-    //       child: ColoredDot(value),
-    //     ));
-    //   }
-    // });
-    // return dots;
-  }
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -74,7 +75,7 @@ class _SalfhTileState extends State<SalfhTile> {
           MaterialPageRoute(
             builder: (context) => ChatScreen(
               title: this.widget.title,
-              color: this.widget.color,
+              color: colorName,
               salfhID: this.widget.id,
             ),
           ),
@@ -86,7 +87,7 @@ class _SalfhTileState extends State<SalfhTile> {
           width: double.infinity,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: tileColor,
+            color: kOurColors[colorName],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -135,10 +136,23 @@ class _SalfhTileState extends State<SalfhTile> {
               ),
               Padding(
                 padding: const EdgeInsets.only(right: 8.0),
-                child: Icon(
-                  Icons.arrow_forward_ios,
-                  color: Colors.white,
-                ),
+                child: isFull
+                    ? Row(
+                        children: <Widget>[
+                          Text(
+                            "فل",
+                            style: TextStyle(fontSize: 20),
+                          ),
+                          Icon(
+                            Icons.close,
+                            color: Colors.black,
+                          )
+                        ],
+                      )
+                    : Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white,
+                      ),
               ),
             ],
           ),
