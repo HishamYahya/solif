@@ -1,14 +1,33 @@
 import 'package:flutter/material.dart';
 
-class LoadingWidget extends StatefulWidget {
-  @override
-  _LoadingWidgetState createState() => _LoadingWidgetState();
-}
+import '../constants.dart';
 
-class _LoadingWidgetState extends State<LoadingWidget> {
+class LoadingWidget extends StatelessWidget {
+  final String text;
+
+  LoadingWidget(this.text);
+
   @override
   Widget build(BuildContext context) {
-
-    return Text("Loading"); 
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.6,
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            strokeWidth: 5,
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          Text(
+            text,
+            style: kHeadingTextStyle.copyWith(color: Colors.blue),
+            textAlign: TextAlign.end,
+          ),
+        ],
+      ),
+    );
   }
 }

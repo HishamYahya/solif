@@ -71,7 +71,7 @@ class _ChatScreenState extends State<ChatScreen> {
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return Expanded(
-                    child: LoadingWidget(),
+                    child: LoadingWidget(""),
                   );
                 }
                 //return Text("XD");

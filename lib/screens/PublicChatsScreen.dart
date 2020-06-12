@@ -65,7 +65,7 @@ class _PublicChatsScreenState extends State<PublicChatsScreen> {
             delegate: SliverChildListDelegate(
               isLoaded
                   ? Provider.of<AppData>(context).publicSalfhTiles
-                  : [LoadingWidget()],
+                  : [LoadingWidget('...نجيب سوالفهم')],
             ),
           ),
         ],

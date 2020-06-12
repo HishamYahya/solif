@@ -42,7 +42,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
           delegate: SliverChildListDelegate(
             isLoaded
                 ? Provider.of<AppData>(context).usersSalfhTiles
-                : [LoadingWidget()],
+                : [LoadingWidget('...نجيب سوالفك')],
           ),
         ),
       ],
