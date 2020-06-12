@@ -13,12 +13,16 @@ class Salfh {
   int maxUsers;
   String category;
   String title;
+  DateTime timeCreated;
+  DateTime lastMessageSentTime;
 
   Salfh({
     @required this.maxUsers,
     @required this.category,
     this.colorsStatus,
     this.title,
+    this.timeCreated,
+    this.lastMessageSentTime
   });
 
   Map<String, dynamic> toMap() {
@@ -26,7 +30,9 @@ class Salfh {
       'colorsStatus': colorsStatus,
       'maxUsers': maxUsers,
       'category': category,
-      'title': title
+      'title': title,
+      'timeCreated': timeCreated,
+      'lastMessageSentTime': lastMessageSentTime
     };
   }
 }
@@ -38,7 +44,11 @@ Future<String> saveSalfh(
           maxUsers: maxUsers,
           category: category,
           colorsStatus: getInitialColorStatus(creatorID),
-          title: title)
+          title: title,
+          timeCreated: DateTime.now(), 
+          lastMessageSentTime: DateTime.now(), 
+          
+          )
       .toMap());
 
   String color =
