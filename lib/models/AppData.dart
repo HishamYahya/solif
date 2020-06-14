@@ -54,7 +54,7 @@ class AppData with ChangeNotifier {
   loadTiles() async {
     usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
     notifyListeners();
-    publicSalfhTiles = await getPublicChatScreenTiles();
+    publicSalfhTiles = await getPublicChatScreenTiles(currentUserID);
     notifyListeners();
   }
 
@@ -64,12 +64,17 @@ class AppData with ChangeNotifier {
   }
 
   setPublicSalfhTiles(List<SalfhTile> salfhTiles) {
-    publicSalfhTiles = salfhTiles;    
+    publicSalfhTiles = salfhTiles;
     notifyListeners();
   }
 
   reloadUsersSalfhTiles() async {
     usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
+    notifyListeners();
+  }
+
+  reloadPublicSalfhTiles() async {
+    publicSalfhTiles = await getPublicChatScreenTiles(currentUserID);
     notifyListeners();
   }
 }

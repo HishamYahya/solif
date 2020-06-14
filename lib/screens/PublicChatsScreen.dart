@@ -25,7 +25,9 @@ class _PublicChatsScreenState extends State<PublicChatsScreen> {
       RefreshController(initialRefresh: false);
 
   void onRefresh() async {
-    List<SalfhTile> salfhTiles = await getPublicChatScreenTiles();
+    await Provider.of<AppData>(context, listen: false).reloadPublicSalfhTiles();
+    List<SalfhTile> salfhTiles =
+        Provider.of<AppData>(context, listen: false).publicSalfhTiles;
     if (salfhTiles == null) {
       //TODO: Display error
       _refreshController.refreshFailed();

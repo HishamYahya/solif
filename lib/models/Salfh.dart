@@ -8,26 +8,30 @@ import 'package:solif/models/User.dart';
 
 import '../constants.dart';
 
+final firestore = Firestore.instance;
+
 class Salfh {
   final Map<String, String> colorsStatus;
   int maxUsers;
   String category;
+  String creatorID;
   String title;
   DateTime timeCreated;
   DateTime lastMessageSentTime;
 
-  Salfh({
-    @required this.maxUsers,
-    @required this.category,
-    this.colorsStatus,
-    this.title,
-    this.timeCreated,
-    this.lastMessageSentTime
-  });
+  Salfh(
+      {@required this.maxUsers,
+      @required this.category,
+      this.colorsStatus,
+      this.title,
+      this.timeCreated,
+      this.lastMessageSentTime,
+      this.creatorID});
 
   Map<String, dynamic> toMap() {
     return {
       'colorsStatus': colorsStatus,
+      'creatorID': creatorID,
       'maxUsers': maxUsers,
       'category': category,
       'title': title,
@@ -37,19 +41,38 @@ class Salfh {
   }
 }
 
+Future<bool> joinSalfh({String userID, String salfhID, colorName}) async {
+  final ref = firestore.collection('Swalf').document(salfhID);
+  bool added = false;
+  await firestore.runTransaction((transaction) async {
+    final snapshot = await transaction.get(ref);
+    if (snapshot.exists) {
+      if (snapshot.data['colorsStatus'][colorName] == null) {
+        final newColorsStatus = snapshot.data['colorsStatus'];
+        newColorsStatus[colorName] = userID;
+        transaction.update(ref, {'colorsStatus': newColorsStatus});
+      }
+    }
+  }).then((value) {
+    added = true;
+  });
+  if (added) {
+    await addSalfhToUser(userID, salfhID, colorName);
+  }
+  return added;
+}
+
 Future<String> saveSalfh(
     {String creatorID, int maxUsers, String category, String title}) async {
-  final firestore = Firestore.instance;
   DocumentReference salfhID = await firestore.collection("Swalf").add(Salfh(
-          maxUsers: maxUsers,
-          category: category,
-          colorsStatus: getInitialColorStatus(creatorID),
-          title: title,
-          timeCreated: DateTime.now(), 
-          lastMessageSentTime: DateTime.now(), 
-          
-          )
-      .toMap());
+        maxUsers: maxUsers,
+        creatorID: creatorID,
+        category: category,
+        colorsStatus: getInitialColorStatus(creatorID, maxUsers),
+        title: title,
+        timeCreated: DateTime.now(),
+        lastMessageSentTime: DateTime.now(),
+      ).toMap());
 
   String color =
       await getColorOfUser(userID: creatorID, salfhID: salfhID.documentID);
@@ -60,11 +83,11 @@ Future<String> saveSalfh(
   return salfhID.documentID;
 }
 
-Map<String, String> getInitialColorStatus(String creatorID) {
+Map<String, String> getInitialColorStatus(String creatorID, int maxUsers) {
   Map<String, String> res = Map<String, String>();
-  String colorName = kColorNames[Random().nextInt(5)];
+  String colorName = kColorNames[Random().nextInt(maxUsers)];
 
-  for (String color in kColorNames) {
+  for (String color in kColorNames.sublist(0, maxUsers)..shuffle()) {
     if (color == colorName) {
       res[color] = creatorID;
     } else {

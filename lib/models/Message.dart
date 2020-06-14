@@ -31,10 +31,12 @@ class Message {
   }
 }
 
-void addMessage(String messageContent, String color, String salfhID) async {
+// now returns whether it succeeded or not
+Future<bool> addMessage(
+    String messageContent, String color, String salfhID) async {
   //print(salfhID);
   final firestore = Firestore.instance;
-
+  bool success = false;
   if (salfhID != null) {
     // generate unique message key
     final messageKey = firestore
@@ -45,11 +47,20 @@ void addMessage(String messageContent, String color, String salfhID) async {
         .documentID;
 
     // save message with   generated key
-    firestore.collection("Swalf").document(salfhID).collection("messages").add(
-        Message(
+    await firestore
+        .collection("Swalf")
+        .document(salfhID)
+        .collection("messages")
+        .add(Message(
                 content: messageContent,
                 timeSent: DateTime.now(),
                 messageColor: color)
-            .toMap());
+            .toMap())
+        .then((value) {
+          success = true;
+        })
+        .timeout(Duration(seconds: 5))
+        .catchError((err) {});
   }
+  return success;
 }

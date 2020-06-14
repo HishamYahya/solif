@@ -16,7 +16,7 @@ class AddScreen extends StatefulWidget {
   _AddScreenState createState() => _AddScreenState();
 }
 
-final maxNumOfUsers = 5;
+final maxNumOfUsers = 4;
 final disabledColor = Colors.grey[400];
 
 class _AddScreenState extends State<AddScreen> {
@@ -34,7 +34,7 @@ class _AddScreenState extends State<AddScreen> {
     //create new salfh
     String newSalfhId = await saveSalfh(
       creatorID: Provider.of<AppData>(context, listen: false).currentUserID,
-      maxUsers: groupSize,
+      maxUsers: groupSize + 1,
       title: salfhName,
     );
 
@@ -51,6 +51,7 @@ class _AddScreenState extends State<AddScreen> {
         MaterialPageRoute(
           builder: (context) => ChatScreen(
             title: salfh['title'],
+            colorsStatus: salfh['colorsStatus'],
             color: colorName,
             salfhID: newSalfhId,
           ),

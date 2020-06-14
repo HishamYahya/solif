@@ -15,11 +15,17 @@ class SalfhTile extends StatefulWidget {
   final String id;
   final Map colorsStatus;
 
-  final DateTime lastMessageSentTime; // to sort user messages according to most recent message, maybe display it somewhere later on.
+  final DateTime
+      lastMessageSentTime; // to sort user messages according to most recent message, maybe display it somewhere later on.
   // add type (1 on 1, group)
   // change to stateful and add remaining slots
 
-  SalfhTile({this.title, this.category, this.id, this.colorsStatus, this.lastMessageSentTime});
+  SalfhTile(
+      {this.title,
+      this.category,
+      this.id,
+      this.colorsStatus,
+      this.lastMessageSentTime});
 
   @override
   _SalfhTileState createState() => _SalfhTileState();
@@ -43,6 +49,7 @@ class _SalfhTileState extends State<SalfhTile> {
         .snapshots()
         .listen((snapshot) {
       if (!mapEquals(colorsStatus, snapshot.data['colorsStatus'])) {
+        //update local colorsStatus state
         colorsStatus = snapshot.data['colorsStatus'];
         updateTileColor();
       }
@@ -53,11 +60,16 @@ class _SalfhTileState extends State<SalfhTile> {
   updateTileColor() {
     String newColorName;
 
-    colorsStatus.forEach((name, value) {
-      if (value == null) {
+    colorsStatus.forEach((name, id) {
+      if (id == Provider.of<AppData>(context, listen: false).currentUserID)
         newColorName = name;
-      }
     });
+    if (newColorName == null)
+      colorsStatus.forEach((name, value) {
+        if (value == null) {
+          newColorName = name;
+        }
+      });
     setState(() {
       //TODO: design full mode
       if (newColorName != null) {
@@ -72,8 +84,8 @@ class _SalfhTileState extends State<SalfhTile> {
   List<Widget> generateDots(data) {
     List<Widget> newDots = [];
     data['colorsStatus'].forEach((name, id) {
-      // if it's not the current user and someone is in the salfh with that color
-      if (id != null && Provider.of<AppData>(context).currentUserID != id) {
+      // if someone is in the salfh with that color
+      if (id != null) {
         newDots.add(Padding(
           padding: const EdgeInsets.all(5.0),
           child: ColoredDot(kOurColors[name]),
@@ -87,16 +99,18 @@ class _SalfhTileState extends State<SalfhTile> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChatScreen(
-              title: this.widget.title,
-              color: colorName,
-              salfhID: this.widget.id,
+        if (!isFull)
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatScreen(
+                title: this.widget.title,
+                color: colorName,
+                salfhID: this.widget.id,
+                colorsStatus: colorsStatus,
+              ),
             ),
-          ),
-        );
+          );
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
