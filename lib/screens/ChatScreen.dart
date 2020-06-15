@@ -133,10 +133,12 @@ class _ChatScreenState extends State<ChatScreen> {
       sending = true;
     });
     if (inputMessage == "" || inputMessage == null) {
+      sending = false; 
       return;
     }
     if (isInSalfh) {
       sendMessage();
+      inputMessage = '';
     } else {
       bool joined;
       joined = await _joinSalfh();
@@ -147,7 +149,7 @@ class _ChatScreenState extends State<ChatScreen> {
         Provider.of<AppData>(context, listen: false).reloadUsersSalfhTiles();
         sendMessage();
       }
-    }
+    } 
   }
 
   void sendMessage() async {
@@ -201,6 +203,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     color: message['color'],
                     message: message["content"],
                     fromUser: message['color'] == colorName,
+                    
                     //
                     // add stuff here when you update messageTile
                     // time: message["time"],
