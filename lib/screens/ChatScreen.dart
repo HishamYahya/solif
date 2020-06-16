@@ -183,7 +183,7 @@ class _ChatScreenState extends State<ChatScreen> {
           children: <Widget>[
             StreamBuilder<QuerySnapshot>(
               stream: firestore
-                  .collection("Swalf")
+                  .collection("chatRooms")
                   .document(widget.salfhID)
                   .collection('messages')
                   .orderBy("timeSent")

@@ -94,7 +94,7 @@ Map<String, String> getInitialColorStatus(String creatorID, int maxUsers) {
       res[color] = null;
     }
   }
-  return res;
+  return res; 
 }
 
 Future<String> getColorOfUser({String userID, String salfhID}) async {

@@ -38,19 +38,10 @@ Future<bool> addMessage(
   final firestore = Firestore.instance;
   bool success = false;
   if (salfhID != null) {
-    // generate unique message key
-    final messageKey = firestore
-        .collection("Swalf")
-        .document(salfhID)
-        .collection("messages")
-        .document()
-        .documentID;
-
-    // save message with   generated key
     await firestore
-        .collection("Swalf")
+        .collection("chatRooms")
         .document(salfhID)
-        .collection("messages")
+        .collection('messages')
         .add(Message(
                 content: messageContent,
                 timeSent: DateTime.now(),
