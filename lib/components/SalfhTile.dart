@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +38,7 @@ class _SalfhTileState extends State<SalfhTile> {
   Map colorsStatus;
   List<Widget> dots = [];
   bool isFull = false;
+  StreamSubscription<DocumentSnapshot> listener;
 
   @override
   void initState() {
@@ -43,7 +46,7 @@ class _SalfhTileState extends State<SalfhTile> {
     super.initState();
     colorsStatus = widget.colorsStatus;
     updateTileColor();
-    firestore
+    listener = firestore
         .collection('Swalf')
         .document(widget.id)
         .snapshots()
@@ -61,7 +64,8 @@ class _SalfhTileState extends State<SalfhTile> {
     String newColorName;
 
     colorsStatus.forEach((name, statusMap) {
-      if (statusMap['userID'] == Provider.of<AppData>(context, listen: false).currentUserID)
+      if (statusMap['userID'] ==
+          Provider.of<AppData>(context, listen: false).currentUserID)
         newColorName = name;
     });
     if (newColorName == null)
@@ -95,47 +99,52 @@ class _SalfhTileState extends State<SalfhTile> {
     return newDots;
   }
 
-  updateReadMessagesOnJoin()async{
-        final firestore = Firestore.instance;
-         DocumentReference salfhDoc = firestore.collection("Swalf").document(widget.id);
-        Map<String,dynamic> salfh = await salfhDoc.get().then((value) => value.data);
+  updateReadMessagesOnJoin() async {
+    final firestore = Firestore.instance;
+    DocumentReference salfhDoc =
+        firestore.collection("Swalf").document(widget.id);
+    Map<String, dynamic> salfh =
+        await salfhDoc.get().then((value) => value.data);
 
-        Map colorStatus = salfh['colorsStatus']; 
-        colorStatus[colorName]['isInChatRoom'] = true;
-         colorStatus[colorName]['lastMessageReadID'] = salfh['lastMessageSentID'];
-        if(colorStatus[colorName]['lastMessageReadID'] == null) return;
-       
-      
-        colorStatus[colorName]['isInChatRoom'] = true;
-        DocumentReference oldCheckPoint = firestore
-          .collection("chatRooms")
-          .document(widget.id)
-          .collection('messages')
-          .document(colorStatus[colorName]['lastMessageReadID']);
-      oldCheckPoint.setData({
-        'isCheckPointMessage': {colorName: false}
-      }, merge: true);
-      DocumentReference newCheckPoint = firestore
-          .collection("chatRooms")
-          .document(widget.id)
-          .collection('messages')
-          .document(salfh['lastMessageSentID']);
+    Map colorStatus = salfh['colorsStatus'];
+    colorStatus[colorName]['isInChatRoom'] = true;
+    colorStatus[colorName]['lastMessageReadID'] = salfh['lastMessageSentID'];
+    if (colorStatus[colorName]['lastMessageReadID'] == null) return;
 
-      newCheckPoint.setData({
-        'isCheckPointMessage': {colorName: true}
-      }, merge: true);
+    colorStatus[colorName]['isInChatRoom'] = true;
+    DocumentReference oldCheckPoint = firestore
+        .collection("chatRooms")
+        .document(widget.id)
+        .collection('messages')
+        .document(colorStatus[colorName]['lastMessageReadID']);
+    oldCheckPoint.setData({
+      'isCheckPointMessage': {colorName: false}
+    }, merge: true);
+    DocumentReference newCheckPoint = firestore
+        .collection("chatRooms")
+        .document(widget.id)
+        .collection('messages')
+        .document(salfh['lastMessageSentID']);
 
-        salfhDoc.updateData(salfh);
+    newCheckPoint.setData({
+      'isCheckPointMessage': {colorName: true}
+    }, merge: true);
+
+    salfhDoc.updateData(salfh);
+  }
+
+  @override
+  void dispose() {
+    listener.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-
-
-        if (!isFull)
-        updateReadMessagesOnJoin(); 
+        if (!isFull) {
+          updateReadMessagesOnJoin();
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -147,6 +156,7 @@ class _SalfhTileState extends State<SalfhTile> {
               ),
             ),
           );
+        }
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),

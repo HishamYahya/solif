@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -40,6 +41,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool joining = false;
   bool sending = false;
   TextEditingController messageController = TextEditingController();
+  StreamSubscription<DocumentSnapshot> listener;
 
   static List<MessageTile> getMessages() {
     List<MessageTile> tiles = List<MessageTile>();
@@ -75,7 +77,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   // listen to changes in the colorsStatus in the database
   void listenToChanges() {
-    firestore
+    listener = firestore
         .collection('Swalf')
         .document(widget.salfhID)
         .snapshots()
@@ -133,7 +135,7 @@ class _ChatScreenState extends State<ChatScreen> {
       sending = true;
     });
     if (inputMessage == "" || inputMessage == null) {
-      sending = false; 
+      sending = false;
       return;
     }
     if (isInSalfh) {
@@ -149,7 +151,7 @@ class _ChatScreenState extends State<ChatScreen> {
         Provider.of<AppData>(context, listen: false).reloadUsersSalfhTiles();
         sendMessage();
       }
-    } 
+    }
   }
 
   void sendMessage() async {
@@ -164,31 +166,37 @@ class _ChatScreenState extends State<ChatScreen> {
       sending = false;
     });
   }
-  
-  void setUserNotInChatRoom() async{
-        final firestore = Firestore.instance;
-        DocumentReference salfhDoc = firestore.collection("Swalf").document(widget.salfhID);
-        Map<String,dynamic> salfh = await salfhDoc.get().then((value) => value.data);
-        Map colorStatus = salfh['colorsStatus']; 
-        colorStatus[colorName]['isInChatRoom'] = false;
-        salfhDoc.updateData(salfh);
+
+  void setUserNotInChatRoom() async {
+    final firestore = Firestore.instance;
+    DocumentReference salfhDoc =
+        firestore.collection("Swalf").document(widget.salfhID);
+    Map<String, dynamic> salfh =
+        await salfhDoc.get().then((value) => value.data);
+    Map colorStatus = salfh['colorsStatus'];
+    colorStatus[colorName]['isInChatRoom'] = false;
+    salfhDoc.updateData(salfh);
   }
 
   @override
-  Widget build(BuildContext context) {  
+  void dispose() {
+    listener.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     Color backGround = Colors.white;
     Color currentColor = kOurColors[colorName];
     //////////////////// hot reload to add message
     return Scaffold(
         appBar: AppBar(
-          leading: IconButton(
+            leading: IconButton(
                 icon: Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: (){
-
-              Navigator.of(context).pop();
-              setUserNotInChatRoom(); 
-            }
-          ),
+                onPressed: () {
+                  setUserNotInChatRoom();
+                  Navigator.pop(context);
+                }),
             title: Text(
               widget.title,
             ),
@@ -216,18 +224,18 @@ class _ChatScreenState extends State<ChatScreen> {
                 final messages = snapshot.data.documents.reversed;
                 List<MessageTile> messageTiles = [];
                 for (var message in messages) {
-                  messageTiles.add( MessageTile(
-                    color: message['color'],
-                    message: message["content"],
-                    fromUser: message['color'] == colorName,
-                   messageCheckPoint: Map<String, bool>.from(message['isCheckPointMessage'])
-                    
-                    
-                    //
-                    // add stuff here when you update messageTile
-                    // time: message["time"],
-                    //
-                  ));
+                  messageTiles.add(MessageTile(
+                      color: message['color'],
+                      message: message["content"],
+                      fromUser: message['color'] == colorName,
+                      messageCheckPoint:
+                          Map<String, bool>.from(message['isCheckPointMessage'])
+
+                      //
+                      // add stuff here when you update messageTile
+                      // time: message["time"],
+                      //
+                      ));
                 }
                 return Expanded(
                   child: Padding(
