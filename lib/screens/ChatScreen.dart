@@ -167,7 +167,7 @@ class _ChatScreenState extends State<ChatScreen> {
   
   void setUserNotInChatRoom() async{
         final firestore = Firestore.instance;
-        DocumentReference salfhDoc = firestore.collection("Swalf").document(widget.id);
+        DocumentReference salfhDoc = firestore.collection("Swalf").document(widget.salfhID);
         Map<String,dynamic> salfh = await salfhDoc.get().then((value) => value.data);
         Map colorStatus = salfh['colorsStatus']; 
         colorStatus[colorName]['isInChatRoom'] = false;
@@ -216,10 +216,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 final messages = snapshot.data.documents.reversed;
                 List<MessageTile> messageTiles = [];
                 for (var message in messages) {
-                  messageTiles.add(MessageTile(
+                  messageTiles.add( MessageTile(
                     color: message['color'],
                     message: message["content"],
                     fromUser: message['color'] == colorName,
+                   messageCheckPoint: Map<String, bool>.from(message['isCheckPointMessage'])
+                    
                     
                     //
                     // add stuff here when you update messageTile

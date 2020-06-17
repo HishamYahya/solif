@@ -76,7 +76,7 @@ Future<String> saveSalfh(
         title: title,
         timeCreated: DateTime.now(),
         lastMessageSentTime: DateTime.now(),
-        lastMessageSentID: "",
+        lastMessageSentID: null,
       ).toMap());
 
   String color =

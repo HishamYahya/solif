@@ -56,7 +56,7 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
           // color now generated in SalfhTile
           colorsStatus: salfh['colorsStatus'],
           title: salfh['title'],
-          id: salfh.documentID, 
+          id: salfh.documentID,
         ));
     }
   }

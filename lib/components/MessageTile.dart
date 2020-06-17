@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:solif/components/ColoredDot.dart';
 import 'package:solif/constants.dart';
 
 class MessageTile extends StatelessWidget {
   final String message;
   final String color;
   final bool fromUser;
+  final Map<String,bool> messageCheckPoint; 
 
-  const MessageTile({Key key, this.message, this.color, this.fromUser});
+  const MessageTile({Key key, this.message, this.color, this.fromUser, this.messageCheckPoint});
 
   @override
   Widget build(BuildContext context) {
@@ -42,8 +44,22 @@ class MessageTile extends StatelessWidget {
           ),
           //Divider(
           //  )
-        ],
-      ),
-    );
-  }
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start  ,
+            children: getDots(),
+          )
+                      ],
+                    ),
+                  );
+                }
+              
+                List<ColoredDot> getDots() {
+                  List<ColoredDot> dots = []; 
+                  messageCheckPoint.forEach((color, isCheckPoint) {
+                    if(isCheckPoint){
+                      dots.add(ColoredDot(kOurColors[color]));
+                    }
+                   });
+                   return dots; 
+                }
 }
