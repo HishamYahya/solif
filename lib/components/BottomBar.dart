@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:solif/screens/AddScreen.dart';
 
+import '../constants.dart';
+
 class BottomBarItem {
   String title;
   IconData icon;
@@ -43,12 +45,12 @@ class _BottomBarState extends State<BottomBar>
       duration: Duration(milliseconds: 200),
     );
     whiteToBlueAnimation =
-        ColorTween(begin: Colors.white, end: Colors.blue).animate(controller)
+        ColorTween(begin: Colors.white, end: kMainColor).animate(controller)
           ..addListener(() {
             setState(() {});
           });
     blueToWhiteAnimation =
-        ColorTween(begin: Colors.blue, end: Colors.white).animate(controller);
+        ColorTween(begin: kMainColor, end: Colors.white).animate(controller);
   }
 
   @override

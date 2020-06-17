@@ -60,7 +60,7 @@ class _PublicChatsScreenState extends State<PublicChatsScreen> {
           CustomSliverAppBar(
             title: Text(
               "سواليفهم",
-              style: TextStyle(color: Colors.blue),
+              style: TextStyle(color: Colors.white),
             ),
           ),
           SliverList(

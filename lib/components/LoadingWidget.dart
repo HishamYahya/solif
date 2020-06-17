@@ -23,7 +23,7 @@ class LoadingWidget extends StatelessWidget {
           ),
           Text(
             text,
-            style: kHeadingTextStyle.copyWith(color: Colors.blue),
+            style: kHeadingTextStyle.copyWith(color: kMainColor),
             textAlign: TextAlign.end,
           ),
         ],

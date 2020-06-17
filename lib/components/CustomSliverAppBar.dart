@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../constants.dart';
+
 class CustomSliverAppBar extends StatelessWidget {
   final Widget title;
   final List<Widget> actions;
@@ -16,7 +18,7 @@ class CustomSliverAppBar extends StatelessWidget {
       centerTitle: true,
       title: title,
       floating: true,
-      backgroundColor: Colors.white,
+      backgroundColor: kMainColor,
       actions: actions,
       flexibleSpace: FlexibleSpaceBar(),
     );

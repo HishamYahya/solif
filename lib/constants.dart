@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const kMainColor = Colors.blueGrey;
+const kMainColor = Colors.grey;
 
 const kHeadingTextStyle = TextStyle(
   fontSize: 40,

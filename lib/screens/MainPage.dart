@@ -7,6 +7,8 @@ import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/screens/MyChatsScreen.dart';
 import 'package:solif/screens/PublicChatsScreen.dart';
 
+import '../constants.dart';
+
 class MainPage extends StatefulWidget {
   @override
   _MainPageState createState() => _MainPageState();
@@ -42,10 +44,10 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     _rotateAnimation =
         Tween<double>(begin: 0, end: 0.25 * pi).animate(_animationController);
 
-    whiteToBlueAnimation = ColorTween(begin: Colors.white, end: Colors.blue)
+    whiteToBlueAnimation = ColorTween(begin: Colors.white, end: kMainColor)
         .animate(_animationController);
 
-    blueToWhiteAnimation = ColorTween(begin: Colors.blue, end: Colors.white)
+    blueToWhiteAnimation = ColorTween(begin: kMainColor, end: Colors.white)
         .animate(_animationController);
 
     print("df");

@@ -85,7 +85,7 @@ class _AddScreenState extends State<AddScreen> {
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: Duration(milliseconds: 300),
-      color: Colors.blue,
+      color: kMainColor,
       width: double.infinity,
       height: widget.isAdding ? MediaQuery.of(context).size.height * 0.7 : 0,
       curve: Curves.decelerate,
@@ -193,7 +193,7 @@ class _AddScreenState extends State<AddScreen> {
                               child: Text(
                                 "افتح السالفة",
                                 style:
-                                    TextStyle(color: Colors.blue, fontSize: 20),
+                                    TextStyle(color: kMainColor, fontSize: 20),
                               ),
                             ),
                           )

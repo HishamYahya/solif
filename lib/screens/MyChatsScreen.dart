@@ -35,7 +35,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
         CustomSliverAppBar(
           title: Text(
             "سوالفي2",
-            style: TextStyle(color: Colors.blue),
+            style: TextStyle(color: kMainColor),
           ),
         ),
         SliverList(
