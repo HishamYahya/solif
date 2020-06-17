@@ -47,8 +47,8 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
   for (var salfh in salfhDocs.documents) {
     if (salfh['creatorID'] != userID) {
       bool isFull = true;
-      salfh['colorsStatus'].forEach((name, id) {
-        if (id == null) isFull = false;
+      salfh['colorsStatus'].forEach((name, statusMap) {
+        if (statusMap['userID'] == null) isFull = false;
       });
       if (!isFull)
         salfhTiles.add(SalfhTile(
@@ -56,7 +56,7 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
           // color now generated in SalfhTile
           colorsStatus: salfh['colorsStatus'],
           title: salfh['title'],
-          id: salfh.documentID,
+          id: salfh.documentID, 
         ));
     }
   }

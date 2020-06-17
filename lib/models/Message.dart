@@ -47,11 +47,30 @@ Future<bool> addMessage(
                 timeSent: DateTime.now(),
                 messageColor: color)
             .toMap())
-        .then((value) {
+        .then((value) async {
           success = true;
+
+          await firestore.collection("Swalf").document(salfhID).updateData(
+              {'lastMessageSentID': value.documentID}).then((value) {
+                updateUsersLastMessageRead(salfhID);
+              });
         })
         .timeout(Duration(seconds: 5))
         .catchError((err) {});
   }
   return success;
+}
+
+void updateUsersLastMessageRead(salfhID) async{
+  final firestore = Firestore.instance;
+ DocumentReference salfhDoc = firestore.collection("Swalf").document(salfhID);
+ Map<String,dynamic> salfh = await salfhDoc.get().then((value) => value.data);
+salfh['colorsStatus'].forEach((color, statusMap) { 
+  print(statusMap); 
+  if(statusMap['isInChatRoom']){
+    statusMap['lastMessageReadID'] = salfh['lastMessageSentID'];
+  }
+  salfhDoc.updateData(salfh); // could be more efficent. 
+});
+
 }

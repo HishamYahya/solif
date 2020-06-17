@@ -11,13 +11,15 @@ import '../constants.dart';
 final firestore = Firestore.instance;
 
 class Salfh {
-  final Map<String, String> colorsStatus;
+  final Map<String, Map<String, dynamic>>
+      colorsStatus; // Color: {"userID": id, "lastMessageRead":messageID, "isInChatRoom":bool}
   int maxUsers;
   String category;
   String creatorID;
   String title;
   DateTime timeCreated;
   DateTime lastMessageSentTime;
+  String lastMessageSentID;
 
   Salfh(
       {@required this.maxUsers,
@@ -26,7 +28,8 @@ class Salfh {
       this.title,
       this.timeCreated,
       this.lastMessageSentTime,
-      this.creatorID});
+      this.creatorID,
+      this.lastMessageSentID});
 
   Map<String, dynamic> toMap() {
     return {
@@ -36,7 +39,8 @@ class Salfh {
       'category': category,
       'title': title,
       'timeCreated': timeCreated,
-      'lastMessageSentTime': lastMessageSentTime
+      'lastMessageSentTime': lastMessageSentTime,
+      'lastMessageSentID': lastMessageSentID,
     };
   }
 }
@@ -47,9 +51,9 @@ Future<bool> joinSalfh({String userID, String salfhID, colorName}) async {
   await firestore.runTransaction((transaction) async {
     final snapshot = await transaction.get(ref);
     if (snapshot.exists) {
-      if (snapshot.data['colorsStatus'][colorName] == null) {
+      if (snapshot.data['colorsStatus'][colorName]['userID'] == null) {
         final newColorsStatus = snapshot.data['colorsStatus'];
-        newColorsStatus[colorName] = userID;
+        newColorsStatus[colorName]['userID'] = userID;
         transaction.update(ref, {'colorsStatus': newColorsStatus});
       }
     }
@@ -72,6 +76,7 @@ Future<String> saveSalfh(
         title: title,
         timeCreated: DateTime.now(),
         lastMessageSentTime: DateTime.now(),
+        lastMessageSentID: "",
       ).toMap());
 
   String color =
@@ -83,26 +88,35 @@ Future<String> saveSalfh(
   return salfhID.documentID;
 }
 
-Map<String, String> getInitialColorStatus(String creatorID, int maxUsers) {
-  Map<String, String> res = Map<String, String>();
+Map<String, Map<String, dynamic>> getInitialColorStatus(
+    String creatorID, int maxUsers) {
+  Map<String, Map<String, dynamic>> res = Map<String, Map<String, dynamic>>();
   String colorName = kColorNames[Random().nextInt(maxUsers)];
 
   for (String color in kColorNames.sublist(0, maxUsers)..shuffle()) {
     if (color == colorName) {
-      res[color] = creatorID;
+      res[color] = {
+        'userID': creatorID,
+        'lastMessageReadID': null,
+        'isInChatRoom': false
+      };
     } else {
-      res[color] = null;
+      res[color] = {
+        'userID': null,
+        'lastMessageReadID': null,
+        'isInChatRoom': false
+      };
     }
   }
-  return res; 
+  return res;
 }
 
 Future<String> getColorOfUser({String userID, String salfhID}) async {
   final salfh = await getSalfh(salfhID);
   print(salfh);
   String colorName;
-  salfh['colorsStatus'].forEach((name, id) {
-    id == userID ? colorName = name : null;
+  salfh['colorsStatus'].forEach((name, statusMap) {
+    statusMap['userID'] == userID ? colorName = name : null;
   });
   return colorName;
 }

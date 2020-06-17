@@ -63,8 +63,8 @@ class _ChatScreenState extends State<ChatScreen> {
     });
     // check if user is in salfh
     String userID = Provider.of<AppData>(context, listen: false).currentUserID;
-    widget.colorsStatus.forEach((key, value) {
-      if (value == userID)
+    widget.colorsStatus.forEach((key, statusMap) {
+      if (statusMap['userID'] == userID)
         setState(() {
           isInSalfh = true;
         });
@@ -83,13 +83,13 @@ class _ChatScreenState extends State<ChatScreen> {
       print(snapshot);
       Map newColorsStatus = snapshot.data['colorsStatus'];
       // if someone ELSE joined with your color
-      if (newColorsStatus[colorName] != null &&
-          newColorsStatus[colorName] !=
+      if (newColorsStatus[colorName]['userID'] != null &&
+          newColorsStatus[colorName]['userID'] !=
               Provider.of<AppData>(context, listen: false).currentUserID) {
         String newColorName;
         // loop through the status until you find a color that hasn't been assigned to anyone
-        newColorsStatus.forEach((name, id) {
-          if (id == null) {
+        newColorsStatus.forEach((name, statusMap) {
+          if (statusMap['userID'] == null) {
             newColorName = name;
           }
         });
@@ -164,6 +164,15 @@ class _ChatScreenState extends State<ChatScreen> {
       sending = false;
     });
   }
+  
+  void setUserNotInChatRoom() async{
+        final firestore = Firestore.instance;
+        DocumentReference salfhDoc = firestore.collection("Swalf").document(widget.id);
+        Map<String,dynamic> salfh = await salfhDoc.get().then((value) => value.data);
+        Map colorStatus = salfh['colorsStatus']; 
+        colorStatus[colorName]['isInChatRoom'] = false;
+        salfhDoc.updateData(salfh);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -172,6 +181,14 @@ class _ChatScreenState extends State<ChatScreen> {
     //////////////////// hot reload to add message
     return Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+                icon: Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: (){
+
+              Navigator.of(context).pop();
+              setUserNotInChatRoom(); 
+            }
+          ),
             title: Text(
               widget.title,
             ),

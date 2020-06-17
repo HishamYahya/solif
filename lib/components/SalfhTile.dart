@@ -60,13 +60,13 @@ class _SalfhTileState extends State<SalfhTile> {
   updateTileColor() {
     String newColorName;
 
-    colorsStatus.forEach((name, id) {
-      if (id == Provider.of<AppData>(context, listen: false).currentUserID)
+    colorsStatus.forEach((name, statusMap) {
+      if (statusMap['userID'] == Provider.of<AppData>(context, listen: false).currentUserID)
         newColorName = name;
     });
     if (newColorName == null)
-      colorsStatus.forEach((name, value) {
-        if (value == null) {
+      colorsStatus.forEach((name, statusMap) {
+        if (statusMap['userID'] == null) {
           newColorName = name;
         }
       });
@@ -83,9 +83,9 @@ class _SalfhTileState extends State<SalfhTile> {
 
   List<Widget> generateDots(data) {
     List<Widget> newDots = [];
-    data['colorsStatus'].forEach((name, id) {
+    data['colorsStatus'].forEach((name, statusMap) {
       // if someone is in the salfh with that color
-      if (id != null) {
+      if (statusMap['userID'] != null) {
         newDots.add(Padding(
           padding: const EdgeInsets.all(5.0),
           child: ColoredDot(kOurColors[name]),
@@ -95,11 +95,24 @@ class _SalfhTileState extends State<SalfhTile> {
     return newDots;
   }
 
+  updateReadMessagesOnJoin()async{
+        final firestore = Firestore.instance;
+         DocumentReference salfhDoc = firestore.collection("Swalf").document(widget.id);
+        Map<String,dynamic> salfh = await salfhDoc.get().then((value) => value.data);
+        Map colorStatus = salfh['colorsStatus']; 
+        colorStatus[colorName]['isInChatRoom'] = true;
+        colorStatus[colorName]['lastMessageReadID'] = salfh['lastMessageSentID'];
+        salfhDoc.updateData(salfh);
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
+
+
         if (!isFull)
+        updateReadMessagesOnJoin(); 
           Navigator.push(
             context,
             MaterialPageRoute(
