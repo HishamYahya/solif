@@ -175,7 +175,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) {  
     Color backGround = Colors.white;
     Color currentColor = kOurColors[colorName];
     //////////////////// hot reload to add message

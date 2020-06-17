@@ -6,15 +6,34 @@ class MessageTile extends StatelessWidget {
   final String message;
   final String color;
   final bool fromUser;
-  final Map<String,bool> messageCheckPoint; 
+  final Map<String, bool> messageCheckPoint;
 
-  const MessageTile({Key key, this.message, this.color, this.fromUser, this.messageCheckPoint});
+  const MessageTile(
+      {Key key,
+      this.message,
+      this.color,
+      this.fromUser,
+      this.messageCheckPoint});
+
+  List<Widget> getDots() { // testing how it looks. 
+    List<Widget> dots = [];
+    messageCheckPoint.forEach((color, isCheckPoint) {
+      if (isCheckPoint) {
+        dots.add(Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 1),
+          child: ColoredDot(kOurColors[color]),
+        ));
+      }
+    });
+    return dots;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       alignment: fromUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
@@ -45,21 +64,11 @@ class MessageTile extends StatelessWidget {
           //Divider(
           //  )
           Row(
-            mainAxisAlignment: MainAxisAlignment.start  ,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: getDots(),
           )
-                      ],
-                    ),
-                  );
-                }
-              
-                List<ColoredDot> getDots() {
-                  List<ColoredDot> dots = []; 
-                  messageCheckPoint.forEach((color, isCheckPoint) {
-                    if(isCheckPoint){
-                      dots.add(ColoredDot(kOurColors[color]));
-                    }
-                   });
-                   return dots; 
-                }
+        ],
+      ),
+    );
+  }
 }
