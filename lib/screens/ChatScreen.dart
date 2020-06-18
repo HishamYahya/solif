@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:solif/components/ChatInputBox.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/MessageTile.dart';
+import 'package:solif/components/TypingWidgetRow.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:solif/models/Message.dart';
@@ -34,12 +36,13 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   List<MessageTile> messages = getMessages();
-  String inputMessage;
+  String inputMessage = "";
   Map colorsStatus;
   String colorName;
   bool isInSalfh = false;
   bool joining = false;
   bool sending = false;
+  TypingWidgetRow typingWidgetRow;
   TextEditingController messageController = TextEditingController();
   StreamSubscription<DocumentSnapshot> listener;
 
@@ -61,6 +64,7 @@ class _ChatScreenState extends State<ChatScreen> {
     // initial status
     setState(() {
       colorsStatus = widget.colorsStatus;
+      typingWidgetRow = TypingWidgetRow(colorsStatus: colorsStatus);
       colorName = widget.color;
     });
     // check if user is in salfh
@@ -84,6 +88,11 @@ class _ChatScreenState extends State<ChatScreen> {
         .listen((snapshot) {
       print(snapshot);
       Map newColorsStatus = snapshot.data['colorsStatus'];
+      if (!mapEquals(colorsStatus, newColorsStatus)) {
+        setState(() {
+          colorsStatus = newColorsStatus;
+        });
+      }
       // if someone ELSE joined with your color
       if (newColorsStatus[colorName]['userID'] != null &&
           newColorsStatus[colorName]['userID'] !=
@@ -140,7 +149,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
     if (isInSalfh) {
       sendMessage();
-      inputMessage = '';
+      _changeTypingTo(false);
     } else {
       bool joined;
       joined = await _joinSalfh();
@@ -150,8 +159,12 @@ class _ChatScreenState extends State<ChatScreen> {
         });
         Provider.of<AppData>(context, listen: false).reloadUsersSalfhTiles();
         sendMessage();
+        _changeTypingTo(false);
       }
     }
+    setState(() {
+      inputMessage = '';
+    });
   }
 
   void sendMessage() async {
@@ -167,20 +180,48 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  void setUserNotInChatRoom() async {
+  Future<void> setUserNotInChatRoom() async {
     final firestore = Firestore.instance;
-    DocumentReference salfhDoc =
-        firestore.collection("Swalf").document(widget.salfhID);
-    Map<String, dynamic> salfh =
-        await salfhDoc.get().then((value) => value.data);
-    Map colorStatus = salfh['colorsStatus'];
-    colorStatus[colorName]['isInChatRoom'] = false;
-    salfhDoc.updateData(salfh);
+    // changed this so that it rewrites the one field instead of the whole map
+    await firestore.collection("Swalf").document(widget.salfhID).setData({
+      'colorsStatus': {
+        colorName: {
+          'isInChatRoom': false,
+        }
+      }
+    }, merge: true);
+  }
+
+  void _changeTypingTo(bool isTyping) {
+    firestore.collection('Swalf').document(widget.salfhID).setData({
+      'colorsStatus': {
+        colorName: {
+          'isTyping': isTyping,
+        }
+      }
+    }, merge: true);
+  }
+
+  void updateTyping(String newInputMessage) {
+    if (inputMessage.isEmpty && newInputMessage.isNotEmpty) {
+      _changeTypingTo(true);
+    } else if (inputMessage.isNotEmpty && newInputMessage.isEmpty) {
+      _changeTypingTo(false);
+    }
+  }
+
+  void _onClose() async {
+    listener.cancel();
+    await setUserNotInChatRoom();
+    if (inputMessage.isNotEmpty) {
+      inputMessage = '';
+      _changeTypingTo(false);
+    }
   }
 
   @override
   void dispose() {
-    listener.cancel();
+    _onClose();
     super.dispose();
   }
 
@@ -190,117 +231,132 @@ class _ChatScreenState extends State<ChatScreen> {
     Color currentColor = kOurColors[colorName];
     //////////////////// hot reload to add message
     return Scaffold(
-        appBar: AppBar(
-            leading: IconButton(
-                icon: Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () {
-                  setUserNotInChatRoom();
-                  Navigator.pop(context);
-                }),
-            title: Text(
-              widget.title,
-            ),
-            backgroundColor:
-                isInSalfh ? currentColor : Colors.white //.withOpacity(0.8),
-            ),
-        backgroundColor: Colors.blueAccent[50],
-        body: Column(
-          children: <Widget>[
-            StreamBuilder<QuerySnapshot>(
-              stream: firestore
-                  .collection("chatRooms")
-                  .document(widget.salfhID)
-                  .collection('messages')
-                  .orderBy("timeSent")
-                  .snapshots(),
-              builder: (context, snapshot) {
-                //TODO: display the message on screen only when it's been written to the database
-                if (!snapshot.hasData) {
-                  return Expanded(
-                    child: LoadingWidget(""),
-                  );
-                }
-                //return Text("XD");
-                final messages = snapshot.data.documents.reversed;
-                List<MessageTile> messageTiles = [];
-                for (var message in messages) {
-                  messageTiles.add(MessageTile(
-                      color: message['color'],
-                      message: message["content"],
-                      fromUser: message['color'] == colorName,
-                      messageCheckPoint:
-                          Map<String, bool>.from(message['isCheckPointMessage'])
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(kToolbarHeight),
+        child: Column(
+          children: [
+            AppBar(
+                leading: IconButton(
+                    icon: Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    }),
+                title: Text(
+                  widget.title,
+                ),
+                backgroundColor:
+                    isInSalfh ? currentColor : Colors.white //.withOpacity(0.8),
+                ),
+          ],
+        ),
+      ),
+      backgroundColor: Colors.blueAccent[50],
+      body: Column(
+        children: <Widget>[
+          Expanded(
+            child: Stack(
+              children: [
+                StreamBuilder<QuerySnapshot>(
+                  stream: firestore
+                      .collection("chatRooms")
+                      .document(widget.salfhID)
+                      .collection('messages')
+                      .orderBy("timeSent")
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    //TODO: display the message on screen only when it's been written to the database
+                    if (!snapshot.hasData) {
+                      return LoadingWidget("");
+                    }
+                    //return Text("XD");
+                    final messages = snapshot.data.documents.reversed;
+                    List<Widget> messageTiles = [];
+                    for (var message in messages) {
+                      messageTiles.add(MessageTile(
+                          color: message['color'],
+                          message: message["content"],
+                          fromUser: message['color'] == colorName,
+                          messageCheckPoint: Map<String, bool>.from(
+                              message['isCheckPointMessage'])
 
-                      //
-                      // add stuff here when you update messageTile
-                      // time: message["time"],
-                      //
-                      ));
-                }
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: ListView.builder(
+                          //
+                          // add stuff here when you update messageTile
+                          // time: message["time"],
+                          //
+                          ));
+                    }
+                    return ListView.builder(
                       reverse: true,
                       // padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
-                      itemCount: messages.length,
+                      itemCount: messageTiles.length,
                       itemBuilder: (context, index) {
                         return messageTiles[index];
                       },
-                    ),
-                  ),
-                );
-              },
+                    );
+                  },
+                ),
+                Positioned(
+                  bottom: 5,
+                  width: MediaQuery.of(context).size.width * 0.5,
+                  child: Center(
+                      child: TypingWidgetRow(colorsStatus: colorsStatus)),
+                )
+              ],
             ),
-            Container(
-              color: Colors.grey[50],
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      width: 0,
-                      color: Colors.grey[200],
-                    ),
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(150),
-                    ),
-                    color: kOurColors[colorName].withAlpha(70),
+          ),
+          Container(
+            color: Colors.grey[200],
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    width: 0,
+                    color: Colors.grey[200],
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        Expanded(
-                          child: ChatInputBox(
-                            color: currentColor,
-                            messageController: messageController,
-                            onChanged: (String value) {
-                              inputMessage = value;
-                            },
-                            onSubmit: (_) {
-                              _onSubmit();
-                            },
-                          ),
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(150),
+                  ),
+                  color: Colors.white,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      Expanded(
+                        child: ChatInputBox(
+                          color: currentColor,
+                          messageController: messageController,
+                          onChanged: (String value) {
+                            if (isInSalfh) {
+                              updateTyping(value);
+                            }
+                            inputMessage = value;
+                          },
+                          onSubmit: (_) {
+                            _onSubmit();
+                          },
                         ),
-                        SizedBox(width: 10),
-                        FloatingActionButton(
-                          backgroundColor: currentColor,
-                          child: sending
-                              ? CircularProgressIndicator(
-                                  backgroundColor: Colors.white,
-                                )
-                              : Icon(Icons.send),
-                          onPressed: _onSubmit,
-                        )
-                      ],
-                    ),
+                      ),
+                      SizedBox(width: 10),
+                      FloatingActionButton(
+                        backgroundColor: currentColor,
+                        child: sending
+                            ? CircularProgressIndicator(
+                                backgroundColor: Colors.white,
+                              )
+                            : Icon(Icons.send),
+                        onPressed: _onSubmit,
+                      )
+                    ],
                   ),
                 ),
               ),
             ),
-          ],
-        ));
+          ),
+        ],
+      ),
+    );
   }
 }

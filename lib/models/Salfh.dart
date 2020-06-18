@@ -98,13 +98,15 @@ Map<String, Map<String, dynamic>> getInitialColorStatus(
       res[color] = {
         'userID': creatorID,
         'lastMessageReadID': null,
-        'isInChatRoom': false
+        'isInChatRoom': false,
+        'isTyping': false
       };
     } else {
       res[color] = {
         'userID': null,
         'lastMessageReadID': null,
-        'isInChatRoom': false
+        'isInChatRoom': false,
+        'isTyping': false
       };
     }
   }
