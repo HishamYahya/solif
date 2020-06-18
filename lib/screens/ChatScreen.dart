@@ -231,25 +231,18 @@ class _ChatScreenState extends State<ChatScreen> {
     Color currentColor = kOurColors[colorName];
     //////////////////// hot reload to add message
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight),
-        child: Column(
-          children: [
-            AppBar(
-                leading: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    }),
-                title: Text(
-                  widget.title,
-                ),
-                backgroundColor:
-                    isInSalfh ? currentColor : Colors.white //.withOpacity(0.8),
-                ),
-          ],
-        ),
-      ),
+      appBar: AppBar(
+          leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () {
+                Navigator.pop(context);
+              }),
+          title: Text(
+            widget.title,
+          ),
+          backgroundColor:
+              isInSalfh ? currentColor : Colors.white //.withOpacity(0.8),
+          ),
       backgroundColor: Colors.blueAccent[50],
       body: Column(
         children: <Widget>[
