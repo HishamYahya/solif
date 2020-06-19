@@ -69,6 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
       typingWidgetRow = TypingWidgetRow(colorsStatus: colorsStatus);
       colorName = widget.color;
     });
+    setUserLastLeft();
     // check if user is in salfh
     String userID = Provider.of<AppData>(context, listen: false).currentUserID;
     widget.colorsStatus.forEach((key, statusMap) {
@@ -79,7 +80,6 @@ class _ChatScreenState extends State<ChatScreen> {
     });
     listenToLastLeftChanges();
     listenToColorStatusChanges();
-    setUserLastLeft();
     super.initState();
   }
 
@@ -211,7 +211,7 @@ class _ChatScreenState extends State<ChatScreen> {
         .document(widget.salfhID)
         .setData({colorName: DateTime.now()}, merge: true);
 
-    //// using transactions
+    // // using transactions
     // final ref = firestore.collection('chatRooms').document(widget.salfhID);
     // await firestore.runTransaction((transaction) async {
     //   final snapshot = await transaction.get(ref);
@@ -233,15 +233,18 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   setUserLastLeft() async {
-    final firestore = Firestore.instance;
-    await firestore.collection("chatRooms").document(widget.salfhID).setData({
-      colorName: DateTime.now().add(Duration(
-          days:
-              3650)) // when the user is in, set the time he last left to infinity.
-    }, merge: true);
+    await Future.delayed(Duration(seconds: 1));
+    if (mounted) {
+      final firestore = Firestore.instance;
+      await firestore.collection("chatRooms").document(widget.salfhID).setData({
+        colorName: DateTime.now().add(Duration(
+            days:
+                3650)) // when the user is in, set the time he last left to infinity.
+      }, merge: true);
+    }
 
-    ///// using transactions
-    // final ref = firestore.collection('chatRooms').document(widget.id);
+    // /// using transactions
+    // final ref = firestore.collection('chatRooms').document(widget.salfhID);
     // await firestore.runTransaction((transaction) async {
     //   final snapshot = await transaction.get(ref);
     //   if (snapshot.exists) {
@@ -249,10 +252,11 @@ class _ChatScreenState extends State<ChatScreen> {
     //             .add(Duration(days: 3000))
     //             .compareTo(snapshot.data[colorName]) >
     //         0) {
-    //       transaction.update(
+    //       await transaction.update(
     //           ref, {colorName: DateTime.now().add(Duration(days: 3650))});
     //     }
     //   }
+
     // });
 
     // Map<String, dynamic> salfh =
@@ -304,9 +308,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _onClose() async {
+    setUserTimeLeft();
     colorStatusListener.cancel();
     timeLastLeftListener.cancel();
-    setUserTimeLeft();
     if (inputMessage.isNotEmpty) {
       inputMessage = '';
       _changeTypingTo(false);
