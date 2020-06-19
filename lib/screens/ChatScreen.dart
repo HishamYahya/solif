@@ -38,7 +38,7 @@ class _ChatScreenState extends State<ChatScreen> {
   List<MessageTile> messages = getMessages();
   String inputMessage = "";
   Map colorsStatus;
-  Map<String,Timestamp> lastLeftStatus; 
+  Map<String, Timestamp> lastLeftStatus;
   String colorName;
   bool isInSalfh = false;
   bool joining = false;
@@ -79,6 +79,7 @@ class _ChatScreenState extends State<ChatScreen> {
     });
     listenToLastLeftChanges();
     listenToColorStatusChanges();
+    setUserLastLeft();
     super.initState();
   }
 
@@ -89,7 +90,7 @@ class _ChatScreenState extends State<ChatScreen> {
         .document(widget.salfhID)
         .snapshots()
         .listen((snapshot) {
-      // print("HERE@#@!"); 
+      // print("HERE@#@!");
       // print(snapshot.data);
       Map newColorsStatus = snapshot.data['colorsStatus'];
       if (!mapEquals(colorsStatus, newColorsStatus)) {
@@ -128,16 +129,17 @@ class _ChatScreenState extends State<ChatScreen> {
         .document(widget.salfhID)
         .snapshots()
         .listen((event) {
-          print("OK"); 
-          print(event.data);
-          Map<String,Timestamp> newStatus = Map<String,Timestamp>.from(event.data);
-          // print("hereeee${event.data}");
-                if (!mapEquals(lastLeftStatus, newStatus)) {
+      print("OK");
+      print(event.data);
+      Map<String, Timestamp> newStatus =
+          Map<String, Timestamp>.from(event.data);
+      // print("hereeee${event.data}");
+      if (!mapEquals(lastLeftStatus, newStatus)) {
         setState(() {
           lastLeftStatus = newStatus;
         });
       }
-        });
+    });
   }
 
   // returns true if user successfully joined
@@ -209,6 +211,17 @@ class _ChatScreenState extends State<ChatScreen> {
         .document(widget.salfhID)
         .setData({colorName: DateTime.now()}, merge: true);
 
+    //// using transactions
+    // final ref = firestore.collection('chatRooms').document(widget.salfhID);
+    // await firestore.runTransaction((transaction) async {
+    //   final snapshot = await transaction.get(ref);
+    //   if (snapshot.exists) {
+    //     if (DateTime.now().compareTo(snapshot.data[colorName]) < 0) {
+    //       transaction.update(ref, {colorName: DateTime.now()});
+    //     }
+    //   }
+    // });
+
     // changed this so that it rewrites the one field instead of the whole map
     // await firestore.collection("Swalf").document(widget.salfhID).setData({
     //   'colorsStatus': {
@@ -217,6 +230,59 @@ class _ChatScreenState extends State<ChatScreen> {
     //     }
     //   }
     // }, merge: true);
+  }
+
+  setUserLastLeft() async {
+    final firestore = Firestore.instance;
+    await firestore.collection("chatRooms").document(widget.salfhID).setData({
+      colorName: DateTime.now().add(Duration(
+          days:
+              3650)) // when the user is in, set the time he last left to infinity.
+    }, merge: true);
+
+    ///// using transactions
+    // final ref = firestore.collection('chatRooms').document(widget.id);
+    // await firestore.runTransaction((transaction) async {
+    //   final snapshot = await transaction.get(ref);
+    //   if (snapshot.exists) {
+    //     if (DateTime.now()
+    //             .add(Duration(days: 3000))
+    //             .compareTo(snapshot.data[colorName]) >
+    //         0) {
+    //       transaction.update(
+    //           ref, {colorName: DateTime.now().add(Duration(days: 3650))});
+    //     }
+    //   }
+    // });
+
+    // Map<String, dynamic> salfh =
+    //     await salfhDoc.get().then((value) => value.data);
+
+    // Map colorStatus = salfh['colorsStatus'];
+    // colorStatus[colorName]['isInChatRoom'] = true;
+    // colorStatus[colorName]['lastMessageReadID'] = salfh['lastMessageSentID'];
+    // if (colorStatus[colorName]['lastMessageReadID'] == null) return;
+
+    // colorStatus[colorName]['isInChatRoom'] = true;
+    // DocumentReference oldCheckPoint = firestore
+    //     .collection("chatRooms")
+    //     .document(widget.id)
+    //     .collection('messages')
+    //     .document(colorStatus[colorName]['lastMessageReadID']);
+    // oldCheckPoint.setData({
+    //   'isCheckPointMessage': {colorName: false}
+    // }, merge: true);
+    // DocumentReference newCheckPoint = firestore
+    //     .collection("chatRooms")
+    //     .document(widget.id)
+    //     .collection('messages')
+    //     .document(salfh['lastMessageSentID']);
+
+    // newCheckPoint.setData({
+    //   'isCheckPointMessage': {colorName: true}
+    // }, merge: true);
+
+    // salfhDoc.updateData(salfh);
   }
 
   void _changeTypingTo(bool isTyping) {
@@ -240,7 +306,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _onClose() async {
     colorStatusListener.cancel();
     timeLastLeftListener.cancel();
-    await setUserTimeLeft();
+    setUserTimeLeft();
     if (inputMessage.isNotEmpty) {
       inputMessage = '';
       _changeTypingTo(false);
@@ -281,41 +347,45 @@ class _ChatScreenState extends State<ChatScreen> {
                   stream: firestore
                       .collection("chatRooms")
                       .document(widget.salfhID)
-                      .collection('messages').
-                      orderBy('timeSent').snapshots(),
+                      .collection('messages')
+                      .orderBy('timeSent')
+                      .snapshots(),
                   builder: (context, snapshot) {
                     //TODO: display the message on screen only when it's been written to the database
                     if (!snapshot.hasData) {
                       return LoadingWidget("");
                     }
                     final messages = snapshot.data.documents.reversed;
-                    Set<String> alreadyRead = Set<String>(); 
-                    List<Widget> messageTiles = [];;
+                    Set<String> alreadyRead = Set<String>();
+                    List<Widget> messageTiles = [];
+
                     for (var message in messages) {
-                      
-                      List<String> readColors = []; 
+                      List<String> readColors = [];
                       lastLeftStatus.forEach((color, lastLeft) {
-                        if(message['color'] != color && !alreadyRead.contains(color) && lastLeft.compareTo(message['timeSent']) > 0){
+                        if (message['color'] != color &&
+                            !alreadyRead.contains(color) &&
+                            lastLeft.compareTo(message['timeSent']) >= 0) {
                           readColors.add(color);
-                          alreadyRead.add(color); 
+                          alreadyRead.add(color);
                         }
-                      });  
+                      });
 
                       messageTiles.add(MessageTile(
-                        color: message['color'],
-                        message: message["content"],
-                        fromUser: message['color'] == colorName,
-                        readColors: readColors
+                          color: message['color'],
+                          message: message["content"],
+                          fromUser: message['color'] == colorName,
+                          readColors: readColors
 
-                        //
-                        // add stuff here when you update messageTile
-                        // time: message["time"],
-                        //
-                      ));
+                          //
+                          // add stuff here when you update messageTile
+                          // time: message["time"],
+                          //
+                          ));
                     }
                     return ListView.builder(
                       reverse: true,
-                      padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 10.0, vertical: 20.0),
                       itemCount: messageTiles.length,
                       itemBuilder: (context, index) {
                         return messageTiles[index];

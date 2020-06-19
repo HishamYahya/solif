@@ -106,6 +106,22 @@ class _SalfhTileState extends State<SalfhTile> {
           days:
               3650)) // when the user is in, set the time he last left to infinity.
     }, merge: true);
+
+    ///// using transactions
+    // final ref = firestore.collection('chatRooms').document(widget.id);
+    // await firestore.runTransaction((transaction) async {
+    //   final snapshot = await transaction.get(ref);
+    //   if (snapshot.exists) {
+    //     if (DateTime.now()
+    //             .add(Duration(days: 3000))
+    //             .compareTo(snapshot.data[colorName]) >
+    //         0) {
+    //       transaction.update(
+    //           ref, {colorName: DateTime.now().add(Duration(days: 3650))});
+    //     }
+    //   }
+    // });
+
     // Map<String, dynamic> salfh =
     //     await salfhDoc.get().then((value) => value.data);
 
@@ -147,7 +163,6 @@ class _SalfhTileState extends State<SalfhTile> {
     return GestureDetector(
       onTap: () {
         if (!isFull) {
-          setUserLastLeft();
           Navigator.push(
             context,
             MaterialPageRoute(
