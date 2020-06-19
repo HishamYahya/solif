@@ -84,14 +84,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   // listen to changes in the colorsStatus in the database
   void listenToColorStatusChanges() {
-    print("XD"); 
     colorStatusListener = firestore
         .collection('Swalf')
         .document(widget.salfhID)
         .snapshots()
         .listen((snapshot) {
-      print("HERE@#@!"); 
-      print(snapshot.data);
+      // print("HERE@#@!"); 
+      // print(snapshot.data);
       Map newColorsStatus = snapshot.data['colorsStatus'];
       if (!mapEquals(colorsStatus, newColorsStatus)) {
         setState(() {
@@ -132,7 +131,7 @@ class _ChatScreenState extends State<ChatScreen> {
           print("OK"); 
           print(event.data);
           Map<String,Timestamp> newStatus = Map<String,Timestamp>.from(event.data);
-          print("hereeee${event.data}");
+          // print("hereeee${event.data}");
                 if (!mapEquals(lastLeftStatus, newStatus)) {
         setState(() {
           lastLeftStatus = newStatus;
@@ -290,10 +289,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       return LoadingWidget("");
                     }
                     final messages = snapshot.data.documents.reversed;
-                    print(messages);
                     Set<String> alreadyRead = Set<String>(); 
-                    List<Widget> messageTiles = [];
-                    print(lastLeftStatus);
+                    List<Widget> messageTiles = [];;
                     for (var message in messages) {
                       
                       List<String> readColors = []; 
