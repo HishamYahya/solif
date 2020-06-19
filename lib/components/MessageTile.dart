@@ -6,26 +6,26 @@ class MessageTile extends StatelessWidget {
   final String message;
   final String color;
   final bool fromUser;
-  final Map<String, bool> messageCheckPoint;
+  final List<String> readColors; 
 
   const MessageTile(
       {Key key,
       this.message,
       this.color,
       this.fromUser,
-      this.messageCheckPoint});
+      this. readColors});
 
   List<Widget> getDots() {
     // testing how it looks.
     List<Widget> dots = [];
-    messageCheckPoint.forEach((color, isCheckPoint) {
-      if (isCheckPoint) {
+     for(String color in readColors) {
+        {
         dots.add(Padding(
           padding: const EdgeInsets.symmetric(horizontal: 1),
           child: ColoredDot(kOurColors[color]),
         ));
       }
-    });
+    };
     return dots;
   }
 

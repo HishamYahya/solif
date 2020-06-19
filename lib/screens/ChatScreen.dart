@@ -38,13 +38,15 @@ class _ChatScreenState extends State<ChatScreen> {
   List<MessageTile> messages = getMessages();
   String inputMessage = "";
   Map colorsStatus;
+  Map<String,Timestamp> lastLeftStatus; 
   String colorName;
   bool isInSalfh = false;
   bool joining = false;
   bool sending = false;
   TypingWidgetRow typingWidgetRow;
   TextEditingController messageController = TextEditingController();
-  StreamSubscription<DocumentSnapshot> listener;
+  StreamSubscription<DocumentSnapshot> colorStatusListener;
+  StreamSubscription<DocumentSnapshot> timeLastLeftListener;
 
   static List<MessageTile> getMessages() {
     List<MessageTile> tiles = List<MessageTile>();
@@ -75,18 +77,21 @@ class _ChatScreenState extends State<ChatScreen> {
           isInSalfh = true;
         });
     });
-    listenToChanges();
+    listenToLastLeftChanges();
+    listenToColorStatusChanges();
     super.initState();
   }
 
   // listen to changes in the colorsStatus in the database
-  void listenToChanges() {
-    listener = firestore
+  void listenToColorStatusChanges() {
+    print("XD"); 
+    colorStatusListener = firestore
         .collection('Swalf')
         .document(widget.salfhID)
         .snapshots()
         .listen((snapshot) {
-      print(snapshot);
+      print("HERE@#@!"); 
+      print(snapshot.data);
       Map newColorsStatus = snapshot.data['colorsStatus'];
       if (!mapEquals(colorsStatus, newColorsStatus)) {
         setState(() {
@@ -116,6 +121,24 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }
     });
+  }
+
+  void listenToLastLeftChanges() {
+    timeLastLeftListener = firestore
+        .collection('chatRooms')
+        .document(widget.salfhID)
+        .snapshots()
+        .listen((event) {
+          print("OK"); 
+          print(event.data);
+          Map<String,Timestamp> newStatus = Map<String,Timestamp>.from(event.data);
+          print("hereeee${event.data}");
+                if (!mapEquals(lastLeftStatus, newStatus)) {
+        setState(() {
+          lastLeftStatus = newStatus;
+        });
+      }
+        });
   }
 
   // returns true if user successfully joined
@@ -180,16 +203,21 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  Future<void> setUserNotInChatRoom() async {
+  Future<void> setUserTimeLeft() async {
     final firestore = Firestore.instance;
+    await firestore
+        .collection("chatRooms")
+        .document(widget.salfhID)
+        .setData({colorName: DateTime.now()}, merge: true);
+
     // changed this so that it rewrites the one field instead of the whole map
-    await firestore.collection("Swalf").document(widget.salfhID).setData({
-      'colorsStatus': {
-        colorName: {
-          'isInChatRoom': false,
-        }
-      }
-    }, merge: true);
+    // await firestore.collection("Swalf").document(widget.salfhID).setData({
+    //   'colorsStatus': {
+    //     colorName: {
+    //       'isInChatRoom': false,
+    //     }
+    //   }
+    // }, merge: true);
   }
 
   void _changeTypingTo(bool isTyping) {
@@ -211,8 +239,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _onClose() async {
-    listener.cancel();
-    await setUserNotInChatRoom();
+    colorStatusListener.cancel();
+    timeLastLeftListener.cancel();
+    await setUserTimeLeft();
     if (inputMessage.isNotEmpty) {
       inputMessage = '';
       _changeTypingTo(false);
@@ -253,34 +282,43 @@ class _ChatScreenState extends State<ChatScreen> {
                   stream: firestore
                       .collection("chatRooms")
                       .document(widget.salfhID)
-                      .collection('messages')
-                      .orderBy("timeSent")
-                      .snapshots(),
+                      .collection('messages').
+                      orderBy('timeSent').snapshots(),
                   builder: (context, snapshot) {
                     //TODO: display the message on screen only when it's been written to the database
                     if (!snapshot.hasData) {
                       return LoadingWidget("");
                     }
-                    //return Text("XD");
                     final messages = snapshot.data.documents.reversed;
+                    print(messages);
+                    Set<String> alreadyRead = Set<String>(); 
                     List<Widget> messageTiles = [];
+                    print(lastLeftStatus);
                     for (var message in messages) {
-                      messageTiles.add(MessageTile(
-                          color: message['color'],
-                          message: message["content"],
-                          fromUser: message['color'] == colorName,
-                          messageCheckPoint: Map<String, bool>.from(
-                              message['isCheckPointMessage'])
+                      
+                      List<String> readColors = []; 
+                      lastLeftStatus.forEach((color, lastLeft) {
+                        if(message['color'] != color && !alreadyRead.contains(color) && lastLeft.compareTo(message['timeSent']) > 0){
+                          readColors.add(color);
+                          alreadyRead.add(color); 
+                        }
+                      });  
 
-                          //
-                          // add stuff here when you update messageTile
-                          // time: message["time"],
-                          //
-                          ));
+                      messageTiles.add(MessageTile(
+                        color: message['color'],
+                        message: message["content"],
+                        fromUser: message['color'] == colorName,
+                        readColors: readColors
+
+                        //
+                        // add stuff here when you update messageTile
+                        // time: message["time"],
+                        //
+                      ));
                     }
                     return ListView.builder(
                       reverse: true,
-                      // padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
+                      padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
                       itemCount: messageTiles.length,
                       itemBuilder: (context, index) {
                         return messageTiles[index];

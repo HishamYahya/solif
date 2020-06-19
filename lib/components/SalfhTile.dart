@@ -99,38 +99,41 @@ class _SalfhTileState extends State<SalfhTile> {
     return newDots;
   }
 
-  updateReadMessagesOnJoin() async {
+  setUserLastLeft() async {
     final firestore = Firestore.instance;
-    DocumentReference salfhDoc =
-        firestore.collection("Swalf").document(widget.id);
-    Map<String, dynamic> salfh =
-        await salfhDoc.get().then((value) => value.data);
-
-    Map colorStatus = salfh['colorsStatus'];
-    colorStatus[colorName]['isInChatRoom'] = true;
-    colorStatus[colorName]['lastMessageReadID'] = salfh['lastMessageSentID'];
-    if (colorStatus[colorName]['lastMessageReadID'] == null) return;
-
-    colorStatus[colorName]['isInChatRoom'] = true;
-    DocumentReference oldCheckPoint = firestore
-        .collection("chatRooms")
-        .document(widget.id)
-        .collection('messages')
-        .document(colorStatus[colorName]['lastMessageReadID']);
-    oldCheckPoint.setData({
-      'isCheckPointMessage': {colorName: false}
+    await firestore.collection("chatRooms").document(widget.id).setData({
+      colorName: DateTime.now().add(Duration(
+          days:
+              3650)) // when the user is in, set the time he last left to infinity.
     }, merge: true);
-    DocumentReference newCheckPoint = firestore
-        .collection("chatRooms")
-        .document(widget.id)
-        .collection('messages')
-        .document(salfh['lastMessageSentID']);
+    // Map<String, dynamic> salfh =
+    //     await salfhDoc.get().then((value) => value.data);
 
-    newCheckPoint.setData({
-      'isCheckPointMessage': {colorName: true}
-    }, merge: true);
+    // Map colorStatus = salfh['colorsStatus'];
+    // colorStatus[colorName]['isInChatRoom'] = true;
+    // colorStatus[colorName]['lastMessageReadID'] = salfh['lastMessageSentID'];
+    // if (colorStatus[colorName]['lastMessageReadID'] == null) return;
 
-    salfhDoc.updateData(salfh);
+    // colorStatus[colorName]['isInChatRoom'] = true;
+    // DocumentReference oldCheckPoint = firestore
+    //     .collection("chatRooms")
+    //     .document(widget.id)
+    //     .collection('messages')
+    //     .document(colorStatus[colorName]['lastMessageReadID']);
+    // oldCheckPoint.setData({
+    //   'isCheckPointMessage': {colorName: false}
+    // }, merge: true);
+    // DocumentReference newCheckPoint = firestore
+    //     .collection("chatRooms")
+    //     .document(widget.id)
+    //     .collection('messages')
+    //     .document(salfh['lastMessageSentID']);
+
+    // newCheckPoint.setData({
+    //   'isCheckPointMessage': {colorName: true}
+    // }, merge: true);
+
+    // salfhDoc.updateData(salfh);
   }
 
   @override
@@ -144,7 +147,7 @@ class _SalfhTileState extends State<SalfhTile> {
     return GestureDetector(
       onTap: () {
         if (!isFull) {
-          updateReadMessagesOnJoin();
+          setUserLastLeft();
           Navigator.push(
             context,
             MaterialPageRoute(

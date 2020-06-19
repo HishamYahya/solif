@@ -83,9 +83,24 @@ Future<String> saveSalfh(
       await getColorOfUser(userID: creatorID, salfhID: salfhID.documentID);
   if (salfhID != null) {
     print('yooo');
+
     addSalfhToUser(creatorID, salfhID.documentID, color);
+    createSalfhChatRoom(salfhID.documentID);
   }
+
   return salfhID.documentID;
+}
+
+void createSalfhChatRoom(String salfhID) async {
+   await firestore.collection("chatRooms").document(salfhID).setData( 
+  {
+    kColorNames[0]: DateTime.now(),
+    kColorNames[1]: DateTime.now(),
+    kColorNames[2]: DateTime.now(),
+    kColorNames[3]: DateTime.now(),
+    kColorNames[4]: DateTime.now(),
+  }
+   );
 }
 
 Map<String, Map<String, dynamic>> getInitialColorStatus(
