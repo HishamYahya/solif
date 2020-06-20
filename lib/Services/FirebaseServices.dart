@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:solif/components/SalfhTile.dart';
+import 'package:solif/models/AppData.dart';
 
 import '../constants.dart';
 
@@ -37,11 +38,35 @@ Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
 }
 
 Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
-  final salfhDocs = await firestore
+  // final salfhDocs = await firestore
+  //     .collection('Swalf')
+  //     .orderBy('timeCreated', descending: true)
+  //     .getDocuments();
+
+  // List<SalfhTile> salfhTiles = [];
+  // Random random = Random();
+  // for (var salfh in salfhDocs.documents) {
+  //   if (salfh['creatorID'] != userID) {
+  //     bool isFull = true;
+  //     salfh['colorsStatus'].forEach((name, statusMap) {
+  //       if (statusMap['userID'] == null) isFull = false;
+  //     });
+  //     if (!isFull)
+  //       salfhTiles.add(SalfhTile(
+  //         category: salfh["category"],
+  //         // color now generated in SalfhTile
+  //         colorsStatus: salfh['colorsStatus'],
+  //         title: salfh['title'],
+  //         id: salfh.documentID,
+  //       ));
+  //   }
+  // }
+  // return salfhTiles;
+  final first = firestore
       .collection('Swalf')
       .orderBy('timeCreated', descending: true)
-      .getDocuments();
-
+      .limit(2);
+  final salfhDocs = await first.getDocuments();
   List<SalfhTile> salfhTiles = [];
   Random random = Random();
   for (var salfh in salfhDocs.documents) {
@@ -60,7 +85,15 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
         ));
     }
   }
-  print(salfhTiles.length);
+
+  final Timestamp lastVisibleSalfhTime =
+      salfhDocs.documents[salfhDocs.documents.length - 1]['timeCreated'];
+  // next batch starts after the last document
+  AppData.nextPublicTiles = firestore
+      .collection('Swalf')
+      .orderBy('timeCreated', descending: true)
+      .startAfter([lastVisibleSalfhTime]).limit(2);
+
   return salfhTiles;
 }
 
