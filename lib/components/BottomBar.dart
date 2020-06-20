@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:solif/screens/AddScreen.dart';
 
+import '../constants.dart';
+
 class BottomBarItem {
   String title;
   IconData icon;
@@ -10,6 +12,7 @@ class BottomBarItem {
 
 class BottomBar extends StatefulWidget {
   final ValueChanged<int> onTap;
+  final Function onClose;
   final List<BottomBarItem> items;
   final String centerText;
   final bool isAdding;
@@ -17,6 +20,7 @@ class BottomBar extends StatefulWidget {
 
   BottomBar(
       {this.onTap,
+      this.onClose,
       this.items,
       this.centerText,
       this.isAdding,
@@ -41,12 +45,12 @@ class _BottomBarState extends State<BottomBar>
       duration: Duration(milliseconds: 200),
     );
     whiteToBlueAnimation =
-        ColorTween(begin: Colors.white, end: Colors.blue).animate(controller)
+        ColorTween(begin: Colors.white, end: kMainColor).animate(controller)
           ..addListener(() {
             setState(() {});
           });
     blueToWhiteAnimation =
-        ColorTween(begin: Colors.blue, end: Colors.white).animate(controller);
+        ColorTween(begin: kMainColor, end: Colors.white).animate(controller);
   }
 
   @override
@@ -85,9 +89,7 @@ class _BottomBarState extends State<BottomBar>
             ),
           ),
         ),
-        AddScreen(
-          isAdding: widget.isAdding,
-        ),
+        AddScreen(isAdding: widget.isAdding, onClose: widget.onClose),
       ],
     );
   }

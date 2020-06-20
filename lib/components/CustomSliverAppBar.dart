@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../constants.dart';
+
 class CustomSliverAppBar extends StatelessWidget {
   final Widget title;
   final List<Widget> actions;
@@ -10,13 +12,13 @@ class CustomSliverAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      onStretchTrigger: onScrollStretch, 
-      stretchTriggerOffset: 2,// testing 
+      onStretchTrigger: onScrollStretch,
+      stretchTriggerOffset: 2, // testing
       expandedHeight: 50,
       centerTitle: true,
       title: title,
       floating: true,
-      backgroundColor: Colors.white,
+      backgroundColor: kMainColor,
       actions: actions,
       flexibleSpace: FlexibleSpaceBar(),
     );

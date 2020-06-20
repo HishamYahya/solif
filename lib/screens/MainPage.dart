@@ -7,11 +7,9 @@ import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/screens/MyChatsScreen.dart';
 import 'package:solif/screens/PublicChatsScreen.dart';
 
-class MainPage extends StatefulWidget {
-  Future<List<SalfhTile>> usersSalfhTiles = getUsersChatScreenTiles("00user");
-  Future<List<SalfhTile>> publicSalfhTiles = getPublicChatScreenTiles();
+import '../constants.dart';
 
-  
+class MainPage extends StatefulWidget {
   @override
   _MainPageState createState() => _MainPageState();
 }
@@ -23,7 +21,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   Animation _rotateAnimation;
   Animation whiteToBlueAnimation;
   Animation blueToWhiteAnimation;
-  TabController _tabController; 
+  TabController _tabController;
 
   @override
   void initState() {
@@ -46,11 +44,13 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     _rotateAnimation =
         Tween<double>(begin: 0, end: 0.25 * pi).animate(_animationController);
 
-    whiteToBlueAnimation = ColorTween(begin: Colors.white, end: Colors.blue)
+    whiteToBlueAnimation = ColorTween(begin: Colors.white, end: kMainColor)
         .animate(_animationController);
 
-    blueToWhiteAnimation = ColorTween(begin: Colors.blue, end: Colors.white)
+    blueToWhiteAnimation = ColorTween(begin: kMainColor, end: Colors.white)
         .animate(_animationController);
+
+    print("df");
   }
 
   @override
@@ -65,7 +65,6 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.grey[100],
@@ -116,6 +115,12 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
               });
             }
           },
+          onClose: () {
+            setState(() {
+              isAdding = false;
+              _animationController.reverse();
+            });
+          },
           items: [
             BottomBarItem(
               title: "سواليفي",
@@ -150,18 +155,10 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             children: <Widget>[
               MyChatsScreen(
                 disabled: isAdding,
-                  salfhTiles: widget.usersSalfhTiles,
-                  onUpdate: (Future<List<SalfhTile>> updatedUserSwalf){
-                    widget.usersSalfhTiles = updatedUserSwalf;
-                  },
-                ),
+              ),
               PublicChatsScreen(
-                  disabled: isAdding,
-                  salfhTiles: widget.publicSalfhTiles,
-                  onUpdate: (Future<List<SalfhTile>> updatedPublicSwalf) {
-                    widget.publicSalfhTiles = updatedPublicSwalf;
-                  }
-                )
+                disabled: isAdding,
+              )
             ],
           ),
         ),
