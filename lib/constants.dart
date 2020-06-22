@@ -31,4 +31,4 @@ final Map<String, Color> kOurColors = {
   kColorNames[4]: Color(0xff36C5F0)
 };
 
-final kMainColor = kOurColors[kColorNames[4]];
+final kMainColor = Colors.blue;

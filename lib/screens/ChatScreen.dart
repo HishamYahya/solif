@@ -192,7 +192,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void sendMessage() async {
-    bool success = await addMessage(inputMessage, colorName, widget.salfhID);
+    bool success = await addMessage(inputMessage, colorName, widget.salfhID,
+        Provider.of<AppData>(context, listen: false).currentUserID);
     if (success) {
       //TODO: display the message on screen only when it's been written to the database
 

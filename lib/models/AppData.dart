@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/Services/FirebaseServices.dart';
@@ -11,6 +12,7 @@ class AppData with ChangeNotifier {
   List<SalfhTile> usersSalfhTiles;
   List<SalfhTile> publicSalfhTiles;
   final Firestore firestore = Firestore.instance;
+  final fcm = FirebaseMessaging();
   static Query nextPublicTiles;
 
   //local saved data
@@ -41,6 +43,7 @@ class AppData with ChangeNotifier {
       print(userID);
       prefs.setString(key, userID);
       currentUserID = userID;
+      fcm.subscribeToTopic(userID);
     }
     notifyListeners();
   }
@@ -56,6 +59,7 @@ class AppData with ChangeNotifier {
   ///// if list is null then it hasn't been loaded yet (happens only once)
   loadTiles() async {
     usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
+
     notifyListeners();
     publicSalfhTiles = await getPublicChatScreenTiles(currentUserID);
     notifyListeners();
@@ -73,6 +77,9 @@ class AppData with ChangeNotifier {
 
   reloadUsersSalfhTiles() async {
     usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
+    for (var tile in usersSalfhTiles) {
+      fcm.subscribeToTopic(tile.id);
+    }
     notifyListeners();
   }
 
