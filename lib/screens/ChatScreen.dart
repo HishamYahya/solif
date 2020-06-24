@@ -200,9 +200,10 @@ class _ChatScreenState extends State<ChatScreen> {
       messageController.clear();
     }
 
-    setState(() {
-      sending = false;
-    });
+    if (mounted)
+      setState(() {
+        sending = false;
+      });
   }
 
   Future<void> setUserTimeLeft() async {

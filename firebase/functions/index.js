@@ -26,6 +26,7 @@ exports.messageSent = functions.firestore.document('/chatRooms/{salfhID}/message
         },
         condition: condition
     };
+    firestore.collection('Swalf').doc(context.params.salfhID).update({ lastMessageSentID: context.params.messageID });
 
     return admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
 

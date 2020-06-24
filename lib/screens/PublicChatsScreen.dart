@@ -26,6 +26,7 @@ class _PublicChatsScreenState extends State<PublicChatsScreen> {
 
   void onRefresh() async {
     await Provider.of<AppData>(context, listen: false).reloadPublicSalfhTiles();
+    if (!mounted) return;
     List<SalfhTile> salfhTiles =
         Provider.of<AppData>(context, listen: false).publicSalfhTiles;
     if (salfhTiles == null) {
