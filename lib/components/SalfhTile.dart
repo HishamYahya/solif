@@ -69,6 +69,7 @@ class _SalfhTileState extends State<SalfhTile> {
   }
 
   void updateLastMessageSent() {
+    // TODO: consider caching last message sent so that it doesn't keep reading from the database whenever the widget is initialised
     firestore
         .collection('chatRooms')
         .document(widget.id)

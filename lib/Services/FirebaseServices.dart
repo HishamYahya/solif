@@ -65,12 +65,16 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
   final first = firestore
       .collection('Swalf')
       .orderBy('timeCreated', descending: true)
-      .limit(2);
+      .limit(3);
   final salfhDocs = await first.getDocuments();
   List<SalfhTile> salfhTiles = [];
   Random random = Random();
   for (var salfh in salfhDocs.documents) {
+    print('////////////////////////// IN LOOP //////////////////////');
+    print(salfh.data);
     if (salfh['creatorID'] != userID) {
+      print('/////////////// creator id ///////////////');
+      print(salfh.data);
       bool isFull = true;
       salfh['colorsStatus'].forEach((name, statusMap) {
         if (statusMap['userID'] == null) isFull = false;
@@ -85,14 +89,16 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
         ));
     }
   }
-
-  final Timestamp lastVisibleSalfhTime =
-      salfhDocs.documents[salfhDocs.documents.length - 1]['timeCreated'];
-  // next batch starts after the last document
-  AppData.nextPublicTiles = firestore
-      .collection('Swalf')
-      .orderBy('timeCreated', descending: true)
-      .startAfter([lastVisibleSalfhTime]).limit(2);
+  print(salfhTiles.length);
+  if (salfhTiles.isNotEmpty) {
+    final Timestamp lastVisibleSalfhTime =
+        salfhDocs.documents[salfhDocs.documents.length - 1]['timeCreated'];
+    // next batch starts after the last document
+    AppData.nextPublicTiles = firestore
+        .collection('Swalf')
+        .orderBy('timeCreated', descending: true)
+        .startAfter([lastVisibleSalfhTime]).limit(2);
+  }
 
   return salfhTiles;
 }

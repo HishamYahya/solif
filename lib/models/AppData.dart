@@ -109,15 +109,15 @@ class AppData with ChangeNotifier {
       }
     }
     newSalfhTiles.insertAll(0, publicSalfhTiles);
-
-    final Timestamp lastVisibleSalfhTime =
-        salfhDocs.documents[salfhDocs.documents.length - 1]['timeCreated'];
-    // next batch starts after the last document
-    nextPublicTiles = firestore
-        .collection('Swalf')
-        .orderBy('timeCreated', descending: true)
-        .startAfter([lastVisibleSalfhTime]).limit(2);
-
+    if (salfhDocs.documents.isNotEmpty) {
+      final Timestamp lastVisibleSalfhTime =
+          salfhDocs.documents[salfhDocs.documents.length - 1]['timeCreated'];
+      // next batch starts after the last document
+      nextPublicTiles = firestore
+          .collection('Swalf')
+          .orderBy('timeCreated', descending: true)
+          .startAfter([lastVisibleSalfhTime]).limit(2);
+    }
     publicSalfhTiles = newSalfhTiles;
     notifyListeners();
   }
