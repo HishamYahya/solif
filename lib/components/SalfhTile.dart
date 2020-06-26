@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:date_format/date_format.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -212,57 +213,63 @@ class _SalfhTileState extends State<SalfhTile> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Column(
-                children: [
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.75,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.only(
-                          topRight: Radius.elliptical(10, 50),
-                          bottomRight: Radius.elliptical(10, 50),
-                          topLeft: Radius.circular(10),
-                          bottomLeft: Radius.circular(10)),
-                      color: Colors.white,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            widget.title,
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Colors.grey[850],
-                              fontWeight: FontWeight.w500,
+              ClipRRect(
+                clipBehavior: Clip.antiAliasWithSaveLayer,
+                borderRadius: BorderRadius.only(
+                    topRight: Radius.elliptical(10, 50),
+                    bottomRight: Radius.elliptical(10, 50),
+                    topLeft: Radius.circular(10),
+                    bottomLeft: Radius.circular(10)),
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.75,
+                  color: Colors.white,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              widget.title,
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.grey[850],
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4.0, left: 2),
-                          child: StreamBuilder(
-                              stream: firestore
-                                  .collection('Swalf')
-                                  .document(widget.id)
-                                  .snapshots(),
-                              builder: (context, snapshot) {
-                                if (snapshot.hasData) {
-                                  colorsStatus = snapshot.data['colorsStatus'];
-                                  return Row(
-                                    children: generateDots(snapshot.data),
-                                  );
-                                }
-                                return Padding(padding: EdgeInsets.all(5));
-                              }),
-                        ),
-                        lastMessageSent != null
-                            ? MostRecentMessageBox(
-                                lastMessageSent: lastMessageSent)
-                            : SizedBox(),
-                      ],
-                    ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(bottom: 4.0, left: 2),
+                            child: StreamBuilder(
+                                stream: firestore
+                                    .collection('Swalf')
+                                    .document(widget.id)
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    colorsStatus =
+                                        snapshot.data['colorsStatus'];
+                                    return Row(
+                                      children: generateDots(snapshot.data),
+                                    );
+                                  }
+                                  return Padding(padding: EdgeInsets.all(5));
+                                }),
+                          ),
+                        ],
+                      ),
+                      lastMessageSent != null
+                          ? MostRecentMessageBox(
+                              lastMessageSent: lastMessageSent,
+                            )
+                          : SizedBox()
+                    ],
                   ),
-                ],
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.only(right: 8.0),
@@ -302,26 +309,26 @@ class MostRecentMessageBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.7,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.only(
-            topRight: Radius.circular(10),
-            bottomRight: Radius.circular(10),
-            topLeft: Radius.circular(10),
-            bottomLeft: Radius.circular(10),
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20),
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.7,
+          decoration: BoxDecoration(
+            color: kOurColors[lastMessageSent['color']],
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(500),
+              bottomLeft: Radius.circular(500),
+            ),
           ),
-          color: kOurColors[lastMessageSent['color']].withAlpha(230),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Directionality(
-            textDirection: TextDirection.rtl,
-            child: Text(
-              lastMessageSent['content'],
-              style: TextStyle(color: Colors.white, fontSize: 16, height: 1),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Text(
+                lastMessageSent['content'],
+                style: TextStyle(color: Colors.white, fontSize: 14, height: 1),
+              ),
             ),
           ),
         ),

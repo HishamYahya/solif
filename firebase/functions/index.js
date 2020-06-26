@@ -18,7 +18,8 @@ exports.messageSent = functions.firestore.document('/chatRooms/{salfhID}/message
     const payload = {
         notification: {
             title: message['color'],
-            body: message['content']
+            body: message['content'],
+            tag: context.params.salfhID
         },
         data: {
             click_action: 'FLUTTER_NOTIFICATION_CLICK',
