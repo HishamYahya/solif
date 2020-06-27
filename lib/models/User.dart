@@ -8,7 +8,7 @@ class User {
 }
 
 addSalfhToUser(String userID, String salfhID, String userColor) async {
-  final firesotre = Firestore.instance;
+  final firestore = Firestore.instance;
 
   await firestore
       .collection('users')

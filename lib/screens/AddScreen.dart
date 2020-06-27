@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:solif/Services/FirebaseServices.dart';
+import 'package:solif/components/ChatInputBox.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:solif/models/Salfh.dart';
@@ -21,8 +22,11 @@ final disabledColor = Colors.grey[400];
 
 class _AddScreenState extends State<AddScreen> {
   String salfhName;
+  String currentTag;
+  List<String> salfhTags = [];
   int groupSize = 1;
   bool loading = false;
+  TextEditingController editor = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   void createSalfh() async {
@@ -36,6 +40,7 @@ class _AddScreenState extends State<AddScreen> {
       creatorID: Provider.of<AppData>(context, listen: false).currentUserID,
       maxUsers: groupSize + 1,
       title: salfhName,
+      tags: salfhTags,
     );
 
     //if suceeded
@@ -130,6 +135,50 @@ class _AddScreenState extends State<AddScreen> {
                               ),
                             ),
                           ),
+                          Container(
+                            child: Directionality(
+                              textDirection: TextDirection.rtl,
+                              child: TextField(
+                                controller: editor,
+                                onChanged: (value) {
+                                  currentTag = value;
+                                },
+                                maxLength: 50,
+                                style: kHintTextStyle.copyWith(
+                                    color: Colors.white),
+                                decoration: InputDecoration(
+                                    enabledBorder: kTextFieldBorder,
+                                    focusedBorder: kTextFieldBorder,
+                                    errorBorder: kTextFieldBorder,
+                                    fillColor: Colors.white,
+                                    hintText: 'Tag',
+                                    hintStyle: kHintTextStyle,
+                                    contentPadding: EdgeInsets.only(
+                                        bottom: 40, left: 10, right: 10),
+                                    counterStyle: TextStyle(
+                                        fontSize: 15, color: Colors.white)),
+                              ),
+                            ),
+                          ),
+                          FlatButton(
+                            onPressed: () {
+                              salfhTags.add(currentTag);
+                              print(salfhTags.toString());
+                              editor.clear();
+                            },
+                            color: Colors.white,
+                            shape: StadiumBorder(
+                              side: BorderSide(color: Colors.white),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                "Add Tag",
+                                style:
+                                    TextStyle(color: kMainColor, fontSize: 20),
+                              ),
+                            ),
+                          ),
                           Text(
                             'مع كم واحد؟',
                             style: kHeadingTextStyle,
@@ -182,6 +231,7 @@ class _AddScreenState extends State<AddScreen> {
                             onPressed: () {
                               if (_formKey.currentState.validate()) {
                                 createSalfh();
+                                salfhTags = [];
                               }
                             },
                             color: Colors.white,
@@ -196,7 +246,7 @@ class _AddScreenState extends State<AddScreen> {
                                     TextStyle(color: kMainColor, fontSize: 20),
                               ),
                             ),
-                          )
+                          ),
                         ],
                       ),
               ),

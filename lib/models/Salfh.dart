@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/User.dart';
+import 'package:solif/models/Tags.dart';
 
 import '../constants.dart';
 
@@ -20,6 +21,7 @@ class Salfh {
   DateTime timeCreated;
   DateTime lastMessageSentTime;
   String lastMessageSentID;
+  List<String> tags;
 
   Salfh(
       {@required this.maxUsers,
@@ -29,6 +31,7 @@ class Salfh {
       this.timeCreated,
       this.lastMessageSentTime,
       this.creatorID,
+      this.tags,
       this.lastMessageSentID});
 
   Map<String, dynamic> toMap() {
@@ -41,6 +44,7 @@ class Salfh {
       'timeCreated': timeCreated,
       'lastMessageSentTime': lastMessageSentTime,
       'lastMessageSentID': lastMessageSentID,
+      'tags': this.tags
     };
   }
 }
@@ -67,7 +71,7 @@ Future<bool> joinSalfh({String userID, String salfhID, colorName}) async {
 }
 
 Future<String> saveSalfh(
-    {String creatorID, int maxUsers, String category, String title}) async {
+    {String creatorID, int maxUsers, String category, String title,List<String> tags}) async {
   DocumentReference salfhID = await firestore.collection("Swalf").add(Salfh(
         maxUsers: maxUsers,
         creatorID: creatorID,
@@ -77,6 +81,7 @@ Future<String> saveSalfh(
         timeCreated: DateTime.now(),
         lastMessageSentTime: DateTime.now(),
         lastMessageSentID: null,
+        tags: tags
       ).toMap());
 
   String color =
@@ -86,6 +91,7 @@ Future<String> saveSalfh(
 
     addSalfhToUser(creatorID, salfhID.documentID, color);
     createSalfhChatRoom(salfhID.documentID);
+    incrementTags(tags); 
   }
 
   return salfhID.documentID;
