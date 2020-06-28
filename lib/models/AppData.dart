@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/SalfhTile.dart';
+import 'package:solif/models/Tags.dart';
 
 class AppData with ChangeNotifier {
   String currentUserID;
@@ -17,10 +18,50 @@ class AppData with ChangeNotifier {
 
   //local saved data
   SharedPreferences prefs;
+  //
+  //
 
   AppData() {
     init();
+    // List<String> tags = [];
+    // List<String> chars = ['a','b','c','d'];
+    // for(int i=0;i<chars.length*3;i++){
+    //    for(int j=0;j<chars.length*6;j++){
+    //      for(int k=0;k<chars.length*8;k++){
+    //      String temp = chars[i%chars.length] + chars[j%chars.length] + chars[k%chars.length];
+    //      tags.add(temp);
+    //      }
+    //    }
+    // }
+    // incrementTags(tags);
+    List<String> chars = ['a', 'b', 'c', 'd'];
+    List<String> tags = [];
+    for (int i = 0; i < chars.length; i++) {
+      for (int j = 0; j < chars.length; j++) {
+        for (int k = 0; k < chars.length; k++) {
+          String temp = chars[i] + chars[j] + chars[k];
+          tags.add(temp);
+        }
+      }
+    }
+    for (int i = 0; i < tags.length; i++) {
+      firestore.collection('tags').document(tags[i]).setData({
+        'tagName': tags[i],
+        'tagCounter': tags.length - i,
+        'searchKeys': stringKeys(tags[i])
+      });
+    }
+    print(stringKeys('abcd'));
   }
+
+  List<String> stringKeys(String tag){
+    List<String> keys = List();
+    for(int i=0;i<tag.length;i++){
+      keys.add(tag.substring(0,i+1));
+    }
+    return keys; 
+  }
+
 
   init() async {
     prefs = await SharedPreferences.getInstance();

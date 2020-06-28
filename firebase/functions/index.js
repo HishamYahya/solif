@@ -60,5 +60,4 @@ exports.salfhWithTagCreated = functions.firestore.document('/Swalf/{salfhID}').o
 
     return admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
 
-    // return "yo";
 });

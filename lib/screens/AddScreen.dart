@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:solif/Services/FirebaseServices.dart';
@@ -27,6 +28,7 @@ class _AddScreenState extends State<AddScreen> {
   int groupSize = 1;
   bool loading = false;
   TextEditingController editor = TextEditingController();
+  List<String> tags;
   final _formKey = GlobalKey<FormState>();
 
   void createSalfh() async {
@@ -86,6 +88,35 @@ class _AddScreenState extends State<AddScreen> {
     ]);
   }
 
+  Future<List<DocumentSnapshot>> getSuggestion(String searchkey) {
+    if (searchkey == null || searchkey.length < 1) {
+      return null;
+    }
+    print(searchkey);
+
+    Firestore.instance
+        .collection('tags')
+        .where('searchKeys', arrayContains: searchkey)
+        .orderBy('tagCounter', descending: true)
+        .limit(10)
+
+
+
+        // .orderBy('tagName', descending: true)
+        // .where('tagName', isGreaterThanOrEqualTo: searchkey)
+        // .where('tagName', isLessThan: searchkey + 'z')
+ 
+        // .startAt([searchkey])
+        // .endAt([searchkey + '\uf8ff'])
+        .getDocuments()
+        .then((snapshot) {
+      print("XD");
+      for (var doc in snapshot.documents) {
+        print(doc.data.values);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
@@ -142,6 +173,8 @@ class _AddScreenState extends State<AddScreen> {
                                 controller: editor,
                                 onChanged: (value) {
                                   currentTag = value;
+
+                                  getSuggestion(value);
                                 },
                                 maxLength: 50,
                                 style: kHintTextStyle.copyWith(
@@ -163,7 +196,7 @@ class _AddScreenState extends State<AddScreen> {
                           FlatButton(
                             onPressed: () {
                               salfhTags.add(currentTag);
-                              print(salfhTags.toString());
+                              // print(salfhTags.toString());
                               editor.clear();
                             },
                             color: Colors.white,

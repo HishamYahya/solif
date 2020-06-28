@@ -314,12 +314,15 @@ class MostRecentMessageBox extends StatelessWidget {
         padding: const EdgeInsets.only(left: 20),
         child: Container(
           width: MediaQuery.of(context).size.width * 0.7,
+          
           decoration: BoxDecoration(
-            color: kOurColors[lastMessageSent['color']],
+           // color: kOurColors[lastMessageSent['color']],
+           
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(500),
               bottomLeft: Radius.circular(500),
             ),
+            
           ),
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -327,7 +330,7 @@ class MostRecentMessageBox extends StatelessWidget {
               textDirection: TextDirection.rtl,
               child: Text(
                 lastMessageSent['content'],
-                style: TextStyle(color: Colors.white, fontSize: 14, height: 1),
+                style: TextStyle(color: Colors.black, fontSize: 15, height: 1),
               ),
             ),
           ),
