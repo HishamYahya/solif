@@ -34,34 +34,33 @@ class AppData with ChangeNotifier {
     //    }
     // }
     // incrementTags(tags);
-    List<String> chars = ['a', 'b', 'c', 'd'];
-    List<String> tags = [];
-    for (int i = 0; i < chars.length; i++) {
-      for (int j = 0; j < chars.length; j++) {
-        for (int k = 0; k < chars.length; k++) {
-          String temp = chars[i] + chars[j] + chars[k];
-          tags.add(temp);
-        }
-      }
-    }
-    for (int i = 0; i < tags.length; i++) {
-      firestore.collection('tags').document(tags[i]).setData({
-        'tagName': tags[i],
-        'tagCounter': tags.length - i,
-        'searchKeys': stringKeys(tags[i])
-      });
-    }
-    print(stringKeys('abcd'));
+
+    // List<String> chars = ['a', 'b', 'c', 'd'];
+    // List<String> tags = [];
+    // for (int i = 0; i < chars.length; i++) {
+    //   for (int j = 0; j < chars.length; j++) {
+    //     for (int k = 0; k < chars.length; k++) {
+    //       String temp = chars[i] + chars[j] + chars[k];
+    //       tags.add(temp);
+    //     }
+    //   }
+    // }
+    // for (int i = 0; i < tags.length; i++) {
+    //   firestore.collection('tags').document(tags[i]).setData({
+    //     'tagName': tags[i],
+    //     'tagCounter': tags.length - i,
+    //     'searchKeys': stringKeys(tags[i])
+    //   });
+    // }
   }
 
-  List<String> stringKeys(String tag){
+  List<String> stringKeys(String tag) {
     List<String> keys = List();
-    for(int i=0;i<tag.length;i++){
-      keys.add(tag.substring(0,i+1));
+    for (int i = 0; i < tag.length; i++) {
+      keys.add(tag.substring(0, i + 1));
     }
-    return keys; 
+    return keys;
   }
-
 
   init() async {
     prefs = await SharedPreferences.getInstance();
