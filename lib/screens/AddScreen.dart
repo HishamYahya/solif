@@ -131,7 +131,7 @@ class _AddScreenState extends State<AddScreen> {
         child: loading
             ? getLoadingWidget()
             : !widget.isAdding
-                ? null
+                ? Container()
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -222,6 +222,7 @@ class _AddScreenState extends State<AddScreen> {
                       //     ),
                       //   ),
                       // ),
+
                       Center(
                         child: Tags(
                           textField: TagsTextField(
