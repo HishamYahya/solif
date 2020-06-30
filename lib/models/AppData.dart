@@ -4,14 +4,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:solif/Services/FirebaseServices.dart';
+import 'package:solif/Services/FirebaseServices.dart';  
 import 'package:solif/components/SalfhTile.dart';
+import 'package:solif/components/TagTile.dart';
 import 'package:solif/models/Tags.dart';
 
 class AppData with ChangeNotifier {
   String currentUserID;
   List<SalfhTile> usersSalfhTiles;
   List<SalfhTile> publicSalfhTiles;
+  List<TagTile> tagsSavedLocally = [];
+  bool isTagslLoaded = false;
   final Firestore firestore = Firestore.instance;
   final fcm = FirebaseMessaging();
   static Query nextPublicTiles;
@@ -22,6 +25,8 @@ class AppData with ChangeNotifier {
   //
 
   AppData() {
+    // test();
+
     init();
     // List<String> tags = [];
     // List<String> chars = ['a','b','c','d'];
@@ -161,4 +166,61 @@ class AppData with ChangeNotifier {
     publicSalfhTiles = newSalfhTiles;
     notifyListeners();
   }
+
+  // Future<void> test() async {
+  //   print("Xd 2 $currentUserID");
+  //   await firestore
+  //       .collection("users")
+  //       .document(currentUserID)
+  //       .collection('userTags')
+  //       .getDocuments()
+  //       .then((value) {
+  //     for (var doc in value.documents) {
+  //       print("hetre23");
+  //     }
+  //   });
+  // }
+
+  void deleteTag(String tag) {
+    tagsSavedLocally.removeWhere((element) => element.tagName == tag);
+    Firestore.instance
+        .collection('users')
+        .document(currentUserID)
+        .collection('userTags')
+        .document(tag)
+        .delete();
+    // _fcm.unsubscribeFromTopic("${tag}TAG-UNIQUE-ID");
+    tagsSavedLocally = tagsSavedLocally.map((e) => e).toList();
+    // if (tagsSavedLocally.length == 0){
+    //   tagsSavedLocally.add(null);
+    //   tagsSavedLocally = [];
+    //   tagsSavedLocally = List<TagTile>.from(tagsSavedLocally);
+    //   print(tagsSavedLocally); 
+    // }
+    notifyListeners();
+  }
+
+  void addTag(String tag) {
+    if (tag == null || tag == '') return;
+    tagsSavedLocally.add(TagTile(
+      tagName: tag,
+      // onCancelPressed: deleteTag,)
+    ));
+    Firestore.instance
+        .collection('users')
+        .document(currentUserID)
+        .collection('userTags')
+        .document(tag)
+        .setData({'tagName': tag, 'timeAdded': DateTime.now()});
+    // // _fcm.subscribeToTopic(
+    //     "${tag}TAG-UNIQUE-ID"); // without  an ending ID for tag topic, a salfh topic and a tag topic could have the same name. two topics same name = bad.
+    //         });
+
+    tagsSavedLocally = tagsSavedLocally.map((e) => e).toList();
+    notifyListeners();
+  }
+
+  bool isTagsLoadedLocally() {
+    return isTagslLoaded;
+    }
 }
