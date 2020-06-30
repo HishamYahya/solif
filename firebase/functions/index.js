@@ -39,11 +39,11 @@ exports.salfhWithTagCreated = functions.firestore.document('/Swalf/{salfhID}').o
     const salfhWithTag = snapshot.data();
     const tags = context.params.tags;
     const condition = "";
-    for(tag in tags){
+    for (tag in tags) {
         condition += `'${tag}' in topics || `
     }
-    condition = condition.substring(0,condition.length-4); 
-   // const condition = `'${context.params.tags[0]}' in topics || ${context.params.tags[1]}' in topics || ${context.params.tags[2]}' in topics`
+    condition = condition.substring(0, condition.length - 4);
+    // const condition = `'${context.params.tags[0]}' in topics || ${context.params.tags[1]}' in topics || ${context.params.tags[2]}' in topics`
     const payload = {
         notification: {
             title: "Check this salfh that matchs your interest", // TODO: change message
