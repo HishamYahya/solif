@@ -7,7 +7,9 @@ class CustomSliverAppBar extends StatelessWidget {
   final List<Widget> actions;
   final VoidCallback onScrollStretch;
 
-  const CustomSliverAppBar({this.title, this.actions, this.onScrollStretch});
+  final Widget leadingWidget;
+
+  const CustomSliverAppBar({this.title, this.actions, this.onScrollStretch,this.leadingWidget});
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +23,7 @@ class CustomSliverAppBar extends StatelessWidget {
       backgroundColor: kMainColor,
       actions: actions,
       flexibleSpace: FlexibleSpaceBar(),
+      leading: leadingWidget,
     );
   }
 }

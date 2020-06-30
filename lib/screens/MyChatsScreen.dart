@@ -12,6 +12,7 @@ import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:solif/screens/ChatScreen.dart';
+import 'package:solif/screens/UserInterestScreen.dart';
 
 // Same as PublicChatsScreen but with different title for now
 class MyChatsScreen extends StatefulWidget {
@@ -35,8 +36,19 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
         CustomSliverAppBar(
           title: Text(
             "سوالفي2",
-            style: TextStyle(color: kMainColor),
+            style: TextStyle(color: Colors.white),
+
           ),
+
+            
+          leadingWidget:  IconButton(
+              icon: Icon(
+                Icons.scatter_plot,
+                size: 30,
+                color: Colors.white,
+              ),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => UserInterestScreen())),
+            )
         ),
         SliverList(
           delegate: SliverChildListDelegate(
