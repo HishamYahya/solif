@@ -36,11 +36,15 @@ exports.messageSent = functions.firestore.document('/chatRooms/{salfhID}/message
 
 
 exports.salfhWithTagCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate((snapshot, context) => {
+    
     const salfhWithTag = snapshot.data();
     const tags = context.params.tags;
+
+    if(tags.length == 0) return; 
+    
     const condition = "";
     for (tag in tags) {
-        condition += `'${tag}' in topics || `
+        condition += `'${tag}TAG' in topics || `
     }
     condition = condition.substring(0, condition.length - 4);
     // const condition = `'${context.params.tags[0]}' in topics || ${context.params.tags[1]}' in topics || ${context.params.tags[2]}' in topics`

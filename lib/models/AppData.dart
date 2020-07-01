@@ -123,7 +123,7 @@ class AppData with ChangeNotifier {
   reloadUsersSalfhTiles() async {
     usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
     for (var tile in usersSalfhTiles) {
-      fcm.subscribeToTopic(tile.id);
+      fcm.subscribeToTopic("${tile.id}SALFH");
     }
     notifyListeners();
   }
@@ -189,14 +189,10 @@ class AppData with ChangeNotifier {
         .collection('userTags')
         .document(tag)
         .delete();
-    // _fcm.unsubscribeFromTopic("${tag}TAG-UNIQUE-ID");
+    fcm.unsubscribeFromTopic("${tag}TAG");
+    
     tagsSavedLocally = tagsSavedLocally.map((e) => e).toList();
-    // if (tagsSavedLocally.length == 0){
-    //   tagsSavedLocally.add(null);
-    //   tagsSavedLocally = [];
-    //   tagsSavedLocally = List<TagTile>.from(tagsSavedLocally);
-    //   print(tagsSavedLocally); 
-    // }
+
     notifyListeners();
   }
 
@@ -212,9 +208,9 @@ class AppData with ChangeNotifier {
         .collection('userTags')
         .document(tag)
         .setData({'tagName': tag, 'timeAdded': DateTime.now()});
-    // // _fcm.subscribeToTopic(
-    //     "${tag}TAG-UNIQUE-ID"); // without  an ending ID for tag topic, a salfh topic and a tag topic could have the same name. two topics same name = bad.
-    //         });
+    fcm.subscribeToTopic(
+        "${tag}TAG"); // without  an ending ID for tag topic, a salfh topic and a tag topic could have the same name. two topics same name = bad.
+            
 
     tagsSavedLocally = tagsSavedLocally.map((e) => e).toList();
     notifyListeners();
