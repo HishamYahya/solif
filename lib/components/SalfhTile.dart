@@ -64,6 +64,7 @@ class _SalfhTileState extends State<SalfhTile> {
       // new last message sent
       if (lastMessageSentID != snapshot.data['lastMessageSentID'] &&
           snapshot.data['lastMessageSentID'] != null) {
+        lastMessageSentID = snapshot.data['lastMessageSentID'];
         updateLastMessageSent();
       }
     });
@@ -76,7 +77,6 @@ class _SalfhTileState extends State<SalfhTile> {
         .document(widget.id)
         .collection('messages')
         .orderBy('timeSent', descending: true)
-        .limit(1)
         .getDocuments()
         .then((value) {
       setState(() {

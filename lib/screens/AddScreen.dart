@@ -40,7 +40,7 @@ class _AddScreenState extends State<AddScreen> {
     });
 
     //create new salfh
-    String newSalfhId = await saveSalfh(
+    final newSalfh = await saveSalfh(
       creatorID: Provider.of<AppData>(context, listen: false).currentUserID,
       maxUsers: groupSize + 1,
       title: salfhName,
@@ -48,21 +48,20 @@ class _AddScreenState extends State<AddScreen> {
     );
 
     //if suceeded
-    if (newSalfhId != null) {
+    if (newSalfh != null) {
       Provider.of<AppData>(context, listen: false).reloadUsersSalfhTiles();
       String colorName = await getColorOfUser(
         userID: Provider.of<AppData>(context, listen: false).currentUserID,
-        salfhID: newSalfhId,
+        salfh: newSalfh,
       );
-      final salfh = await getSalfh(newSalfhId);
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ChatScreen(
-            title: salfh['title'],
-            colorsStatus: salfh['colorsStatus'],
+            title: newSalfh['title'],
+            colorsStatus: newSalfh['colorsStatus'],
             color: colorName,
-            salfhID: newSalfhId,
+            salfhID: newSalfh['id'],
           ),
         ),
       );
@@ -165,6 +164,7 @@ class _AddScreenState extends State<AddScreen> {
                                 child: Directionality(
                                   textDirection: TextDirection.rtl,
                                   child: TextFormField(
+                                    autofocus: true,
                                     onChanged: (value) {
                                       salfhName = value;
                                     },
@@ -238,78 +238,83 @@ class _AddScreenState extends State<AddScreen> {
                             // ),
 
                             Center(
-                              child: Tags(
-                                textField: TagsTextField(
-                                  textStyle: TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.white,
-                                  ),
-                                  hintText: 'مين تبي نعلم؟',
-                                  hintTextColor: Colors.white54,
-                                  suggestionTextColor: Colors.white54,
-                                  constraintSuggestion: false,
-                                  suggestions: suggestions,
-                                  onChanged: (searchkey) {
-                                    print(salfhTags);
-                                    getSuggestion(searchkey);
-                                  },
-                                  inputDecoration: InputDecoration(
-                                    enabledBorder: kTextFieldBorder,
-                                    focusedBorder: kTextFieldBorder,
-                                    errorBorder: kTextFieldBorder,
-                                    fillColor: Colors.white,
-                                    hintStyle: kHintTextStyle,
-                                    contentPadding: EdgeInsets.only(
-                                        bottom: 10, left: 10, right: 10),
-                                    counterStyle: TextStyle(
-                                        fontSize: 15, color: Colors.white),
-                                  ),
-                                  onSubmitted: (String str) {
-                                    // Add item to the data source.
-                                    setState(() {
-                                      // required
-                                      salfhTags.add(str);
-                                    });
-                                  },
-                                ),
-                                horizontalScroll: true,
-                                textDirection: TextDirection.rtl,
-                                itemCount: salfhTags.length,
-                                itemBuilder: (index) {
-                                  final item = salfhTags[index];
-                                  return ItemTags(
-                                    // Each ItemTags must contain a Key. Keys allow Flutter to
-                                    // uniquely identify widgets.
-                                    key: Key(index.toString()),
-                                    index: index, // required
-                                    title: item,
-                                    activeColor: kMainColor,
-                                    color: kMainColor,
-
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Tags(
+                                  textField: TagsTextField(
                                     textStyle: TextStyle(
                                       fontSize: 18,
+                                      color: Colors.white,
                                     ),
-                                    textActiveColor: Colors.white,
-                                    textColor: Colors.white,
-                                    splashColor: Colors.transparent,
+                                    autofocus: false,
+                                    hintText: 'مين تبي نعلم؟',
+                                    hintTextColor: Colors.white54,
+                                    suggestionTextColor: Colors.white54,
+                                    constraintSuggestion: false,
+                                    suggestions: suggestions,
+                                    onChanged: (searchkey) {
+                                      print(salfhTags);
+                                      getSuggestion(searchkey);
+                                    },
+                                    inputDecoration: InputDecoration(
+                                      enabledBorder: kTextFieldBorder,
+                                      focusedBorder: kTextFieldBorder,
+                                      errorBorder: kTextFieldBorder,
+                                      fillColor: Colors.white,
+                                      hintStyle: kHintTextStyle,
+                                      contentPadding: EdgeInsets.only(
+                                          bottom: 10, left: 10, right: 10),
+                                      counterStyle: TextStyle(
+                                          fontSize: 15, color: Colors.white),
+                                    ),
+                                    onSubmitted: (String str) {
+                                      // Add item to the data source.
+                                      setState(() {
+                                        // required
+                                        salfhTags.add(str);
+                                      });
+                                    },
+                                  ),
+                                  horizontalScroll: true,
+                                  textDirection: TextDirection.rtl,
+                                  itemCount: salfhTags.length,
+                                  itemBuilder: (index) {
+                                    final item = salfhTags[index];
+                                    return ItemTags(
+                                      // Each ItemTags must contain a Key. Keys allow Flutter to
+                                      // uniquely identify widgets.
+                                      key: Key(index.toString()),
+                                      index: index, // required
+                                      title: item,
+                                      activeColor: kMainColor,
+                                      color: kMainColor,
 
-                                    // OR null,
-                                    removeButton: ItemTagsRemoveButton(
-                                      backgroundColor: Colors.blue,
-                                      onRemoved: () {
-                                        // Remove the item from the data source.
-                                        setState(() {
-                                          // required
-                                          salfhTags.removeAt(index);
-                                        });
-                                        //required
-                                        return true;
-                                      },
-                                    ), // OR null,
-                                    onPressed: (item) => print(item),
-                                    onLongPressed: (item) => print(item),
-                                  );
-                                },
+                                      textStyle: TextStyle(
+                                        fontSize: 18,
+                                      ),
+                                      textActiveColor: Colors.white,
+                                      textColor: Colors.white,
+                                      splashColor: Colors.transparent,
+
+                                      // OR null,
+                                      removeButton: ItemTagsRemoveButton(
+                                        backgroundColor: Colors.blue,
+                                        onRemoved: () {
+                                          // Remove the item from the data source.
+                                          setState(() {
+                                            // required
+                                            salfhTags.removeAt(index);
+                                          });
+                                          //required
+                                          return true;
+                                        },
+                                      ), // OR null,
+                                      onPressed: (item) => print(item),
+                                      onLongPressed: (item) => print(item),
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                             Padding(

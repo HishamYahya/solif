@@ -32,3 +32,5 @@ final Map<String, Color> kOurColors = {
 };
 
 final kMainColor = Color(0XFF1b98e0);
+
+final kMinimumSalfhTiles = 10;

@@ -80,7 +80,6 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        resizeToAvoidBottomInset: true,
         backgroundColor: Colors.grey[100],
         floatingActionButton: AnimatedBuilder(
           animation: _animationController,
@@ -149,38 +148,33 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           ),
         ),
         // close the add popup when dragging down`
-        body: SingleChildScrollView(
-          child: Container(
-            height: MediaQuery.of(context).size.height,
-            child: GestureDetector(
-              onVerticalDragDown: (details) {
-                if (isAdding) {
-                  setState(() {
-                    isAdding = false;
-                  });
-                  _animationController.reverse();
-                }
-              },
-              onTap: () {
-                if (isAdding) {
-                  _animationController.reverse();
-                  setState(() {
-                    isAdding = false;
-                  });
-                }
-              },
-              child: TabBarView(
-                controller: _tabController,
-                children: <Widget>[
-                  MyChatsScreen(
-                    disabled: isAdding,
-                  ),
-                  PublicChatsScreen(
-                    disabled: isAdding,
-                  )
-                ],
+        body: GestureDetector(
+          onVerticalDragDown: (details) {
+            if (isAdding) {
+              setState(() {
+                isAdding = false;
+              });
+              _animationController.reverse();
+            }
+          },
+          onTap: () {
+            if (isAdding) {
+              _animationController.reverse();
+              setState(() {
+                isAdding = false;
+              });
+            }
+          },
+          child: TabBarView(
+            controller: _tabController,
+            children: <Widget>[
+              MyChatsScreen(
+                disabled: isAdding,
               ),
-            ),
+              PublicChatsScreen(
+                disabled: isAdding,
+              )
+            ],
           ),
         ),
       ),

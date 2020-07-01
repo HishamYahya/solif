@@ -58,9 +58,14 @@ class _PublicChatsScreenState extends State<PublicChatsScreen> {
       onRefresh: onRefresh,
       onLoading: onLoading,
       enablePullUp: true,
+      enableTwoLevel: true,
       header: WaterDropMaterialHeader(
         offset: 55,
         distance: 40,
+      ),
+      footer: ClassicFooter(
+        height: 80,
+        loadStyle: LoadStyle.ShowWhenLoading,
       ),
       child: CustomScrollView(
         slivers: <Widget>[

@@ -56,9 +56,6 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
         .getDocuments()
         .then((value) {
       for (var doc in value.documents.reversed) {
-        
-        print("13242423");
-        print(doc['tagName']);
         tags.add(TagTile(
           tagName: doc['tagName'],
         ));
@@ -94,7 +91,7 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
                 } else if (snapshot.connectionState == ConnectionState.done) {
                   Provider.of<AppData>(context).tagsSavedLocally =
                       snapshot.data;
-                         Provider.of<AppData>(context,listen: false).isTagslLoaded =
+                  Provider.of<AppData>(context, listen: false).isTagslLoaded =
                       true;
                   return GridView.count(
                       crossAxisCount: 2, children: snapshot.data);

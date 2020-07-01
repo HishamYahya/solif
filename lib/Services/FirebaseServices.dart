@@ -65,16 +65,12 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
   final first = firestore
       .collection('Swalf')
       .orderBy('timeCreated', descending: true)
-      .limit(3);
+      .limit(kMinimumSalfhTiles);
   final salfhDocs = await first.getDocuments();
   List<SalfhTile> salfhTiles = [];
   Random random = Random();
   for (var salfh in salfhDocs.documents) {
-    print('////////////////////////// IN LOOP //////////////////////');
-    print(salfh.data);
     if (salfh['creatorID'] != userID) {
-      print('/////////////// creator id ///////////////');
-      print(salfh.data);
       bool isFull = true;
       salfh['colorsStatus'].forEach((name, statusMap) {
         if (statusMap['userID'] == null) isFull = false;
@@ -97,7 +93,7 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
     AppData.nextPublicTiles = firestore
         .collection('Swalf')
         .orderBy('timeCreated', descending: true)
-        .startAfter([lastVisibleSalfhTime]).limit(2);
+        .startAfter([lastVisibleSalfhTime]).limit(kMinimumSalfhTiles);
   }
 
   return salfhTiles;
@@ -117,4 +113,3 @@ getSalfh(salfhID) async {
 //   'tag2': count2,
 //   'tag3': count3,
 // }
-

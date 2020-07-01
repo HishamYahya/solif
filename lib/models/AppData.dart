@@ -4,9 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:solif/Services/FirebaseServices.dart';  
+import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/components/TagTile.dart';
+import 'package:solif/constants.dart';
 import 'package:solif/models/Tags.dart';
 
 class AppData with ChangeNotifier {
@@ -121,14 +122,18 @@ class AppData with ChangeNotifier {
   }
 
   reloadUsersSalfhTiles() async {
+    usersSalfhTiles = [];
+    notifyListeners();
     usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
     for (var tile in usersSalfhTiles) {
-      fcm.subscribeToTopic("${tile.id}SALFH");
+      print(tile.id);
     }
     notifyListeners();
   }
 
   reloadPublicSalfhTiles() async {
+    publicSalfhTiles = [];
+    notifyListeners();
     publicSalfhTiles = await getPublicChatScreenTiles(currentUserID);
     notifyListeners();
   }
@@ -161,7 +166,7 @@ class AppData with ChangeNotifier {
       nextPublicTiles = firestore
           .collection('Swalf')
           .orderBy('timeCreated', descending: true)
-          .startAfter([lastVisibleSalfhTime]).limit(2);
+          .startAfter([lastVisibleSalfhTime]).limit(kMinimumSalfhTiles);
     }
     publicSalfhTiles = newSalfhTiles;
     notifyListeners();
@@ -190,7 +195,7 @@ class AppData with ChangeNotifier {
         .document(tag)
         .delete();
     fcm.unsubscribeFromTopic("${tag}TAG");
-    
+
     tagsSavedLocally = tagsSavedLocally.map((e) => e).toList();
 
     notifyListeners();
@@ -210,7 +215,6 @@ class AppData with ChangeNotifier {
         .setData({'tagName': tag, 'timeAdded': DateTime.now()});
     fcm.subscribeToTopic(
         "${tag}TAG"); // without  an ending ID for tag topic, a salfh topic and a tag topic could have the same name. two topics same name = bad.
-            
 
     tagsSavedLocally = tagsSavedLocally.map((e) => e).toList();
     notifyListeners();
@@ -218,5 +222,5 @@ class AppData with ChangeNotifier {
 
   bool isTagsLoadedLocally() {
     return isTagslLoaded;
-    }
+  }
 }
