@@ -26,6 +26,7 @@ class _PublicChatsScreenState extends State<PublicChatsScreen> {
 
   void onRefresh() async {
     await Provider.of<AppData>(context, listen: false).reloadPublicSalfhTiles();
+    if (!mounted) return;
     List<SalfhTile> salfhTiles =
         Provider.of<AppData>(context, listen: false).publicSalfhTiles;
     if (salfhTiles == null) {
@@ -35,12 +36,18 @@ class _PublicChatsScreenState extends State<PublicChatsScreen> {
       Provider.of<AppData>(context, listen: false)
           .setPublicSalfhTiles(salfhTiles);
     }
-    _refreshController.refreshFailed();
+    _refreshController.refreshCompleted();
+    _refreshController.loadComplete();
   }
 
   void onLoading() async {
-    //TODO: Load more data when scrolling up at the end
-    _refreshController.loadNoData();
+    final state = Provider.of<AppData>(context, listen: false);
+    int currentLength = state.publicSalfhTiles.length;
+    await state.loadNextPublicSalfhTiles();
+    if (currentLength == state.publicSalfhTiles.length)
+      _refreshController.loadNoData();
+    else
+      _refreshController.loadComplete();
   }
 
   @override
@@ -51,9 +58,14 @@ class _PublicChatsScreenState extends State<PublicChatsScreen> {
       onRefresh: onRefresh,
       onLoading: onLoading,
       enablePullUp: true,
+      enableTwoLevel: true,
       header: WaterDropMaterialHeader(
         offset: 55,
         distance: 40,
+      ),
+      footer: ClassicFooter(
+        height: 80,
+        loadStyle: LoadStyle.ShowWhenLoading,
       ),
       child: CustomScrollView(
         slivers: <Widget>[

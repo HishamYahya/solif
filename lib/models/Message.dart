@@ -7,26 +7,27 @@ class Message {
   String content;
   DateTime timeSent;
   String messageColor;
- 
+  String userID;
 
-  Message({
-    @required this.content,
-    @required this.timeSent,
-    @required this.messageColor,
-  });
+  Message(
+      {@required this.content,
+      @required this.timeSent,
+      @required this.messageColor,
+      @required this.userID});
 
   Map<String, dynamic> toMap() {
     return {
       'content': content,
       'timeSent': timeSent,
       'color': messageColor,
+      'userID': userID
     };
   }
 }
 
 // now returns whether it succeeded or not
 Future<bool> addMessage(
-    String messageContent, String color, String salfhID) async {
+    String messageContent, String color, String salfhID, String userID) async {
   //print(salfhID);
   final firestore = Firestore.instance;
   bool success = false;
@@ -38,11 +39,11 @@ Future<bool> addMessage(
         .add(Message(
                 content: messageContent,
                 timeSent: DateTime.now(),
-                messageColor: color)
+                messageColor: color,
+                userID: userID)
             .toMap())
         .then((value) {
           success = true;
-
         })
         .timeout(Duration(seconds: 5))
         .catchError((err) {});
@@ -78,7 +79,6 @@ Future<bool> addMessage(
 //       statusMap['lastMessageReadID'] = salfh['lastMessageSentID'];
 //     }
 
-    
 //   });
 //   salfhDoc.updateData(salfh);
 // }

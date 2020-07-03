@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/User.dart';
+import 'package:solif/models/Tags.dart';
 
 import '../constants.dart';
 
@@ -20,6 +21,7 @@ class Salfh {
   DateTime timeCreated;
   DateTime lastMessageSentTime;
   String lastMessageSentID;
+  List<String> tags;
 
   Salfh(
       {@required this.maxUsers,
@@ -29,6 +31,7 @@ class Salfh {
       this.timeCreated,
       this.lastMessageSentTime,
       this.creatorID,
+      this.tags,
       this.lastMessageSentID});
 
   Map<String, dynamic> toMap() {
@@ -41,6 +44,7 @@ class Salfh {
       'timeCreated': timeCreated,
       'lastMessageSentTime': lastMessageSentTime,
       'lastMessageSentID': lastMessageSentID,
+      'tags': this.tags
     };
   }
 }
@@ -66,41 +70,47 @@ Future<bool> joinSalfh({String userID, String salfhID, colorName}) async {
   return added;
 }
 
-Future<String> saveSalfh(
-    {String creatorID, int maxUsers, String category, String title}) async {
-  DocumentReference salfhID = await firestore.collection("Swalf").add(Salfh(
-        maxUsers: maxUsers,
-        creatorID: creatorID,
-        category: category,
-        colorsStatus: getInitialColorStatus(creatorID, maxUsers),
-        title: title,
-        timeCreated: DateTime.now(),
-        lastMessageSentTime: DateTime.now(),
-        lastMessageSentID: null,
-      ).toMap());
+Future<Map> saveSalfh(
+    {String creatorID,
+    int maxUsers,
+    String category,
+    String title,
+    List<String> tags}) async {
+  Map salfh = Salfh(
+          maxUsers: maxUsers,
+          creatorID: creatorID,
+          category: category,
+          colorsStatus: getInitialColorStatus(creatorID, maxUsers),
+          title: title,
+          timeCreated: DateTime.now(),
+          lastMessageSentTime: DateTime.now(),
+          lastMessageSentID: null,
+          tags: tags)
+      .toMap();
 
-  String color =
-      await getColorOfUser(userID: creatorID, salfhID: salfhID.documentID);
-  if (salfhID != null) {
+  DocumentReference ref = await firestore.collection("Swalf").add(salfh);
+  salfh['id'] = ref.documentID;
+
+  String color = await getColorOfUser(userID: creatorID, salfh: salfh);
+  if (ref != null) {
     print('yooo');
 
-    addSalfhToUser(creatorID, salfhID.documentID, color);
-    createSalfhChatRoom(salfhID.documentID);
+    addSalfhToUser(creatorID, ref.documentID, color);
+    createSalfhChatRoom(ref.documentID);
+    incrementTags(tags);
+    return salfh;
   }
-
-  return salfhID.documentID;
+  return null;
 }
 
 void createSalfhChatRoom(String salfhID) async {
-   await firestore.collection("chatRooms").document(salfhID).setData( 
-  {
+  await firestore.collection("chatRooms").document(salfhID).setData({
     kColorNames[0]: DateTime.now(),
     kColorNames[1]: DateTime.now(),
     kColorNames[2]: DateTime.now(),
     kColorNames[3]: DateTime.now(),
     kColorNames[4]: DateTime.now(),
-  }
-   );
+  });
 }
 
 Map<String, Map<String, dynamic>> getInitialColorStatus(
@@ -128,9 +138,7 @@ Map<String, Map<String, dynamic>> getInitialColorStatus(
   return res;
 }
 
-Future<String> getColorOfUser({String userID, String salfhID}) async {
-  final salfh = await getSalfh(salfhID);
-  print(salfh);
+Future<String> getColorOfUser({String userID, Map salfh}) async {
   String colorName;
   salfh['colorsStatus'].forEach((name, statusMap) {
     statusMap['userID'] == userID ? colorName = name : null;

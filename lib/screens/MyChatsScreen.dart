@@ -12,6 +12,7 @@ import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:solif/screens/ChatScreen.dart';
+import 'package:solif/screens/UserInterestScreen.dart';
 
 // Same as PublicChatsScreen but with different title for now
 class MyChatsScreen extends StatefulWidget {
@@ -23,9 +24,15 @@ class MyChatsScreen extends StatefulWidget {
   _MyChatsScreenState createState() => _MyChatsScreenState();
 }
 
-class _MyChatsScreenState extends State<MyChatsScreen> {
+class _MyChatsScreenState extends State<MyChatsScreen>
+    with AutomaticKeepAliveClientMixin<MyChatsScreen> {
   RefreshController _refreshController =
       RefreshController(initialRefresh: false);
+
+  @override
+  // to keep the page from refreshing each time you change back to it
+  // (now only loaded once but always saved which might be a problem)
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
@@ -33,11 +40,21 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
     return CustomScrollView(
       slivers: <Widget>[
         CustomSliverAppBar(
-          title: Text(
-            "سوالفي2",
-            style: TextStyle(color: kMainColor),
-          ),
-        ),
+            title: Text(
+              "سوالفي2",
+              style: TextStyle(color: Colors.white),
+            ),
+            leadingWidget: IconButton(
+              icon: Icon(
+                Icons.scatter_plot,
+                size: 30,
+                color: Colors.white,
+              ),
+              onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => UserInterestScreen())),
+            )),
         SliverList(
           delegate: SliverChildListDelegate(
             isLoaded

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/BottomBar.dart';
@@ -23,10 +24,24 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   Animation blueToWhiteAnimation;
   TabController _tabController;
 
+  final fcm = FirebaseMessaging();
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    fcm.configure(
+      onLaunch: (message) {
+        print(message);
+      },
+      onResume: (message) {
+        print(message);
+      },
+      onMessage: (message) {
+        print(message);
+      },
+    );
+
     _tabController = TabController(vsync: this, length: 2);
 
     _tabController.addListener(() {
@@ -49,8 +64,6 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
     blueToWhiteAnimation = ColorTween(begin: kMainColor, end: Colors.white)
         .animate(_animationController);
-
-    print("df");
   }
 
   @override
@@ -101,36 +114,38 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
         // custom widget
-        bottomNavigationBar: BottomBar(
-          centerText: "افتح سالفة",
-          isAdding: isAdding,
-          selectedIndex: curPageIndex,
-          onTap: (value) {
-            if (curPageIndex != value) {
+        bottomNavigationBar: SingleChildScrollView(
+          child: BottomBar(
+            centerText: "افتح سالفة",
+            isAdding: isAdding,
+            selectedIndex: curPageIndex,
+            onTap: (value) {
+              if (curPageIndex != value) {
+                setState(() {
+                  curPageIndex = value;
+                  _tabController.animateTo(value);
+                  isAdding = false;
+                  _animationController.reverse();
+                });
+              }
+            },
+            onClose: () {
               setState(() {
-                curPageIndex = value;
-                _tabController.animateTo(value);
                 isAdding = false;
                 _animationController.reverse();
               });
-            }
-          },
-          onClose: () {
-            setState(() {
-              isAdding = false;
-              _animationController.reverse();
-            });
-          },
-          items: [
-            BottomBarItem(
-              title: "سواليفي",
-              icon: Icons.chat_bubble_outline,
-            ),
-            BottomBarItem(
-              title: "سواليفهم",
-              icon: Icons.chat_bubble,
-            ),
-          ],
+            },
+            items: [
+              BottomBarItem(
+                title: "سواليفي",
+                icon: Icons.chat_bubble_outline,
+              ),
+              BottomBarItem(
+                title: "سواليفهم",
+                icon: Icons.chat_bubble,
+              ),
+            ],
+          ),
         ),
         // close the add popup when dragging down`
         body: GestureDetector(

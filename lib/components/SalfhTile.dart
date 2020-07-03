@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:date_format/date_format.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -39,6 +41,8 @@ class _SalfhTileState extends State<SalfhTile> {
   List<Widget> dots = [];
   bool isFull = false;
   StreamSubscription<DocumentSnapshot> listener;
+  Map lastMessageSent;
+  String lastMessageSentID;
 
   @override
   void initState() {
@@ -46,6 +50,7 @@ class _SalfhTileState extends State<SalfhTile> {
     super.initState();
     colorsStatus = widget.colorsStatus;
     updateTileColor();
+    updateLastMessageSent();
     listener = firestore
         .collection('Swalf')
         .document(widget.id)
@@ -56,7 +61,28 @@ class _SalfhTileState extends State<SalfhTile> {
         colorsStatus = snapshot.data['colorsStatus'];
         updateTileColor();
       }
+      // new last message sent
+      if (lastMessageSentID != snapshot.data['lastMessageSentID'] &&
+          snapshot.data['lastMessageSentID'] != null) {
+        lastMessageSentID = snapshot.data['lastMessageSentID'];
+        updateLastMessageSent();
+      }
     });
+  }
+
+  void updateLastMessageSent() {
+    // TODO: consider caching last message sent so that it doesn't keep reading from the database whenever the widget is initialised
+    firestore
+        .collection('chatRooms')
+        .document(widget.id)
+        .collection('messages')
+        .orderBy('timeSent', descending: true)
+        .getDocuments()
+        .then((value) {
+      setState(() {
+        lastMessageSent = value.documents[0].data;
+      });
+    }).catchError((err) {});
   }
 
   //gets color of tile
@@ -181,54 +207,68 @@ class _SalfhTileState extends State<SalfhTile> {
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(11),
             color: isFull ? Colors.white : kOurColors[colorName],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Container(
-                width: MediaQuery.of(context).size.width * 0.75,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                      topRight: Radius.elliptical(10, 50),
-                      bottomRight: Radius.elliptical(10, 50),
-                      topLeft: Radius.circular(10),
-                      bottomLeft: Radius.circular(10)),
+              ClipRRect(
+                clipBehavior: Clip.antiAliasWithSaveLayer,
+                borderRadius: BorderRadius.only(
+                    topRight: Radius.elliptical(10, 50),
+                    bottomRight: Radius.elliptical(10, 50),
+                    topLeft: Radius.circular(10),
+                    bottomLeft: Radius.circular(10)),
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.75,
                   color: Colors.white,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        widget.title,
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.grey[850],
-                          fontWeight: FontWeight.w500,
-                        ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              widget.title,
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.grey[850],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(bottom: 4.0, left: 2),
+                            child: StreamBuilder(
+                                stream: firestore
+                                    .collection('Swalf')
+                                    .document(widget.id)
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    colorsStatus =
+                                        snapshot.data['colorsStatus'];
+                                    return Row(
+                                      children: generateDots(snapshot.data),
+                                    );
+                                  }
+                                  return Padding(padding: EdgeInsets.all(5));
+                                }),
+                          ),
+                        ],
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 4.0, left: 2),
-                      child: StreamBuilder(
-                          stream: firestore
-                              .collection('Swalf')
-                              .document(widget.id)
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              colorsStatus = snapshot.data['colorsStatus'];
-                              return Row(
-                                children: generateDots(snapshot.data),
-                              );
-                            }
-                            return Padding(padding: EdgeInsets.all(5));
-                          }),
-                    )
-                  ],
+                      lastMessageSent != null
+                          ? MostRecentMessageBox(
+                              lastMessageSent: lastMessageSent,
+                            )
+                          : SizedBox()
+                    ],
+                  ),
                 ),
               ),
               Padding(
@@ -252,6 +292,45 @@ class _SalfhTileState extends State<SalfhTile> {
                       ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class MostRecentMessageBox extends StatelessWidget {
+  const MostRecentMessageBox({
+    Key key,
+    @required this.lastMessageSent,
+  }) : super(key: key);
+
+  final Map lastMessageSent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20),
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.7,
+          decoration: BoxDecoration(
+            // color: kOurColors[lastMessageSent['color']],
+
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(500),
+              bottomLeft: Radius.circular(500),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Text(
+                lastMessageSent['content'],
+                style: TextStyle(color: Colors.black, fontSize: 15, height: 1),
+              ),
+            ),
           ),
         ),
       ),

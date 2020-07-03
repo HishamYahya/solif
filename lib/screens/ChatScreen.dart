@@ -130,7 +130,6 @@ class _ChatScreenState extends State<ChatScreen> {
         .snapshots()
         .listen((event) {
       print("OK");
-      print(event.data);
       Map<String, Timestamp> newStatus =
           Map<String, Timestamp>.from(event.data);
       // print("hereeee${event.data}");
@@ -192,16 +191,18 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void sendMessage() async {
-    bool success = await addMessage(inputMessage, colorName, widget.salfhID);
+    bool success = await addMessage(inputMessage, colorName, widget.salfhID,
+        Provider.of<AppData>(context, listen: false).currentUserID);
     if (success) {
       //TODO: display the message on screen only when it's been written to the database
 
       messageController.clear();
     }
 
-    setState(() {
-      sending = false;
-    });
+    if (mounted)
+      setState(() {
+        sending = false;
+      });
   }
 
   Future<void> setUserTimeLeft() async {
@@ -356,7 +357,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       .snapshots(),
                   builder: (context, snapshot) {
                     //TODO: display the message on screen only when it's been written to the database
-                    if (!snapshot.hasData) {
+                    if (!snapshot.hasData || lastLeftStatus == null) {
                       return LoadingWidget("");
                     }
                     final messages = snapshot.data.documents.reversed;
