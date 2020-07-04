@@ -11,6 +11,7 @@ final firestore = Firestore.instance;
 
 Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
   int x = 1;
+  print(userID);
   final salfhDoc = await firestore.collection('users').document(userID).get();
   List<SalfhTile> salfhTiles = [];
   Map<String, dynamic> userSwalf = await salfhDoc['userSwalf'];
