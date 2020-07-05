@@ -20,10 +20,17 @@ addSalfhToUser(String userID, String salfhID, String userColor) async {
 }
 
 
-deleteSalfhFromUser(String salfhID,String userID) async {
-  await firestore.collection('users').document(userID).setData({
-    'userSwalf': {
-      salfhID: FieldValue.delete(),
-    }
+// deleteSalfhFromUser(String salfhID,String userID) async {
+//   return firestore.collection('users').document(userID).setData({
+//     'userSwalf': {
+//       salfhID: FieldValue.delete(),
+//     }
+//   },merge: true);
+// }
+
+addKarma({String userID,int amount}){
+
+  firestore.collection('users').document(userID).setData({
+    'karma': FieldValue.increment(amount)
   },merge: true);
 }

@@ -34,10 +34,10 @@ class AppData with ChangeNotifier {
   }
 
   AppData() {
-    // print('here');  
-    // leaveSalfh(salfhID:
-    // "3UlXJVBkJsNxGpGcwTpr",userColor: 'purple',userID:"RWyXU62ht5FcJfsqnvWQ");
-    // test();
+    // print('here');   
+    leaveSalfh(salfhID:
+    "zFX6VZ7czRIdAirTqaZB",userColor: 'green',userID:"LX2Cw01JQlMSxPUroH37");
+    // // test();
 
     init();
     // List<String> tags = [];

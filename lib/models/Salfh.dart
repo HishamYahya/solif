@@ -146,15 +146,34 @@ Future<String> getColorOfUser({String userID, Map salfh}) async {
   return colorName;
 }
 
-Future<void> leaveSalfh({String salfhID, String userColor,String userID}) async {
-  await firestore.collection('Swalf').document(salfhID).setData({
-    'category': 'ok',
-    'colorsStatus': {
-      userColor: {'userID': null}
+Future<void> leaveSalfh(
+    {String salfhID, String userColor, String userID}) async {
+  //
+  // await firestore.collection('Swalf').document(salfhID).setData({
+  //   'category': 'ok',
+  //   'colorsStatus': {
+  //     userColor: {'userID': null}
+  //   }
+  // }, merge: true).then((value) async {
+  //   await deleteSalfhFromUser(salfhID, userID);
+  // });
+  WriteBatch batch = firestore.batch(); // done as a batch just to make sure that the data consistent in the 2 collections. 
+  DocumentReference salfhRef = firestore.collection('Swalf').document(salfhID);
+  batch.setData(
+      salfhRef,
+      {
+        // 'category': 'ok',
+        'colorsStatus': {
+          userColor: {'userID': null}
+        }
+      },
+      merge: true);
+  DocumentReference userRef = firestore.collection('users').document(userID);
+  batch.setData(userRef,{
+    'userSwalf': {
+      salfhID : FieldValue.delete()
     }
-  }, merge: true).then((value) async {
-    await deleteSalfhFromUser(salfhID,userID);
-  });
+  },merge: true);
+  
+  batch.commit();
 }
-
-
