@@ -9,7 +9,7 @@ import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/components/TagTile.dart';
 import 'package:solif/constants.dart';
-import 'package:solif/models/Tags.dart';
+import 'package:solif/models/Tag.dart';
 
 class AppData with ChangeNotifier {
   FirebaseUser currentUser;
@@ -177,6 +177,7 @@ class AppData with ChangeNotifier {
             colorsStatus: salfh['colorsStatus'],
             title: salfh['title'],
             id: salfh.documentID,
+            tags: salfh['tags'] ?? [], //////// TODO: remove null checking
           ));
       }
     }

@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Tags {
+class Tag {
   String tagName;
 
-  Tags({this.tagName});
+  Tag({this.tagName});
 
   Map<String, dynamic> toMap() {
     return {"tagName": this.tagName};
@@ -21,7 +21,7 @@ void incrementTags(List<String> tags) {
       'tagName': tag,
       'tagCounter': increment,
       'searchKeys': stringKeys(tag)
-    },merge: true);
+    }, merge: true);
   }
 }
 

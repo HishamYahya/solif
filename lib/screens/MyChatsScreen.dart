@@ -26,13 +26,12 @@ class MyChatsScreen extends StatefulWidget {
 
 class _MyChatsScreenState extends State<MyChatsScreen>
     with AutomaticKeepAliveClientMixin<MyChatsScreen> {
-  RefreshController _refreshController =
-      RefreshController(initialRefresh: false);
-
   @override
   // to keep the page from refreshing each time you change back to it
   // (now only loaded once but always saved which might be a problem)
   bool get wantKeepAlive => true;
+  RefreshController _refreshController =
+      RefreshController(initialRefresh: false);
 
   @override
   Widget build(BuildContext context) {

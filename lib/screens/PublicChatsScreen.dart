@@ -20,7 +20,13 @@ class PublicChatsScreen extends StatefulWidget {
   _PublicChatsScreenState createState() => _PublicChatsScreenState();
 }
 
-class _PublicChatsScreenState extends State<PublicChatsScreen> {
+class _PublicChatsScreenState extends State<PublicChatsScreen>
+    with AutomaticKeepAliveClientMixin<PublicChatsScreen> {
+  @override
+  // to keep the page from refreshing each time you change back to it
+  // (now only loaded once but always saved which might be a problem)
+  bool get wantKeepAlive => true;
+
   RefreshController _refreshController =
       RefreshController(initialRefresh: false);
 
@@ -65,7 +71,7 @@ class _PublicChatsScreenState extends State<PublicChatsScreen> {
       ),
       footer: ClassicFooter(
         height: 80,
-        loadStyle: LoadStyle.ShowWhenLoading,
+        loadStyle: LoadStyle.ShowAlways,
       ),
       child: CustomScrollView(
         slivers: <Widget>[

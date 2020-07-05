@@ -25,6 +25,7 @@ Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
         colorsStatus: currentSalfh['colorsStatus'],
         title: currentSalfh['title'],
         id: currentSalfh.documentID,
+        tags: currentSalfh['tags'] ?? [], //////// TODO: remove null checking
         lastMessageSentTime:
             (currentSalfh['lastMessageSentTime'] as Timestamp).toDate()));
   }
@@ -83,6 +84,7 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
           colorsStatus: salfh['colorsStatus'],
           title: salfh['title'],
           id: salfh.documentID,
+          tags: salfh['tags'] ?? [], //////// TODO: remove null checking
         ));
     }
   }

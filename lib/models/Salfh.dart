@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/User.dart';
-import 'package:solif/models/Tags.dart';
+import 'package:solif/models/Tag.dart';
 
 import '../constants.dart';
 
