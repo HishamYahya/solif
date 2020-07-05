@@ -145,3 +145,16 @@ Future<String> getColorOfUser({String userID, Map salfh}) async {
   });
   return colorName;
 }
+
+Future<void> leaveSalfh({String salfhID, String userColor,String userID}) async {
+  await firestore.collection('Swalf').document(salfhID).setData({
+    'category': 'ok',
+    'colorsStatus': {
+      userColor: {'userID': null}
+    }
+  }, merge: true).then((value) async {
+    await deleteSalfhFromUser(salfhID,userID);
+  });
+}
+
+
