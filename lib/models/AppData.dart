@@ -10,6 +10,7 @@ import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/components/TagTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/Tag.dart';
+import 'package:solif/models/Salfh.dart';
 
 class AppData with ChangeNotifier {
   FirebaseUser currentUser;
@@ -34,7 +35,10 @@ class AppData with ChangeNotifier {
   }
 
   AppData() {
-    // test();
+    // print('here');   
+    leaveSalfh(salfhID:
+    "zFX6VZ7czRIdAirTqaZB",userColor: 'green',userID:"LX2Cw01JQlMSxPUroH37");
+    // // test();
 
     init();
     // List<String> tags = [];
