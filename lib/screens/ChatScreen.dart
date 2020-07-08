@@ -180,7 +180,6 @@ class _ChatScreenState extends State<ChatScreen> {
         setState(() {
           isInSalfh = true;
         });
-        Provider.of<AppData>(context, listen: false).reloadUsersSalfhTiles();
         sendMessage();
         _changeTypingTo(false);
       }

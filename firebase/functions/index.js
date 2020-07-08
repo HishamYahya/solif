@@ -4,6 +4,7 @@ admin.initializeApp();
 
 const firestore = admin.firestore();
 const fcm = admin.messaging();
+const FieldValue = require('firebase-admin').firestore.FieldValue;
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
@@ -27,18 +28,42 @@ exports.messageSent = functions.firestore.document('/chatRooms/{salfhID}/message
         },
         condition: condition
     };
-    firestore.collection('Swalf').doc(context.params.salfhID).update({ lastMessageSentID: context.params.messageID });
+    firestore.collection('Swalf').doc(context.params.salfhID).update({ lastMessageSent: message });
 
     return admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
 
     // return "yo";
 });
 
+const kColorNames = ["purple", "green", "yellow", "red", "blue"];
+// makes changing color names in the future easier, if ever needed
+// always use this when refering to colors.
+// use example to get the first color:
+// color: kOurColors[kColorNames[0]];
 
-exports.salfhWithTagCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate((snapshot, context) => {
+exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate((snapshot, context) => {
 
-    const salfhWithTag = snapshot.data();
-    const tags = salfhWithTag['tags'];
+    const salfh = snapshot.data();
+    let colorName;
+    for (const color in salfh.colorsStatus) {
+        if (salfh.colorsStatus[color].userID != null) {
+            colorName = color;
+            break;
+        }
+    }
+    let userSwalf = {};
+    userSwalf[context.params.salfhID] = colorName;
+    firestore.collection('users').doc(salfh.creatorID).set({
+        userSwalf: userSwalf
+    }, { merge: true });
+
+    let chatRoomData = {};
+    kColorNames.forEach(name => {
+        chatRoomData[name] = FieldValue.serverTimestamp();
+    });
+    firestore.collection("chatRooms").doc(context.params.salfhID).set(chatRoomData, { merge: true });
+
+    const tags = salfh['tags'];
     console.log(snapshot.data());
 
     if (tags.length == 0) return;

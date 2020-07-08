@@ -49,7 +49,6 @@ class _AddScreenState extends State<AddScreen> {
 
     //if suceeded
     if (newSalfh != null) {
-      Provider.of<AppData>(context, listen: false).reloadUsersSalfhTiles();
       String colorName = await getColorOfUser(
         userID: Provider.of<AppData>(context, listen: false).currentUserID,
         salfh: newSalfh,

@@ -20,6 +20,7 @@ class AppData with ChangeNotifier {
   final Firestore firestore = Firestore.instance;
   final fcm = FirebaseMessaging();
   final auth = FirebaseAuth.instance;
+
   static Query nextPublicTiles;
 
   //local saved data
@@ -76,8 +77,8 @@ class AppData with ChangeNotifier {
   }
 
   init() async {
-    prefs = await SharedPreferences.getInstance();
     await loadUser();
+    listenForNewUserSwalf();
     loadTiles();
   }
 
@@ -109,7 +110,7 @@ class AppData with ChangeNotifier {
         await firestore
             .collection('users')
             .document(currentUserID)
-            .setData({'userSwalf': {}});
+            .setData({'userSwalf': {}, 'id': currentUserID});
         fcm.subscribeToTopic(currentUserID);
       }
     }
@@ -153,6 +154,16 @@ class AppData with ChangeNotifier {
     notifyListeners();
   }
 
+  listenForNewUserSwalf() {
+    firestore
+        .collection('users')
+        .document(currentUserID)
+        .snapshots()
+        .listen((snapshot) {
+      reloadUsersSalfhTiles();
+    });
+  }
+
   reloadPublicSalfhTiles() async {
     publicSalfhTiles = [];
     notifyListeners();
@@ -161,6 +172,7 @@ class AppData with ChangeNotifier {
   }
 
   loadNextPublicSalfhTiles() async {
+    if (nextPublicTiles == null) return;
     final salfhDocs = await nextPublicTiles.getDocuments();
     List<SalfhTile> newSalfhTiles = [];
     Random random = Random();
@@ -172,7 +184,6 @@ class AppData with ChangeNotifier {
         });
         if (!isFull)
           newSalfhTiles.add(SalfhTile(
-            category: salfh["category"],
             // color now generated in SalfhTile
             colorsStatus: salfh['colorsStatus'],
             title: salfh['title'],

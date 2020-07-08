@@ -18,23 +18,17 @@ final firestore = Firestore.instance;
 
 class SalfhTile extends StatefulWidget {
   final String title;
-  final String category;
   final String id;
   final Map colorsStatus;
   final List tags;
 
-  final DateTime
-      lastMessageSentTime; // to sort user messages according to most recent message, maybe display it somewhere later on.
-  // add type (1 on 1, group)
-  // change to stateful and add remaining slots
-
+  final Map lastMessageSent;
+  final DateTime lastMessageSentTime;
   SalfhTile(
-      {this.title,
-      this.category,
-      this.id,
-      this.colorsStatus,
-      this.lastMessageSentTime,
-      this.tags});
+      {this.title, this.id, this.colorsStatus, this.lastMessageSent, this.tags})
+      : this.lastMessageSentTime = lastMessageSent.containsKey('timeSent')
+            ? lastMessageSent['timeSent'].toDate()
+            : DateTime(1999);
 
   @override
   _SalfhTileState createState() => _SalfhTileState();
@@ -48,16 +42,15 @@ class _SalfhTileState extends State<SalfhTile>
   bool isFull = false;
   bool isDetailsOpen = false;
   StreamSubscription<DocumentSnapshot> listener;
-  Map lastMessageSent;
-  String lastMessageSentID;
+  Map lastMessageSent = {};
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     colorsStatus = widget.colorsStatus;
+    lastMessageSent = widget.lastMessageSent;
     updateTileColor();
-    updateLastMessageSent();
     listener = firestore
         .collection('Swalf')
         .document(widget.id)
@@ -69,27 +62,12 @@ class _SalfhTileState extends State<SalfhTile>
         updateTileColor();
       }
       // new last message sent
-      if (lastMessageSentID != snapshot.data['lastMessageSentID'] &&
-          snapshot.data['lastMessageSentID'] != null) {
-        lastMessageSentID = snapshot.data['lastMessageSentID'];
-        updateLastMessageSent();
+      if (!mapEquals(lastMessageSent, snapshot.data['lastMessageSent'])) {
+        setState(() {
+          lastMessageSent = snapshot.data['lastMessageSent'];
+        });
       }
     });
-  }
-
-  void updateLastMessageSent() {
-    // TODO: consider caching last message sent so that it doesn't keep reading from the database whenever the widget is initialised
-    firestore
-        .collection('chatRooms')
-        .document(widget.id)
-        .collection('messages')
-        .orderBy('timeSent', descending: true)
-        .getDocuments()
-        .then((value) {
-      setState(() {
-        lastMessageSent = value.documents[0].data;
-      });
-    }).catchError((err) {});
   }
 
   //gets color of tile
@@ -293,7 +271,7 @@ class _SalfhTileState extends State<SalfhTile>
                                 ),
                               ],
                             ),
-                            lastMessageSent != null
+                            lastMessageSent.isNotEmpty
                                 ? MostRecentMessageBox(
                                     lastMessageSent: lastMessageSent,
                                   )
