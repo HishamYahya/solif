@@ -131,7 +131,7 @@ class AppData with ChangeNotifier {
         fcm.subscribeToTopic(currentUserID);
       }
     }
-    print(currentUserID);
+    print(currentUserID);   
     notifyListeners();
   }
 

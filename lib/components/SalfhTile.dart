@@ -264,7 +264,7 @@ class _SalfhTileState extends State<SalfhTile>
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Text(
-                                      (widget.title + notRead.toString()),
+                                      (widget.title + ' notRead:' + notRead.toString()),
                                       style: TextStyle(
                                         fontSize: 20,
                                         color: Colors.grey[850],

@@ -35,7 +35,7 @@ class ChatScreen extends StatefulWidget {
   _ChatScreenState createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
   List<MessageTile> messages = getMessages();
   String inputMessage = "";
   Map colorsStatus;
@@ -65,12 +65,13 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     // initial status
+    WidgetsBinding.instance.addObserver(this);
     setState(() {
       colorsStatus = widget.colorsStatus;
       typingWidgetRow = TypingWidgetRow(colorsStatus: colorsStatus);
       colorName = widget.color;
     }); 
-    setUserLastLeft();
+    setTimeLeftInfinity();
     // check if user is in salfh
     String userID = Provider.of<AppData>(context, listen: false).currentUserID;
     widget.colorsStatus.forEach((key, statusMap) {
@@ -238,7 +239,7 @@ class _ChatScreenState extends State<ChatScreen> {
     // }, merge: true);
   }
 
-  setUserLastLeft() async {
+  setTimeLeftInfinity() async {
     await Future.delayed(Duration(seconds: 1));
     if (mounted) {
       final firestore = Firestore.instance;
@@ -328,8 +329,21 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     _onClose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print('Current state: $state') ;
+    if(state == AppLifecycleState.paused || state == AppLifecycleState.inactive){
+      setUserTimeLeft();
+    }
+    if(state == AppLifecycleState.resumed){
+      setTimeLeftInfinity();
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
