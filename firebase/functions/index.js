@@ -69,7 +69,7 @@ exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate
     if (tags.length == 0) return;
 
     var condition = "";
-    incrementTags(tags); 
+    incrementTags(tags);
     for (i in tags) {
         console.log(tags[i]);
         condition += `('${tags[i]}TAG' in topics) || `
@@ -100,23 +100,22 @@ exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate
 // }
 
 function incrementTags(tags) {
-     firestore = Firestore.instance;
-     increment = FieldValue.increment(1);
-  
-    for (var tag in tags) {
-      firestore.collection('tags').document(tag).setData({
-        'tagName': tag,
-        'tagCounter': increment,
-        'searchKeys': stringKeys(tag)
-      },{ merge: true});
-    }
-  }
-  
-  function stringKeys(tag) {
-    var keys = []; 
-    
+    increment = FieldValue.increment(1);
+
+    tags.forEach((tag) => {
+        firestore.collection('tags').doc(tag).set({
+            'tagName': tag,
+            'tagCounter': increment,
+            'searchKeys': stringKeys(tag)
+        }, { merge: true });
+    });
+}
+
+function stringKeys(tag) {
+    var keys = [];
+
     for (i = 0; i < tag.length; i++) {
-      keys.add(tag.substring(0, i + 1));
+        keys.push(tag.substring(0, i + 1));
     }
     return keys;
-  }
+}

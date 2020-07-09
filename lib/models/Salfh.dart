@@ -59,9 +59,9 @@ Future<bool> joinSalfh({String userID, String salfhID, colorName}) async {
   }).then((value) {
     added = true;
   });
-  // if (added) {
-  //   await addSalfhToUser(userID, salfhID, colorName);
-  // }
+  if (added) {
+    await addSalfhToUser(userID, salfhID, colorName);
+  }
   return added;
 }
 
@@ -139,36 +139,4 @@ Future<String> getColorOfUser({String userID, Map salfh}) async {
     statusMap['userID'] == userID ? colorName = name : null;
   });
   return colorName;
-}
-
-Future<void> leaveSalfh(
-    {String salfhID, String userColor, String userID}) async {
-  //
-  // await firestore.collection('Swalf').document(salfhID).setData({
-  //   'category': 'ok',
-  //   'colorsStatus': {
-  //     userColor: {'userID': null}
-  //   }
-  // }, merge: true).then((value) async {
-  //   await deleteSalfhFromUser(salfhID, userID);
-  // });
-  WriteBatch batch = firestore.batch(); // done as a batch just to make sure that the data consistent in the 2 collections. 
-  DocumentReference salfhRef = firestore.collection('Swalf').document(salfhID);
-  batch.setData(
-      salfhRef,
-      {
-        // 'category': 'ok',
-        'colorsStatus': {
-          userColor: {'userID': null}
-        }
-      },
-      merge: true);
-  DocumentReference userRef = firestore.collection('users').document(userID);
-  batch.setData(userRef,{
-    'userSwalf': {
-      salfhID : FieldValue.delete()
-    }
-  },merge: true);
-  
-  batch.commit();
 }
