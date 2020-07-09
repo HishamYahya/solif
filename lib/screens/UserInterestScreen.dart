@@ -48,7 +48,7 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
     String userID = Provider.of<AppData>(context, listen: false).currentUserID;
     List<TagTile> tags = [];
     print("?XD");
-    await firestore
+    await firestore 
         .collection("users")
         .document(userID)
         .collection('userTags')

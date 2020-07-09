@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/components/ChatInputBox.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/MessageTile.dart';
@@ -68,7 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
       colorsStatus = widget.colorsStatus;
       typingWidgetRow = TypingWidgetRow(colorsStatus: colorsStatus);
       colorName = widget.color;
-    });
+    }); 
     setUserLastLeft();
     // check if user is in salfh
     String userID = Provider.of<AppData>(context, listen: false).currentUserID;
@@ -163,18 +164,22 @@ class _ChatScreenState extends State<ChatScreen> {
   // sends the message only if the user successfully joined the salfh
   /// the bool state 'joining' is used to render the joining state on the ui
   void _onSubmit() async {
+    print('onSubmit');
     setState(() {
       sending = true;
     });
+    print('onSubmit2');
     if (inputMessage == "" || inputMessage == null) {
       sending = false;
       return;
     }
+    print(isInSalfh);
     if (isInSalfh) {
       sendMessage();
       _changeTypingTo(false);
     } else {
       bool joined;
+      print("here?@");
       joined = await _joinSalfh();
       if (joined) {
         setState(() {
@@ -206,6 +211,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> setUserTimeLeft() async {
     final firestore = Firestore.instance;
+    SharedPreferences.getInstance().then((value) => value.setString(widget.salfhID, DateTime.now().toIso8601String()));
     await firestore
         .collection("chatRooms")
         .document(widget.salfhID)
@@ -242,6 +248,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 3650)) // when the user is in, set the time he last left to infinity.
       }, merge: true);
     }
+
 
     // /// using transactions
     // final ref = firestore.collection('chatRooms').document(widget.salfhID);
@@ -315,6 +322,7 @@ class _ChatScreenState extends State<ChatScreen> {
       inputMessage = '';
       _changeTypingTo(false);
     }
+    
   }
 
   @override

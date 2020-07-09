@@ -35,10 +35,18 @@ class AppData with ChangeNotifier {
   }
 
   AppData() {
-    // print('here');   
-    leaveSalfh(salfhID:
-    "zFX6VZ7czRIdAirTqaZB",userColor: 'green',userID:"LX2Cw01JQlMSxPUroH37");
+    // print('here');
+    // leaveSalfh(salfhID:
+    // "zFX6VZ7czRIdAirTqaZB",userColor: 'green',userID:"LX2Cw01JQlMSxPUroH37");
+
     // // test();
+    // // var checking = firestore
+    // //     .collection('Swalf')
+    // //     .document('adDA8QSgpOEfNzoLZgm2')
+    // //     .get()
+    //     .then((value) {
+    //   print(value['lastMessageSent'] == null);
+    // });
 
     init();
     // List<String> tags = [];
@@ -81,6 +89,9 @@ class AppData with ChangeNotifier {
   }
 
   init() async {
+
+    //await auth.signOut();
+    prefs = await SharedPreferences.getInstance();
     await loadUser();
     listenForNewUserSwalf();
     loadTiles();
@@ -89,6 +100,7 @@ class AppData with ChangeNotifier {
   Future<void> loadUser() async {
     // String key = 'userID';
     // String userID = prefs.getString(key);
+    // prefs.setString('salfhID', DateTime.now().toIso8601String());
 
     // // create new user every restart for testing
     // await prefs.remove(key);
@@ -104,6 +116,7 @@ class AppData with ChangeNotifier {
     //   fcm.subscribeToTopic(userID);
     // }
     // notifyListeners();
+
     final user = await auth.currentUser();
     if (user != null) {
       currentUser = user;
@@ -118,6 +131,7 @@ class AppData with ChangeNotifier {
         fcm.subscribeToTopic(currentUserID);
       }
     }
+    print(currentUserID);
     notifyListeners();
   }
 

@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tags/flutter_tags.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/components/ColoredDot.dart';
 import 'package:solif/components/DropdownCard.dart';
 import 'package:solif/constants.dart';
@@ -21,12 +22,17 @@ class SalfhTile extends StatefulWidget {
   final String id;
   final Map colorsStatus;
   final List tags;
+  // ['chatID'] == false
 
   final Map lastMessageSent;
   final DateTime lastMessageSentTime;
-  SalfhTile(
-      {this.title, this.id, this.colorsStatus, this.lastMessageSent, this.tags})
-      : this.lastMessageSentTime = lastMessageSent.containsKey('timeSent')
+  SalfhTile({
+    this.title,
+    this.id,
+    this.colorsStatus,
+    this.lastMessageSent,
+    this.tags,
+  }) : this.lastMessageSentTime = lastMessageSent.containsKey('timeSent')
             ? lastMessageSent['timeSent'].toDate()
             : DateTime(1999);
 
@@ -43,11 +49,24 @@ class _SalfhTileState extends State<SalfhTile>
   bool isDetailsOpen = false;
   StreamSubscription<DocumentSnapshot> listener;
   Map lastMessageSent = {};
+  bool notRead = false;
 
   @override
   void initState() {
-    // TODO: implement initState
+    // TODO: implement initState  
     super.initState();
+
+    SharedPreferences prefs =
+        Provider.of<AppData>(context, listen: false).prefs;
+    if (prefs.containsKey(widget.id)) {
+      DateTime lastLeft = DateTime.parse(prefs.getString(widget.id));
+      print(lastLeft);
+      print(widget.lastMessageSentTime);
+      if (
+          lastLeft.compareTo(widget.lastMessageSentTime)>0) {
+        notRead = false;
+      }
+    } 
     colorsStatus = widget.colorsStatus;
     lastMessageSent = widget.lastMessageSent;
     updateTileColor();
@@ -65,6 +84,7 @@ class _SalfhTileState extends State<SalfhTile>
       if (!mapEquals(lastMessageSent, snapshot.data['lastMessageSent'])) {
         setState(() {
           lastMessageSent = snapshot.data['lastMessageSent'];
+          notRead = true;
         });
       }
     });
@@ -185,9 +205,9 @@ class _SalfhTileState extends State<SalfhTile>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         if (!isFull) {
-          Navigator.push(
+           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => ChatScreen(
@@ -197,7 +217,12 @@ class _SalfhTileState extends State<SalfhTile>
                 colorsStatus: colorsStatus,
               ),
             ),
-          );
+            
+          ).then((value) {
+            setState(() {
+              notRead = false;
+            });
+          });
         }
       },
       child: Padding(
@@ -239,7 +264,7 @@ class _SalfhTileState extends State<SalfhTile>
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Text(
-                                      widget.title,
+                                      (widget.title + notRead.toString()),
                                       style: TextStyle(
                                         fontSize: 20,
                                         color: Colors.grey[850],

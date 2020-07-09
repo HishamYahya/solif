@@ -90,7 +90,6 @@ Future<Map> saveSalfh(
 
     // addSalfhToUser(creatorID, ref.documentID, color);
     // createSalfhChatRoom(ref.documentID);
-    incrementTags(tags);
     await Future.delayed(Duration(
         seconds:
             1)); // TODO: change this to wait for backend more efficiently maybe

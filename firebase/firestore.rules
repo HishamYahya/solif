@@ -22,7 +22,7 @@ service cloud.firestore {
     	allow read: if isSignedIn() && canReadChatroom();
       allow write: if isSignedIn();
       match /messages/{message} {
-      	allow create: if isValidMessage(request.resource.data);
+      	allow create: if isValidMessage(request.resource.data.values()  );
         allow read: if isSignedIn(); //TODO: only allow the user to read if they're in the salfh
       }
     }
