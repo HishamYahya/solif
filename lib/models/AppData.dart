@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,16 +9,19 @@ import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/components/TagTile.dart';
 import 'package:solif/constants.dart';
-import 'package:solif/models/Tags.dart';
+import 'package:solif/models/Tag.dart';
+import 'package:solif/models/Salfh.dart';
 
 class AppData with ChangeNotifier {
-  String currentUserID;
+  FirebaseUser currentUser;
   List<SalfhTile> usersSalfhTiles;
   List<SalfhTile> publicSalfhTiles;
   List<TagTile> tagsSavedLocally = [];
   bool isTagslLoaded = false;
   final Firestore firestore = Firestore.instance;
   final fcm = FirebaseMessaging();
+  final auth = FirebaseAuth.instance;
+
   static Query nextPublicTiles;
 
   //local saved data
@@ -25,8 +29,24 @@ class AppData with ChangeNotifier {
   //
   //
 
+  get currentUserID {
+    if (currentUser != null) return currentUser.uid;
+    return null;
+  }
+
   AppData() {
-    // test();
+    // print('here');
+    // leaveSalfh(salfhID:
+    // "zFX6VZ7czRIdAirTqaZB",userColor: 'green',userID:"LX2Cw01JQlMSxPUroH37");
+
+    // // test();
+    // // var checking = firestore
+    // //     .collection('Swalf')
+    // //     .document('adDA8QSgpOEfNzoLZgm2')
+    // //     .get()
+    //     .then((value) {
+    //   print(value['lastMessageSent'] == null);
+    // });
 
     init();
     // List<String> tags = [];
@@ -69,28 +89,49 @@ class AppData with ChangeNotifier {
   }
 
   init() async {
+
+    //await auth.signOut();
     prefs = await SharedPreferences.getInstance();
     await loadUser();
+    listenForNewUserSwalf();
     loadTiles();
   }
 
-  loadUser() async {
-    String key = 'userID';
-    String userID = prefs.getString(key);
+  Future<void> loadUser() async {
+    // String key = 'userID';
+    // String userID = prefs.getString(key);
+    // prefs.setString('salfhID', DateTime.now().toIso8601String());
 
-    // create new user every restart for testing
-    await prefs.remove(key);
-    userID = prefs.getString(key);
-    if (userID != null) {
-      currentUserID = userID;
+    // // create new user every restart for testing
+    // await prefs.remove(key);
+    // userID = prefs.getString(key);
+    // if (userID != null) {
+    //   currentUserID = userID;
+    // } else {
+    //   final ref = await firestore.collection('users').add({'userSwalf': {}});
+    //   userID = ref.documentID;
+    //   print(userID);
+    //   prefs.setString(key, userID);
+    //   currentUserID = userID;
+    //   fcm.subscribeToTopic(userID);
+    // }
+    // notifyListeners();
+
+    final user = await auth.currentUser();
+    if (user != null) {
+      currentUser = user;
     } else {
-      final ref = await firestore.collection('users').add({'userSwalf': {}});
-      userID = ref.documentID;
-      print(userID);
-      prefs.setString(key, userID);
-      currentUserID = userID;
-      fcm.subscribeToTopic(userID);
+      final res = await auth.signInAnonymously();
+      if (res != null) {
+        currentUser = res.user;
+        await firestore
+            .collection('users')
+            .document(currentUserID)
+            .setData({'userSwalf': {}, 'id': currentUserID});
+        fcm.subscribeToTopic(currentUserID);
+      }
     }
+    print(currentUserID);   
     notifyListeners();
   }
 
@@ -131,6 +172,16 @@ class AppData with ChangeNotifier {
     notifyListeners();
   }
 
+  listenForNewUserSwalf() {
+    firestore
+        .collection('users')
+        .document(currentUserID)
+        .snapshots()
+        .listen((snapshot) {
+      reloadUsersSalfhTiles();
+    });
+  }
+
   reloadPublicSalfhTiles() async {
     publicSalfhTiles = [];
     notifyListeners();
@@ -139,6 +190,7 @@ class AppData with ChangeNotifier {
   }
 
   loadNextPublicSalfhTiles() async {
+    if (nextPublicTiles == null) return;
     final salfhDocs = await nextPublicTiles.getDocuments();
     List<SalfhTile> newSalfhTiles = [];
     Random random = Random();
@@ -150,11 +202,11 @@ class AppData with ChangeNotifier {
         });
         if (!isFull)
           newSalfhTiles.add(SalfhTile(
-            category: salfh["category"],
             // color now generated in SalfhTile
             colorsStatus: salfh['colorsStatus'],
             title: salfh['title'],
             id: salfh.documentID,
+            tags: salfh['tags'] ?? [], //////// TODO: remove null checking
           ));
       }
     }

@@ -11,6 +11,7 @@ final firestore = Firestore.instance;
 
 Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
   int x = 1;
+  print(userID);
   final salfhDoc = await firestore.collection('users').document(userID).get();
   List<SalfhTile> salfhTiles = [];
   Map<String, dynamic> userSwalf = await salfhDoc['userSwalf'];
@@ -19,13 +20,14 @@ Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
     var currentSalfh =
         await firestore.collection('Swalf').document(entry.key).get();
 
+
     salfhTiles.add(SalfhTile(
-        category: currentSalfh["category"],
-        colorsStatus: currentSalfh['colorsStatus'],
-        title: currentSalfh['title'],
-        id: currentSalfh.documentID,
-        lastMessageSentTime:
-            (currentSalfh['lastMessageSentTime'] as Timestamp).toDate()));
+      colorsStatus: currentSalfh['colorsStatus'],
+      title: currentSalfh['title'],
+      id: currentSalfh.documentID,
+      tags: currentSalfh['tags'] ?? [], //////// TODO: remove null checking
+      lastMessageSent: currentSalfh['lastMessageSent'],
+    ));
   }
 
   salfhTiles.sort((a, b) {
@@ -77,11 +79,12 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
       });
       if (!isFull)
         salfhTiles.add(SalfhTile(
-          category: salfh["category"],
           // color now generated in SalfhTile
           colorsStatus: salfh['colorsStatus'],
           title: salfh['title'],
           id: salfh.documentID,
+          tags: salfh['tags'] ?? [],
+          lastMessageSent: salfh['lastMessageSent'], //////// TODO: remove null checking
         ));
     }
   }

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/User.dart';
-import 'package:solif/models/Tags.dart';
+import 'package:solif/models/Tag.dart';
 
 import '../constants.dart';
 
@@ -15,35 +15,30 @@ class Salfh {
   final Map<String, Map<String, dynamic>>
       colorsStatus; // Color: {"userID": id, "lastMessageRead":messageID, "isInChatRoom":bool}
   int maxUsers;
-  String category;
   String creatorID;
   String title;
-  DateTime timeCreated;
-  DateTime lastMessageSentTime;
-  String lastMessageSentID;
+  FieldValue timeCreated;
+  Map lastMessageSent;
   List<String> tags;
 
-  Salfh(
-      {@required this.maxUsers,
-      @required this.category,
-      this.colorsStatus,
-      this.title,
-      this.timeCreated,
-      this.lastMessageSentTime,
-      this.creatorID,
-      this.tags,
-      this.lastMessageSentID});
+  Salfh({
+    @required this.maxUsers,
+    @required this.colorsStatus,
+    @required this.title,
+    @required this.timeCreated,
+    @required this.lastMessageSent,
+    @required this.creatorID,
+    @required this.tags,
+  });
 
   Map<String, dynamic> toMap() {
     return {
       'colorsStatus': colorsStatus,
       'creatorID': creatorID,
       'maxUsers': maxUsers,
-      'category': category,
       'title': title,
       'timeCreated': timeCreated,
-      'lastMessageSentTime': lastMessageSentTime,
-      'lastMessageSentID': lastMessageSentID,
+      'lastMessageSent': lastMessageSent,
       'tags': this.tags
     };
   }
@@ -79,12 +74,10 @@ Future<Map> saveSalfh(
   Map salfh = Salfh(
           maxUsers: maxUsers,
           creatorID: creatorID,
-          category: category,
           colorsStatus: getInitialColorStatus(creatorID, maxUsers),
           title: title,
-          timeCreated: DateTime.now(),
-          lastMessageSentTime: DateTime.now(),
-          lastMessageSentID: null,
+          timeCreated: FieldValue.serverTimestamp(),
+          lastMessageSent: {},
           tags: tags)
       .toMap();
 
@@ -95,9 +88,11 @@ Future<Map> saveSalfh(
   if (ref != null) {
     print('yooo');
 
-    addSalfhToUser(creatorID, ref.documentID, color);
-    createSalfhChatRoom(ref.documentID);
-    incrementTags(tags);
+    // addSalfhToUser(creatorID, ref.documentID, color);
+    // createSalfhChatRoom(ref.documentID);
+    await Future.delayed(Duration(
+        seconds:
+            1)); // TODO: change this to wait for backend more efficiently maybe
     return salfh;
   }
   return null;

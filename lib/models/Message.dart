@@ -5,7 +5,7 @@ import '../constants.dart';
 
 class Message {
   String content;
-  DateTime timeSent;
+  FieldValue timeSent;
   String messageColor;
   String userID;
 
@@ -38,7 +38,7 @@ Future<bool> addMessage(
         .collection('messages')
         .add(Message(
                 content: messageContent,
-                timeSent: DateTime.now(),
+                timeSent: FieldValue.serverTimestamp(),
                 messageColor: color,
                 userID: userID)
             .toMap())

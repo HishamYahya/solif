@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/components/ChatInputBox.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/MessageTile.dart';
@@ -34,7 +35,7 @@ class ChatScreen extends StatefulWidget {
   _ChatScreenState createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
   List<MessageTile> messages = getMessages();
   String inputMessage = "";
   Map colorsStatus;
@@ -64,12 +65,13 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     // initial status
+    WidgetsBinding.instance.addObserver(this);
     setState(() {
       colorsStatus = widget.colorsStatus;
       typingWidgetRow = TypingWidgetRow(colorsStatus: colorsStatus);
       colorName = widget.color;
-    });
-    setUserLastLeft();
+    }); 
+    setTimeLeftInfinity();
     // check if user is in salfh
     String userID = Provider.of<AppData>(context, listen: false).currentUserID;
     widget.colorsStatus.forEach((key, statusMap) {
@@ -163,24 +165,27 @@ class _ChatScreenState extends State<ChatScreen> {
   // sends the message only if the user successfully joined the salfh
   /// the bool state 'joining' is used to render the joining state on the ui
   void _onSubmit() async {
+    print('onSubmit');
     setState(() {
       sending = true;
     });
+    print('onSubmit2');
     if (inputMessage == "" || inputMessage == null) {
       sending = false;
       return;
     }
+    print(isInSalfh);
     if (isInSalfh) {
       sendMessage();
       _changeTypingTo(false);
     } else {
       bool joined;
+      print("here?@");
       joined = await _joinSalfh();
       if (joined) {
         setState(() {
           isInSalfh = true;
         });
-        Provider.of<AppData>(context, listen: false).reloadUsersSalfhTiles();
         sendMessage();
         _changeTypingTo(false);
       }
@@ -207,6 +212,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> setUserTimeLeft() async {
     final firestore = Firestore.instance;
+    SharedPreferences.getInstance().then((value) => value.setString(widget.salfhID, DateTime.now().toIso8601String()));
     await firestore
         .collection("chatRooms")
         .document(widget.salfhID)
@@ -233,7 +239,7 @@ class _ChatScreenState extends State<ChatScreen> {
     // }, merge: true);
   }
 
-  setUserLastLeft() async {
+  setTimeLeftInfinity() async {
     await Future.delayed(Duration(seconds: 1));
     if (mounted) {
       final firestore = Firestore.instance;
@@ -243,6 +249,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 3650)) // when the user is in, set the time he last left to infinity.
       }, merge: true);
     }
+
 
     // /// using transactions
     // final ref = firestore.collection('chatRooms').document(widget.salfhID);
@@ -316,13 +323,27 @@ class _ChatScreenState extends State<ChatScreen> {
       inputMessage = '';
       _changeTypingTo(false);
     }
+    
   }
 
   @override
   void dispose() {
     _onClose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print('Current state: $state') ;
+    if(state == AppLifecycleState.paused || state == AppLifecycleState.inactive){
+      setUserTimeLeft();
+    }
+    if(state == AppLifecycleState.resumed){
+      setTimeLeftInfinity();
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
