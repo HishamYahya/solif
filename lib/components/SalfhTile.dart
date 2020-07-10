@@ -53,7 +53,7 @@ class _SalfhTileState extends State<SalfhTile>
 
   @override
   void initState() {
-    // TODO: implement initState  
+    // TODO: implement initState
     super.initState();
 
     SharedPreferences prefs =
@@ -62,11 +62,10 @@ class _SalfhTileState extends State<SalfhTile>
       DateTime lastLeft = DateTime.parse(prefs.getString(widget.id));
       print(lastLeft);
       print(widget.lastMessageSentTime);
-      if (
-          lastLeft.compareTo(widget.lastMessageSentTime)>0) {
+      if (lastLeft.compareTo(widget.lastMessageSentTime) > 0) {
         notRead = false;
       }
-    } 
+    }
     colorsStatus = widget.colorsStatus;
     lastMessageSent = widget.lastMessageSent;
     updateTileColor();
@@ -94,14 +93,13 @@ class _SalfhTileState extends State<SalfhTile>
   updateTileColor() {
     String newColorName;
 
-    colorsStatus.forEach((name, statusMap) {
-      if (statusMap['userID'] ==
-          Provider.of<AppData>(context, listen: false).currentUserID)
+    colorsStatus.forEach((name, id) {
+      if (id == Provider.of<AppData>(context, listen: false).currentUserID)
         newColorName = name;
     });
     if (newColorName == null)
-      colorsStatus.forEach((name, statusMap) {
-        if (statusMap['userID'] == null) {
+      colorsStatus.forEach((name, id) {
+        if (id == null) {
           newColorName = name;
         }
       });
@@ -118,9 +116,9 @@ class _SalfhTileState extends State<SalfhTile>
 
   List<Widget> generateDots(data) {
     List<Widget> newDots = [];
-    data['colorsStatus'].forEach((name, statusMap) {
+    data['colorsStatus'].forEach((name, id) {
       // if someone is in the salfh with that color
-      if (statusMap['userID'] != null) {
+      if (id != null) {
         newDots.add(Padding(
           padding: const EdgeInsets.all(5.0),
           child: ColoredDot(kOurColors[name]),
@@ -146,9 +144,11 @@ class _SalfhTileState extends State<SalfhTile>
   setUserLastLeft() async {
     final firestore = Firestore.instance;
     await firestore.collection("chatRooms").document(widget.id).setData({
-      colorName: DateTime.now().add(Duration(
-          days:
-              3650)) // when the user is in, set the time he last left to infinity.
+      'lastLeftStatus': {
+        colorName: DateTime.now().add(Duration(
+            days:
+                3650)) // when the user is in, set the time he last left to infinity.
+      }
     }, merge: true);
 
     ///// using transactions
@@ -207,7 +207,7 @@ class _SalfhTileState extends State<SalfhTile>
     return GestureDetector(
       onTap: () async {
         if (!isFull) {
-           Navigator.push(
+          Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => ChatScreen(
@@ -217,7 +217,6 @@ class _SalfhTileState extends State<SalfhTile>
                 colorsStatus: colorsStatus,
               ),
             ),
-            
           ).then((value) {
             setState(() {
               notRead = false;
@@ -264,7 +263,9 @@ class _SalfhTileState extends State<SalfhTile>
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Text(
-                                      (widget.title + ' notRead:' + notRead.toString()),
+                                      (widget.title +
+                                          ' notRead:' +
+                                          notRead.toString()),
                                       style: TextStyle(
                                         fontSize: 20,
                                         color: Colors.grey[850],

@@ -35,16 +35,16 @@ class ChatScreen extends StatefulWidget {
   _ChatScreenState createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   List<MessageTile> messages = getMessages();
   String inputMessage = "";
   Map colorsStatus;
+  Map typingStatus = {};
   Map<String, Timestamp> lastLeftStatus;
   String colorName;
   bool isInSalfh = false;
   bool joining = false;
   bool sending = false;
-  TypingWidgetRow typingWidgetRow;
   TextEditingController messageController = TextEditingController();
   StreamSubscription<DocumentSnapshot> colorStatusListener;
   StreamSubscription<DocumentSnapshot> timeLastLeftListener;
@@ -68,19 +68,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
     WidgetsBinding.instance.addObserver(this);
     setState(() {
       colorsStatus = widget.colorsStatus;
-      typingWidgetRow = TypingWidgetRow(colorsStatus: colorsStatus);
       colorName = widget.color;
-    }); 
+    });
     setTimeLeftInfinity();
     // check if user is in salfh
     String userID = Provider.of<AppData>(context, listen: false).currentUserID;
-    widget.colorsStatus.forEach((key, statusMap) {
-      if (statusMap['userID'] == userID)
+    widget.colorsStatus.forEach((name, id) {
+      if (id == userID)
         setState(() {
           isInSalfh = true;
         });
     });
-    listenToLastLeftChanges();
+    listenToChatroomChanges();
     listenToColorStatusChanges();
     super.initState();
   }
@@ -101,13 +100,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
         });
       }
       // if someone ELSE joined with your color
-      if (newColorsStatus[colorName]['userID'] != null &&
-          newColorsStatus[colorName]['userID'] !=
+      if (newColorsStatus[colorName] != null &&
+          newColorsStatus[colorName] !=
               Provider.of<AppData>(context, listen: false).currentUserID) {
         String newColorName;
         // loop through the status until you find a color that hasn't been assigned to anyone
-        newColorsStatus.forEach((name, statusMap) {
-          if (statusMap['userID'] == null) {
+        newColorsStatus.forEach((name, id) {
+          if (id == null) {
             newColorName = name;
           }
         });
@@ -125,19 +124,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
     });
   }
 
-  void listenToLastLeftChanges() {
+  void listenToChatroomChanges() {
     timeLastLeftListener = firestore
         .collection('chatRooms')
         .document(widget.salfhID)
         .snapshots()
         .listen((event) {
       print("OK");
-      Map<String, Timestamp> newStatus =
-          Map<String, Timestamp>.from(event.data);
+      Map<String, Timestamp> newLastLeftStatus =
+          Map<String, Timestamp>.from(event.data['lastLeftStatus']);
       // print("hereeee${event.data}");
-      if (!mapEquals(lastLeftStatus, newStatus)) {
+      if (!mapEquals(lastLeftStatus, newLastLeftStatus)) {
         setState(() {
-          lastLeftStatus = newStatus;
+          lastLeftStatus = newLastLeftStatus;
+        });
+      }
+
+      if (!mapEquals(typingStatus, event.data['typingStatus'])) {
+        setState(() {
+          typingStatus = event.data['typingStatus'];
         });
       }
     });
@@ -212,11 +217,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
 
   Future<void> setUserTimeLeft() async {
     final firestore = Firestore.instance;
-    SharedPreferences.getInstance().then((value) => value.setString(widget.salfhID, DateTime.now().toIso8601String()));
-    await firestore
-        .collection("chatRooms")
-        .document(widget.salfhID)
-        .setData({colorName: DateTime.now()}, merge: true);
+    SharedPreferences.getInstance().then((value) =>
+        value.setString(widget.salfhID, DateTime.now().toIso8601String()));
+    await firestore.collection("chatRooms").document(widget.salfhID).setData({
+      'lastLeftStatus': {
+        colorName: DateTime.now(),
+      }
+    }, merge: true);
 
     // // using transactions
     // final ref = firestore.collection('chatRooms').document(widget.salfhID);
@@ -244,12 +251,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
     if (mounted) {
       final firestore = Firestore.instance;
       await firestore.collection("chatRooms").document(widget.salfhID).setData({
-        colorName: DateTime.now().add(Duration(
-            days:
-                3650)) // when the user is in, set the time he last left to infinity.
+        'lastLeftStatus': {
+          colorName: DateTime.now().add(
+            Duration(days: 3650),
+          ), // when the user is in, set the time he last left to infinity.
+        },
       }, merge: true);
     }
-
 
     // /// using transactions
     // final ref = firestore.collection('chatRooms').document(widget.salfhID);
@@ -298,11 +306,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
   }
 
   void _changeTypingTo(bool isTyping) {
-    firestore.collection('Swalf').document(widget.salfhID).setData({
-      'colorsStatus': {
-        colorName: {
-          'isTyping': isTyping,
-        }
+    firestore.collection('chatRooms').document(widget.salfhID).setData({
+      'typingStatus': {
+        colorName: isTyping,
       }
     }, merge: true);
   }
@@ -323,7 +329,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
       inputMessage = '';
       _changeTypingTo(false);
     }
-    
   }
 
   @override
@@ -335,15 +340,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    print('Current state: $state') ;
-    if(state == AppLifecycleState.paused || state == AppLifecycleState.inactive){
+    print('Current state: $state');
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
       setUserTimeLeft();
     }
-    if(state == AppLifecycleState.resumed){
+    if (state == AppLifecycleState.resumed) {
       setTimeLeftInfinity();
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -381,6 +386,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
                     if (!snapshot.hasData || lastLeftStatus == null) {
                       return LoadingWidget("");
                     }
+
                     final messages = snapshot.data.documents.reversed;
                     Set<String> alreadyRead = Set<String>();
                     List<Widget> messageTiles = [];
@@ -423,7 +429,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
                   bottom: 5,
                   width: MediaQuery.of(context).size.width * 0.5,
                   child: Center(
-                      child: TypingWidgetRow(colorsStatus: colorsStatus)),
+                      child: TypingWidgetRow(typingStatus: typingStatus)),
                 )
               ],
             ),

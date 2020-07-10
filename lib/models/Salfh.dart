@@ -12,7 +12,7 @@ import '../constants.dart';
 final firestore = Firestore.instance;
 
 class Salfh {
-  final Map<String, Map<String, dynamic>>
+  final Map<String, dynamic>
       colorsStatus; // Color: {"userID": id, "lastMessageRead":messageID, "isInChatRoom":bool}
   int maxUsers;
   String creatorID;
@@ -45,33 +45,38 @@ class Salfh {
 }
 
 Future<bool> joinSalfh({String userID, String salfhID, colorName}) async {
-  final ref = firestore.collection('Swalf').document(salfhID);
+  final ref = firestore
+      .collection('Swalf')
+      .document(salfhID)
+      .collection('userColors')
+      .document('userColors');
   bool added = false;
   await firestore.runTransaction((transaction) async {
     final snapshot = await transaction.get(ref);
+
     if (snapshot.exists) {
-      if (snapshot.data['colorsStatus'][colorName]['userID'] == null) {
-        final newColorsStatus = snapshot.data['colorsStatus'];
-        newColorsStatus[colorName]['userID'] = userID;
-        transaction.update(ref, {'colorsStatus': newColorsStatus});
+      if (snapshot.data[colorName] == null) {
+        transaction.update(ref, {colorName: userID});
+      } else {
+        transaction.update(ref, {});
       }
     }
   }).then((value) {
     added = true;
   });
-  if (added) {
-    await addSalfhToUser(userID, salfhID, colorName);
-  }
+  // if (added) {
+  //   await addSalfhToUser(userID, salfhID, colorName);
+  // }
   return added;
 }
 
-Future<Map> saveSalfh(
+Future<Map<String, dynamic>> saveSalfh(
     {String creatorID,
     int maxUsers,
     String category,
     String title,
     List<String> tags}) async {
-  Map salfh = Salfh(
+  Map<String, dynamic> salfh = Salfh(
           maxUsers: maxUsers,
           creatorID: creatorID,
           colorsStatus: getInitialColorStatus(creatorID, maxUsers),
@@ -90,9 +95,12 @@ Future<Map> saveSalfh(
 
     // addSalfhToUser(creatorID, ref.documentID, color);
     // createSalfhChatRoom(ref.documentID);
-    await Future.delayed(Duration(
-        seconds:
-            1)); // TODO: change this to wait for backend more efficiently maybe
+    await for (DocumentSnapshot snapshot in firestore
+        .collection('chatRooms')
+        .document(salfh['id'])
+        .snapshots()) {
+      if (snapshot.exists) break;
+    }
     return salfh;
   }
   return null;
@@ -108,26 +116,15 @@ void createSalfhChatRoom(String salfhID) async {
   });
 }
 
-Map<String, Map<String, dynamic>> getInitialColorStatus(
-    String creatorID, int maxUsers) {
-  Map<String, Map<String, dynamic>> res = Map<String, Map<String, dynamic>>();
+Map<String, dynamic> getInitialColorStatus(String creatorID, int maxUsers) {
+  Map<String, dynamic> res = Map<String, dynamic>();
   String colorName = kColorNames[Random().nextInt(maxUsers)];
 
   for (String color in kColorNames.sublist(0, maxUsers)..shuffle()) {
     if (color == colorName) {
-      res[color] = {
-        'userID': creatorID,
-        'lastMessageReadID': null,
-        'isInChatRoom': false,
-        'isTyping': false
-      };
+      res[color] = creatorID;
     } else {
-      res[color] = {
-        'userID': null,
-        'lastMessageReadID': null,
-        'isInChatRoom': false,
-        'isTyping': false
-      };
+      res[color] = null;
     }
   }
   return res;
@@ -135,8 +132,8 @@ Map<String, Map<String, dynamic>> getInitialColorStatus(
 
 Future<String> getColorOfUser({String userID, Map salfh}) async {
   String colorName;
-  salfh['colorsStatus'].forEach((name, statusMap) {
-    statusMap['userID'] == userID ? colorName = name : null;
+  salfh['colorsStatus'].forEach((name, id) {
+    id == userID ? colorName = name : null;
   });
   return colorName;
 }

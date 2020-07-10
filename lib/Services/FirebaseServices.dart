@@ -20,7 +20,6 @@ Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
     var currentSalfh =
         await firestore.collection('Swalf').document(entry.key).get();
 
-
     salfhTiles.add(SalfhTile(
       colorsStatus: currentSalfh['colorsStatus'],
       title: currentSalfh['title'],
@@ -74,8 +73,8 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
   for (var salfh in salfhDocs.documents) {
     if (salfh['creatorID'] != userID) {
       bool isFull = true;
-      salfh['colorsStatus'].forEach((name, statusMap) {
-        if (statusMap['userID'] == null) isFull = false;
+      salfh['colorsStatus'].forEach((name, id) {
+        if (id == null) isFull = false;
       });
       if (!isFull)
         salfhTiles.add(SalfhTile(
@@ -84,7 +83,8 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
           title: salfh['title'],
           id: salfh.documentID,
           tags: salfh['tags'] ?? [],
-          lastMessageSent: salfh['lastMessageSent'], //////// TODO: remove null checking
+          lastMessageSent:
+              salfh['lastMessageSent'], //////// TODO: remove null checking
         ));
     }
   }

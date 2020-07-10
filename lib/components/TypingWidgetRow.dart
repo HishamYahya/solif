@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:solif/components/TypingWidget.dart';
 
 class TypingWidgetRow extends StatelessWidget {
-  final Map colorsStatus;
-  TypingWidgetRow({this.colorsStatus});
+  final Map typingStatus;
+  TypingWidgetRow({this.typingStatus});
 
   List<Widget> generateTypingWidgets() {
     List<Widget> typingWidgets = [];
-    colorsStatus.forEach((colorName, statusMap) {
-      if (statusMap['isTyping']) {
+    typingStatus.forEach((colorName, isTyping) {
+      if (isTyping) {
         typingWidgets.add(Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2.0),
           child: TypingWidget(colorName),

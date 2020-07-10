@@ -1,5 +1,6 @@
 const functions = require('firebase-functions');
-const admin = require('firebase-admin')
+const admin = require('firebase-admin');
+const { user } = require('firebase-functions/lib/providers/auth');
 admin.initializeApp();
 
 const firestore = admin.firestore();
@@ -40,13 +41,46 @@ const kColorNames = ["purple", "green", "yellow", "red", "blue"];
 // always use this when refering to colors.
 // use example to get the first color:
 // color: kOurColors[kColorNames[0]];
+exports.colorsStatusUpdated = functions.firestore.document('/Swalf/{salfhID}/userColors/userColors').onUpdate((change, context) => {
+    let colorChanged;
+    const before = change.before.data()
+    const after = change.after.data()
+    for (const color in before) {
+        if (before[color] != after[color]) {
+            colorChanged = color;
+            break;
+        }
+    }
+    console.log(before);
+    console.log(after);
+    if (after[colorChanged] == null) { // if user left salfh
+        const userID = before[colorChanged];
+        const changedDoc = { colorsStatus: {} };
+        changedDoc.colorsStatus[colorChanged] = null;
+        firestore.collection('Swalf').doc(context.params.salfhID).set(changedDoc, { merge: true });
+        const deletedSalfh = {};
+        deletedSalfh[`userSwalf.${context.params.salfhID}`] = FieldValue.delete();
+        return firestore.collection('users').doc(userID).update(deletedSalfh);
+    }
+    else { // if user joined
+        const userID = after[colorChanged];
+        const changedDoc = { colorsStatus: {} }
+        changedDoc.colorsStatus[colorChanged] = userID;
+        firestore.collection('Swalf').doc(context.params.salfhID).set(changedDoc, { merge: true });
+        const newUserSwalf = {};
+        newUserSwalf[context.params.salfhID] = colorChanged;
+        return firestore.collection('users').doc(userID).set({ userSwalf: newUserSwalf }, { merge: true });
+    }
+});
 
 exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate((snapshot, context) => {
 
     const salfh = snapshot.data();
+    firestore.collection('Swalf').doc(context.params.salfhID).collection('userColors').doc('userColors').set(salfh.colorsStatus, { merge: true });
+
     let colorName;
     for (const color in salfh.colorsStatus) {
-        if (salfh.colorsStatus[color].userID != null) {
+        if (salfh.colorsStatus[color] != null) {
             colorName = color;
             break;
         }
@@ -57,9 +91,10 @@ exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate
         userSwalf: userSwalf
     }, { merge: true });
 
-    let chatRoomData = {};
+    let chatRoomData = { lastLeftStatus: {}, typingStatus: {} };
     kColorNames.forEach(name => {
-        chatRoomData[name] = FieldValue.serverTimestamp();
+        chatRoomData.lastLeftStatus[name] = FieldValue.serverTimestamp();
+        chatRoomData.typingStatus[name] = false;
     });
     firestore.collection("chatRooms").doc(context.params.salfhID).set(chatRoomData, { merge: true });
 
@@ -80,7 +115,7 @@ exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate
     const payload = {
         notification: {
             title: "Check this salfh that matchs your interest", // TODO: change message
-            body: salfhWithTag['title'],
+            body: salfh['title'],
             //tag: context.params.salfhID
         },
         data: {
@@ -96,8 +131,6 @@ exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate
 
 });
 
-
-// }
 
 function incrementTags(tags) {
     increment = FieldValue.increment(1);

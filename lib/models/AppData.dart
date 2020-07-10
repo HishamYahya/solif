@@ -89,8 +89,7 @@ class AppData with ChangeNotifier {
   }
 
   init() async {
-
-    //await auth.signOut();
+    await auth.signOut();
     prefs = await SharedPreferences.getInstance();
     await loadUser();
     listenForNewUserSwalf();
@@ -131,7 +130,7 @@ class AppData with ChangeNotifier {
         fcm.subscribeToTopic(currentUserID);
       }
     }
-    print(currentUserID);   
+    print(currentUserID);
     notifyListeners();
   }
 
