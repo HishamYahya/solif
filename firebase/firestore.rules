@@ -3,18 +3,14 @@ rules_version = '2';
 service cloud.firestore {
 
   match /databases/{database}/documents {
-    // This rule allows anyone on the internet to view, edit, and delete
-    // all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    // Make sure to write security rules for your app before that time, or else
-    // your app will lose access to your Firestore database
 
     match /Swalf/{salfhID} {
-
       allow create: if isValidSalfh(request.resource.data);
-      allow read, update: if isSignedIn();
+      allow read: if isSignedIn();
+      match /userColors/userColors {
+      	allow read: if isSignedIn();
+        allow update: if isSignedIn();
+      }
 
     }
     
@@ -22,7 +18,7 @@ service cloud.firestore {
     	allow read: if isSignedIn() && canReadChatroom();
       allow write: if isSignedIn();
       match /messages/{message} {
-      	allow create: if isValidMessage(request.resource.data.values()  );
+      	allow create: if isValidMessage(request.resource.data);
         allow read: if isSignedIn(); //TODO: only allow the user to read if they're in the salfh
       }
     }
@@ -47,21 +43,30 @@ service cloud.firestore {
 
 }
 
+
 function isSignedIn() {
 	return request.auth != null;
 }
 
 function isValidSalfh(salfh) {
 
-  // return salfh.keys() == ['title', 'maxUsers', 'lastMessageSent', 'tags', 'timeCreated', 'creatorID'] &&
-  return salfh.title is string &&
+  return salfh.size() == 7 &&
+  salfh.title is string &&
   salfh.title.size() > 0 && salfh.title.size() <= 50 &&
   salfh.maxUsers is number &&
   salfh.maxUsers > 1 && salfh.maxUsers <= 5 &&
   salfh.lastMessageSent is map && salfh.lastMessageSent.size() == 0 &&
   salfh.tags is list && salfh.tags.size() <= 5 && // we need to check if all elements in the array are strings and that their lengths aren't too big too
 	salfh.timeCreated == request.time &&
-  salfh.creatorID == request.auth.uid; 
+  salfh.creatorID == request.auth.uid &&
+  
+  ////// colorsStatus validation
+  salfh.colorsStatus.size() == salfh.maxUsers &&
+  salfh.colorsStatus.keys().size() == salfh.colorsStatus.keys().toSet().size() && // unique keys only
+  ['red', 'green', 'blue', 'yellow', 'purple'].hasAll(salfh.colorsStatus.keys()) && // only keys with valid color names
+  salfh.colorsStatus.values().removeAll([null]).size() == 1 && // only one non-null value
+  salfh.colorsStatus.values().removeAll([null])[0] == salfh.creatorID // and that value is the creator's id 
+  ; 
 }
 
 function isValidUser(user) {
@@ -76,6 +81,14 @@ function isValidMessage(message) {
   message.color is string && //TODO: check if it's the user's color
   message.content is string && message.content.size() > 0 &&
   message.timeSent == request.time;
+}
+
+function isJoiningOrLeaving(payload) {
+	return payload.size() == 1 &&
+  payload.keys().hasAny(resource.data.keys()) && ( // valid color
+  (payload.values()[0] == null && resource.data[payload.keys()[0]] == request.auth.uid) || // from null to uid
+  (payload.values()[0] == request.auth.uid && resource.data[payload.keys()[0]] == null)		// or from uid to null
+  )
 }
 
 function canReadChatroom() {
