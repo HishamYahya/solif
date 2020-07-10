@@ -46,7 +46,7 @@ class _MyChatsScreenState extends State<MyChatsScreen>
             ),
             leadingWidget: IconButton(
               icon: Icon(
-                Icons.scatter_plot,
+                Icons.settings,
                 size: 30,
                 color: Colors.white,
               ),
