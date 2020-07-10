@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:solif/Services/FirebaseServices.dart';
@@ -81,13 +82,29 @@ class _PublicChatsScreenState extends State<PublicChatsScreen>
               style: TextStyle(color: Colors.white),
             ),
           ),
-          SliverList(
-            delegate: SliverChildListDelegate(
-              isLoaded
-                  ? Provider.of<AppData>(context).publicSalfhTiles
-                  : [LoadingWidget('...نجيب سوالفهم')],
+          // SliverList(
+          //   delegate: SliverChildListDelegate(
+          //     isLoaded
+          //         ? Provider.of<AppData>(context).publicSalfhTiles
+          //         : [LoadingWidget('...نجيب سوالفهم')],
+          //   ),
+          // ),
+
+          Container(
+            child: SliverStaggeredGrid.countBuilder(
+              itemCount: Provider.of<AppData>(context).publicSalfhTiles.length,
+              crossAxisCount: 2,
+              
+              mainAxisSpacing: 4.0,
+              crossAxisSpacing: 4.0,
+              itemBuilder: (context, index) {
+                return Provider.of<AppData>(context).publicSalfhTiles[index];
+              },
+              staggeredTileBuilder: (index) {
+                return StaggeredTile.count(3, 4);
+              },
             ),
-          ),
+          )
         ],
       ),
     );

@@ -12,6 +12,7 @@ import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:solif/screens/ChatScreen.dart';
+import 'package:solif/screens/SettingsScreen.dart';
 import 'package:solif/screens/UserInterestScreen.dart';
 
 // Same as PublicChatsScreen but with different title for now
@@ -52,7 +53,7 @@ class _MyChatsScreenState extends State<MyChatsScreen>
               onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => UserInterestScreen())),
+                      builder: (context) => SettingsScreen())),
             )),
         SliverList(
           delegate: SliverChildListDelegate(
