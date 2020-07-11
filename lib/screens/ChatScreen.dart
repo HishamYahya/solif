@@ -375,6 +375,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             child: Stack(
               children: [
                 StreamBuilder<QuerySnapshot>(
+
                   stream: firestore
                       .collection("chatRooms")
                       .document(widget.salfhID)
@@ -382,21 +383,29 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       .orderBy('timeSent')
                       .snapshots(),
                   builder: (context, snapshot) {
-                    //TODO: display the message on screen only when it's been written to the database
-                    if (!snapshot.hasData || lastLeftStatus == null) {
+                    //TODO: display the message on sc reen only when it's been written to the database
+                    if (!snapshot.hasData || lastLeftStatus == null ) {
                       return LoadingWidget("");
                     }
-
+                    
                     final messages = snapshot.data.documents.reversed;
                     Set<String> alreadyRead = Set<String>();
                     List<Widget> messageTiles = [];
 
                     for (var message in messages) {
+                    
                       List<String> readColors = [];
                       lastLeftStatus.forEach((color, lastLeft) {
-                        if (message['color'] != color &&
-                            !alreadyRead.contains(color) &&
-                            lastLeft.compareTo(message['timeSent']) >= 0) {
+                        var estimateTimeSent;
+                        if(message.metadata.hasPendingWrites){
+                           estimateTimeSent = Timestamp.now();
+                        } 
+                        else{
+                           estimateTimeSent = message['timeSent'];
+                        }
+                       if (message['color'] != color &&
+                            !alreadyRead.contains(color) && 
+                            lastLeft.compareTo(estimateTimeSent) >= 0) {
                           readColors.add(color);
                           alreadyRead.add(color);
                         }
@@ -413,7 +422,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           // time: message["time"],
                           //
                           ));
-                    }
+                        }
+                        print('after');
                     return ListView.builder(
                       reverse: true,
                       padding: EdgeInsets.symmetric(
