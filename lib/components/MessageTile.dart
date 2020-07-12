@@ -6,26 +6,29 @@ class MessageTile extends StatelessWidget {
   final String message;
   final String color;
   final bool fromUser;
-  final List<String> readColors; 
+  final bool isSending;
+  final List<String> readColors;
 
   const MessageTile(
       {Key key,
       this.message,
       this.color,
       this.fromUser,
-      this. readColors});
+      this.readColors,
+      this.isSending = true});
 
   List<Widget> getDots() {
     // testing how it looks.
     List<Widget> dots = [];
-     for(String color in readColors) {
-        {
+    for (String color in readColors) {
+      {
         dots.add(Padding(
           padding: const EdgeInsets.symmetric(horizontal: 1),
           child: ColoredDot(kOurColors[color]),
         ));
       }
-    };
+    }
+    ;
     return dots;
   }
 
@@ -45,7 +48,9 @@ class MessageTile extends StatelessWidget {
               maxWidth: MediaQuery.of(context).size.width * 0.7,
             ),
             decoration: BoxDecoration(
-              color: kOurColors[color],
+              color: isSending
+                  ? kOurColors[color].withAlpha(200)
+                  : kOurColors[color],
               borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(40),
                   topRight: Radius.circular(40),

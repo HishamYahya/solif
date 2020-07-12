@@ -344,6 +344,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       setUserTimeLeft();
+      _changeTypingTo(false);
     }
     if (state == AppLifecycleState.resumed) {
       setTimeLeftInfinity();
@@ -375,7 +376,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             child: Stack(
               children: [
                 StreamBuilder<QuerySnapshot>(
-
                   stream: firestore
                       .collection("chatRooms")
                       .document(widget.salfhID)
@@ -384,46 +384,46 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       .snapshots(),
                   builder: (context, snapshot) {
                     //TODO: display the message on sc reen only when it's been written to the database
-                    if (!snapshot.hasData || lastLeftStatus == null ) {
+                    if (!snapshot.hasData || lastLeftStatus == null) {
                       return LoadingWidget("");
                     }
-                    
+
                     final messages = snapshot.data.documents.reversed;
                     Set<String> alreadyRead = Set<String>();
                     List<Widget> messageTiles = [];
 
                     for (var message in messages) {
-                    
                       List<String> readColors = [];
                       lastLeftStatus.forEach((color, lastLeft) {
                         var estimateTimeSent;
-                        if(message.metadata.hasPendingWrites){
-                           estimateTimeSent = Timestamp.now();
-                        } 
-                        else{
-                           estimateTimeSent = message['timeSent'];
+                        if (message.metadata.hasPendingWrites) {
+                          estimateTimeSent = Timestamp.now();
+                        } else {
+                          estimateTimeSent = message['timeSent'];
                         }
-                       if (message['color'] != color &&
-                            !alreadyRead.contains(color) && 
+                        if (message['color'] != color &&
+                            !alreadyRead.contains(color) &&
                             lastLeft.compareTo(estimateTimeSent) >= 0) {
                           readColors.add(color);
                           alreadyRead.add(color);
                         }
                       });
+                      print('Stream');
 
                       messageTiles.add(MessageTile(
-                          color: message['color'],
-                          message: message["content"],
-                          fromUser: message['color'] == colorName,
-                          readColors: readColors
+                        color: message['color'],
+                        message: message["content"],
+                        fromUser: message['color'] == colorName,
+                        readColors: readColors,
+                        isSending: message.metadata.hasPendingWrites,
 
-                          //
-                          // add stuff here when you update messageTile
-                          // time: message["time"],
-                          //
-                          ));
-                        }
-                        print('after');
+                        //
+                        // add stuff here when you update messageTile
+                        // time: message["time"],
+                        //
+                      ));
+                    }
+                    print('after');
                     return ListView.builder(
                       reverse: true,
                       padding: EdgeInsets.symmetric(
