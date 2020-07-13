@@ -14,6 +14,82 @@ const FieldValue = require('firebase-admin').firestore.FieldValue;
 //  response.send("Hello from Firebase!");
 // });
 
+
+
+exports.onLikeOrDislike = functions.firestore.document('/likes/{likedUserID}').onUpdate((change, context) => {
+    const before = change.before.data();
+    const after = change.after.data();
+
+    const likedUserID = context.params.likedUserID;
+
+    console.log('this is before');
+    console.log(before); 
+    console.log('this is after' );
+    console.log(after); 
+    
+    console.log(typeof(after));
+
+    if ((after.hasOwnProperty('likes') && after.likes != before.likes) || (after.hasOwnProperty('dislikes') && after.dislikes != before.dislikes)) {
+        console.log('here-----------------------------------') // to avoid recursive calls.
+        return;
+    }
+    else {
+        const difference = getObjectDiff(before.usersVotes, after.usersVotes); // returns an array of the differnt keys between the two maps.
+        console.log('size') 
+
+        afterSize = Object.keys(after.usersVotes).length;
+        beforeSize = Object.keys(before.usersVotes).length
+
+        console.log(afterSize);
+        console.log(beforeSize);    
+        
+        if (afterSize > beforeSize) { // a user has just liked or disliked
+            if (after.usersVotes[difference[0]] == 'like') {
+                return firestore.collection("likes").doc(likedUserID).set({
+                    'likes': FieldValue.increment(1)
+                }, { merge: true });
+            }
+            else {
+                return firestore.collection("likes").doc(likedUserID).set({
+                    'dislikes': FieldValue.increment(1)
+                }, { merge: true });
+            }
+
+        }
+        else if(afterSize == beforeSize){
+            if (after.usersVotes[difference[0]] == 'like') {
+                return firestore.collection("likes").doc(likedUserID).set({
+                    'likes': FieldValue.increment(1),
+                    'dislikes': FieldValue.increment(-1)
+                }, { merge: true });
+            }
+            else {
+                return firestore.collection("likes").doc(likedUserID).set({
+                    'dislikes': FieldValue.increment(1),
+                    'likes': FieldValue.increment(-1),
+                }, { merge: true });
+            }
+        }
+        else{ // user unliked or undisliked
+            console.log(difference[0]);
+            console.log(after.usersVotes[difference[0]]); 
+            if (before.usersVotes[difference[0]] == 'like') {
+                return firestore.collection("likes").doc(likedUserID).set({
+                    'likes': FieldValue.increment(-1)
+                }, { merge: true });
+            }
+            else {
+                return firestore.collection("likes").doc(likedUserID).set({
+                    'dislikes': FieldValue.increment(-1)
+                }, { merge: true });
+            }
+        }
+    }
+
+
+
+})
+
 exports.messageSent = functions.firestore.document('/chatRooms/{salfhID}/messages/{messageID}').onCreate((snapshot, context) => {
     const message = snapshot.data();
     const condition = `'${context.params.salfhID}' in topics && !('${message['userID']}' in topics)`;
@@ -151,4 +227,18 @@ function stringKeys(tag) {
         keys.push(tag.substring(0, i + 1));
     }
     return keys;
+}
+
+function getObjectDiff(obj1, obj2) {
+    const diff = Object.keys(obj1).reduce((result, key) => {
+        if (!obj2.hasOwnProperty(key)) {
+            result.push(key);
+        } else if (obj1[key] == obj2[key]) {
+            const resultKeyIndex = result.indexOf(key);
+            result.splice(resultKeyIndex, 1);
+        }
+        return result;
+    }, Object.keys(obj2));
+
+    return diff;
 }

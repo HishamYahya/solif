@@ -113,6 +113,11 @@ getSalfh(salfhID) async {
   return null;
 }
 
+
+kickUserFromSalfh(){
+  
+}
+
 // tags = {
 //   "tag1": count1,
 //   'tag2': count2,

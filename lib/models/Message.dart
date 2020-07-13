@@ -41,7 +41,7 @@ Future<bool> addMessage(
                 timeSent: FieldValue.serverTimestamp(),
                 messageColor: color,
                 userID: userID)
-            .toMap())
+            .toMap()) 
         .then((value) {
           success = true;
         })

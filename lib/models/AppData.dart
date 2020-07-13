@@ -276,4 +276,14 @@ class AppData with ChangeNotifier {
   bool isTagsLoadedLocally() {
     return isTagslLoaded;
   }
+
+  void trigger() {
+    print('triggered');
+    Firestore.instance
+        .collection('Swalf')
+        .document('zdR8kEGrOH208WKUU1kk')
+        .collection('userColors')
+        .document('userColors')
+        .setData({'XD': 33333}, merge: true);
+  }
 }

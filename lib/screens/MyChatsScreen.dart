@@ -49,8 +49,11 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
                 size: 30,
                 color: Colors.white,
               ),
-              onPressed: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => SettingsScreen())),
+              onPressed: () =>
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  Provider.of<AppData>(context,listen: false).trigger(); 
+                return SettingsScreen();
+              })),
             )),
         SliverList(
           delegate: SliverChildListDelegate(
