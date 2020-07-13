@@ -80,7 +80,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.grey[100],  
+        backgroundColor: Colors.grey[100],
         floatingActionButton: AnimatedBuilder(
           animation: _animationController,
           builder: (context, child) {

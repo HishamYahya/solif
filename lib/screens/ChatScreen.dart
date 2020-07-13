@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/components/ChatInputBox.dart';
+import 'package:solif/components/ChatScreenAppBar.dart';
+import 'package:solif/components/ChatScreenDrawer.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/MessageTile.dart';
 import 'package:solif/components/TypingWidgetRow.dart';
@@ -21,6 +23,7 @@ class ChatScreen extends StatefulWidget {
   final String color;
   final String salfhID;
   final Map colorsStatus;
+  final String creatorID;
 
   final VoidCallback onUpdate;
 
@@ -29,7 +32,8 @@ class ChatScreen extends StatefulWidget {
       this.color,
       this.salfhID = "000test",
       this.onUpdate,
-      this.colorsStatus});
+      this.colorsStatus,
+      this.creatorID});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -356,146 +360,144 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     Color backGround = Colors.white;
     Color currentColor = kOurColors[colorName];
     //////////////////// hot reload to add message
-    return Scaffold(
-      appBar: AppBar(
-          leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () {
-                Navigator.pop(context);
-              }),
-          title: Text(
-            widget.title,
-          ),
-          backgroundColor:
-              isInSalfh ? currentColor : Colors.white //.withOpacity(0.8),
-          ),
-      backgroundColor: Colors.blueAccent[50],
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            child: Stack(
-              children: [
-                StreamBuilder<QuerySnapshot>(
-                  stream: firestore
-                      .collection("chatRooms")
-                      .document(widget.salfhID)
-                      .collection('messages')
-                      .orderBy('timeSent')
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    //TODO: display the message on sc reen only when it's been written to the database
-                    if (!snapshot.hasData || lastLeftStatus == null) {
-                      return LoadingWidget("");
-                    }
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.blueAccent[50],
+        endDrawer: ChatScreenDrawer(
+          title: widget.title,
+          creatorID: widget.creatorID,
+          colorsStatus: colorsStatus,
+          color: colorName,
+        ),
+        endDrawerEnableOpenDragGesture: isInSalfh,
+        body: Column(
+          children: <Widget>[
+            Expanded(
+              child: Stack(
+                children: [
+                  StreamBuilder<QuerySnapshot>(
+                    stream: firestore
+                        .collection("chatRooms")
+                        .document(widget.salfhID)
+                        .collection('messages')
+                        .orderBy('timeSent')
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      //TODO: display the message on sc reen only when it's been written to the database
+                      if (!snapshot.hasData || lastLeftStatus == null) {
+                        return LoadingWidget("");
+                      }
 
-                    final messages = snapshot.data.documents.reversed;
-                    Set<String> alreadyRead = Set<String>();
-                    List<Widget> messageTiles = [];
+                      final messages = snapshot.data.documents.reversed;
+                      Set<String> alreadyRead = Set<String>();
+                      List<Widget> messageTiles = [];
 
-                    for (var message in messages) {
-                      List<String> readColors = [];
-                      lastLeftStatus.forEach((color, lastLeft) {
-                        var estimateTimeSent;
-                        if (message.metadata.hasPendingWrites) {
-                          estimateTimeSent = Timestamp.now();
-                        } else {
-                          estimateTimeSent = message['timeSent'];
-                        }
-                        if (message['color'] != color &&
-                            !alreadyRead.contains(color) &&
-                            lastLeft.compareTo(estimateTimeSent) >= 0) {
-                          readColors.add(color);
-                          alreadyRead.add(color);
-                        }
-                      });
-                      print('Stream');
+                      for (var message in messages) {
+                        List<String> readColors = [];
+                        lastLeftStatus.forEach((color, lastLeft) {
+                          var estimateTimeSent;
+                          if (message.metadata.hasPendingWrites) {
+                            estimateTimeSent = Timestamp.now();
+                          } else {
+                            estimateTimeSent = message['timeSent'];
+                          }
+                          if (message['color'] != color &&
+                              !alreadyRead.contains(color) &&
+                              lastLeft.compareTo(estimateTimeSent) >= 0) {
+                            readColors.add(color);
+                            alreadyRead.add(color);
+                          }
+                        });
+                        print('Stream');
 
-                      messageTiles.add(MessageTile(
-                        color: message['color'],
-                        message: message["content"],
-                        fromUser: message['color'] == colorName,
-                        readColors: readColors,
-                        isSending: message.metadata.hasPendingWrites,
+                        messageTiles.add(MessageTile(
+                          color: message['color'],
+                          message: message["content"],
+                          fromUser: message['color'] == colorName,
+                          readColors: readColors,
+                          isSending: message.metadata.hasPendingWrites,
 
-                        //
-                        // add stuff here when you update messageTile
-                        // time: message["time"],
-                        //
-                      ));
-                    }
-                    print('after');
-                    return ListView.builder(
-                      reverse: true,
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 10.0, vertical: 20.0),
-                      itemCount: messageTiles.length,
-                      itemBuilder: (context, index) {
-                        return messageTiles[index];
-                      },
-                    );
-                  },
-                ),
-                Positioned(
-                  bottom: 5,
-                  width: MediaQuery.of(context).size.width * 0.5,
-                  child: Center(
-                      child: TypingWidgetRow(typingStatus: typingStatus)),
-                )
-              ],
+                          //
+                          // add stuff here when you update messageTile
+                          // time: message["time"],
+                          //
+                        ));
+                      }
+                      print('after');
+                      return ListView.builder(
+                        reverse: true,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 10.0, vertical: 20.0),
+                        itemCount: messageTiles.length,
+                        itemBuilder: (context, index) {
+                          return messageTiles[index];
+                        },
+                      );
+                    },
+                  ),
+                  Positioned(
+                    bottom: 5,
+                    width: MediaQuery.of(context).size.width * 0.5,
+                    child: Center(
+                        child: TypingWidgetRow(typingStatus: typingStatus)),
+                  ),
+                  ChatScreenAppBar(isInSalfh: isInSalfh, color: colorName),
+                ],
+              ),
             ),
-          ),
-          Container(
-            color: Colors.grey[200],
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    width: 0,
-                    color: Colors.grey[200],
+            Container(
+              color: Colors.grey[200],
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      width: 0,
+                      color: Colors.grey[200],
+                    ),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(150),
+                    ),
+                    color: Colors.white,
                   ),
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(150),
-                  ),
-                  color: Colors.white,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 0),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      Expanded(
-                        child: ChatInputBox(
-                          color: currentColor,
-                          messageController: messageController,
-                          onChanged: (String value) {
-                            if (isInSalfh) {
-                              updateTyping(value);
-                            }
-                            inputMessage = value;
-                          },
-                          onSubmit: (_) {
-                            _onSubmit();
-                          },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: <Widget>[
+                        Expanded(
+                          child: ChatInputBox(
+                            color: currentColor,
+                            messageController: messageController,
+                            onChanged: (String value) {
+                              if (isInSalfh) {
+                                updateTyping(value);
+                              }
+                              inputMessage = value;
+                            },
+                            onSubmit: (_) {
+                              _onSubmit();
+                            },
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 10),
-                      FloatingActionButton(
-                        backgroundColor: currentColor,
-                        child: sending
-                            ? CircularProgressIndicator(
-                                backgroundColor: Colors.white,
-                              )
-                            : Icon(Icons.send),
-                        onPressed: _onSubmit,
-                      )
-                    ],
+                        SizedBox(width: 10),
+                        FloatingActionButton(
+                          backgroundColor: currentColor,
+                          child: sending
+                              ? CircularProgressIndicator(
+                                  backgroundColor: Colors.white,
+                                )
+                              : Icon(Icons.send),
+                          onPressed: _onSubmit,
+                        )
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

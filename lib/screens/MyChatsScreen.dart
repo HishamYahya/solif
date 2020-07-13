@@ -25,12 +25,11 @@ class MyChatsScreen extends StatefulWidget {
   _MyChatsScreenState createState() => _MyChatsScreenState();
 }
 
-class _MyChatsScreenState extends State<MyChatsScreen>
-    with AutomaticKeepAliveClientMixin<MyChatsScreen> {
+class _MyChatsScreenState extends State<MyChatsScreen> {
   @override
   // to keep the page from refreshing each time you change back to it
   // (now only loaded once but always saved which might be a problem)
-  bool get wantKeepAlive => true;
+  // bool get wantKeepAlive => true;
   RefreshController _refreshController =
       RefreshController(initialRefresh: false);
 
@@ -50,10 +49,8 @@ class _MyChatsScreenState extends State<MyChatsScreen>
                 size: 30,
                 color: Colors.white,
               ),
-              onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => SettingsScreen())),
+              onPressed: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => SettingsScreen())),
             )),
         SliverList(
           delegate: SliverChildListDelegate(

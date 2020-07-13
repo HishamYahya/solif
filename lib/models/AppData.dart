@@ -204,6 +204,8 @@ class AppData with ChangeNotifier {
             // color now generated in SalfhTile
             colorsStatus: salfh['colorsStatus'],
             title: salfh['title'],
+            creatorID: salfh['creatorID'],
+
             id: salfh.documentID,
             tags: salfh['tags'] ?? [], //////// TODO: remove null checking
           ));

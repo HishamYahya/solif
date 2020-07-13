@@ -82,29 +82,29 @@ class _PublicChatsScreenState extends State<PublicChatsScreen>
               style: TextStyle(color: Colors.white),
             ),
           ),
-          // SliverList(
-          //   delegate: SliverChildListDelegate(
-          //     isLoaded
-          //         ? Provider.of<AppData>(context).publicSalfhTiles
-          //         : [LoadingWidget('...نجيب سوالفهم')],
-          //   ),
-          // ),
-
-          Container(
-            child: SliverStaggeredGrid.countBuilder(
-              itemCount: Provider.of<AppData>(context).publicSalfhTiles.length,
-              crossAxisCount: 2,
-              
-              mainAxisSpacing: 4.0,
-              crossAxisSpacing: 4.0,
-              itemBuilder: (context, index) {
-                return Provider.of<AppData>(context).publicSalfhTiles[index];
-              },
-              staggeredTileBuilder: (index) {
-                return StaggeredTile.count(3, 4);
-              },
+          SliverList(
+            delegate: SliverChildListDelegate(
+              isLoaded
+                  ? Provider.of<AppData>(context).publicSalfhTiles
+                  : [LoadingWidget('...نجيب سوالفهم')],
             ),
-          )
+          ),
+
+          // Container(
+          //   child: SliverStaggeredGrid.countBuilder(
+          //     itemCount: Provider.of<AppData>(context).publicSalfhTiles.length,
+          //     crossAxisCount: 2,
+
+          //     mainAxisSpacing: 4.0,
+          //     crossAxisSpacing: 4.0,
+          //     itemBuilder: (context, index) {
+          //       return Provider.of<AppData>(context).publicSalfhTiles[index];
+          //     },
+          //     staggeredTileBuilder: (index) {
+          //       return StaggeredTile.count(3, 4);
+          //     },
+          //   ),
+          // )
         ],
       ),
     );
