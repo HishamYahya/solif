@@ -39,6 +39,13 @@ service cloud.firestore {
     	allow read, write: if isSignedIn();
     }
 
+    match /likes/{userID} {
+    allow read: if isSignedIn();
+    allow update: if isUnChanged('likes') && isUnChanged('dislikes') &&  request.resource.data.usersVotes(resource.data).affectedKeys().hasOnly([request.auth.uid]);
+
+    
+    }
+
   }
 
 }
@@ -93,4 +100,9 @@ function isJoiningOrLeaving(payload) {
 
 function canReadChatroom() {
 	return true;
+}
+
+function isUnChanged(attr){
+  return !(attr in request.resource.data) ||
+  request.resource.data[attr] == resource.data[attr];
 }
