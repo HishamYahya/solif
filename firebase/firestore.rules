@@ -9,7 +9,7 @@ service cloud.firestore {
       allow read: if isSignedIn();
       match /userColors/userColors {
       	allow read: if isSignedIn();
-        allow update: if isSignedIn();
+        allow update: if isJoiningOrLeaving(request.resource.data);
       }
 
     }
@@ -39,9 +39,10 @@ service cloud.firestore {
     	allow read, write: if isSignedIn();
     }
 
-    match /likes/{userID} {
+
+        match /likes/{userID} {
     allow read: if isSignedIn();
-    allow update: if isUnChanged('likes') && isUnChanged('dislikes') &&  request.resource.data.usersVotes(resource.data).affectedKeys().hasOnly([request.auth.uid]);
+    allow update: if isUnChanged('likes') && isUnChanged('dislikes') &&  request.resource.data.diff(resource.data).affectedKeys().hasOnly([request.auth.uid]);
 
     
     }
