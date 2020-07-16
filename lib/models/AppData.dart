@@ -89,11 +89,16 @@ class AppData with ChangeNotifier {
   }
 
   init() async {
-    await auth.signOut();
+    // await auth.signOut();
     prefs = await SharedPreferences.getInstance();
     await loadUser();
     listenForNewUserSwalf();
     loadTiles();
+  }
+
+  reset() async {
+    await auth.signOut();
+    init();
   }
 
   Future<void> loadUser() async {
@@ -196,8 +201,8 @@ class AppData with ChangeNotifier {
     for (var salfh in salfhDocs.documents) {
       if (salfh['creatorID'] != currentUserID) {
         bool isFull = true;
-        salfh['colorsStatus'].forEach((name, statusMap) {
-          if (statusMap['userID'] == null) isFull = false;
+        salfh['colorsStatus'].forEach((color, id) {
+          if (id == null) isFull = false;
         });
         if (!isFull)
           newSalfhTiles.add(SalfhTile(
