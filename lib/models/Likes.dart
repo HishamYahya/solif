@@ -9,7 +9,7 @@ likeUser(String currentUserID, String likedUserID){
 
 
   firestore.collection('likes').document(likedUserID).setData({
-    'usersVote':{
+    'usersVotes':{
       currentUserID: 'like'
     }
   },merge: true);
@@ -19,7 +19,7 @@ unLikeUser(String currentUserID, String likedUserID){
 
 
   firestore.collection('likes').document(likedUserID).setData({
-        'usersVote':{
+        'usersVotes':{
       currentUserID: deleteKey
     }
   },merge: true);
@@ -31,7 +31,7 @@ dislikeUser(String currentUserID, String likedUserID){
 
 
   firestore.collection('likes').document(likedUserID).setData({
-    'usersVote':{
+    'usersVotes':{
       currentUserID: 'dislike'
     }
   },merge: true);

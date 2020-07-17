@@ -14,7 +14,18 @@ const FieldValue = require('firebase-admin').firestore.FieldValue;
 //  response.send("Hello from Firebase!");
 // });
 
+exports.kickUser = functions.https.onCall((data,context)=> {
+    /* data: map{
+        salfhid,
+        adminID
+        ,kickedID}
+    */
 
+    const salfhID = data.salfhID; 
+    const salfhMap = await firestore.collection("Swalf").doc(salfhID).get();
+
+
+})
 
 exports.onLikeOrDislike = functions.firestore.document('/likes/{likedUserID}').onUpdate((change, context) => {
     const before = change.before.data();
@@ -152,7 +163,9 @@ exports.colorsStatusUpdated = functions.firestore.document('/Swalf/{salfhID}/use
 exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate((snapshot, context) => {
 
     const salfh = snapshot.data();
-    firestore.collection('Swalf').doc(context.params.salfhID).collection('userColors').doc('userColors').set(salfh.colorsStatus, { merge: true });
+    colorStatus = salfh.colorsStatus; 
+    colorStatus['adminID'] = salfh.creatorID;
+    firestore.collection('Swalf').doc(context.params.salfhID).collection('userColors').doc('userColors').set(colorStatus, { merge: true });
 
     let colorName;
     for (const color in salfh.colorsStatus) {

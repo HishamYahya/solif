@@ -114,9 +114,7 @@ getSalfh(salfhID) async {
 }
 
 
-kickUserFromSalfh(){
-  
-}
+
 
 // tags = {
 //   "tag1": count1,

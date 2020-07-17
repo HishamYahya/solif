@@ -51,19 +51,22 @@ Future<bool> joinSalfh({String userID, String salfhID, colorName}) async {
       .collection('userColors')
       .document('userColors');
   bool added = false;
-  await firestore.runTransaction((transaction) async {
-    final snapshot = await transaction.get(ref);
 
-    if (snapshot.exists) {
-      if (snapshot.data[colorName] == null) {
-        transaction.update(ref, {colorName: userID});
-      } else {
-        transaction.update(ref, {});
-      }
-    }
-  }).then((value) {
-    added = true;
-  });
+  await ref
+      .setData({colorName: userID}, merge: true).then((value) => added = true);
+  // await firestore.runTransaction((transaction) async {
+  //   final snapshot = await transaction.get(ref);
+
+  //   if (snapshot.exists) {
+  //     if (snapshot.data[colorName] == null) {
+  //       transaction.update(ref, {colorName: userID});
+  //     } else {
+  //       transaction.update(ref, {});
+  //     }
+  //   }
+  // }).then((value) {
+  //   added = true;
+  // });
   // if (added) {
   //   await addSalfhToUser(userID, salfhID, colorName);
   // }
@@ -137,5 +140,3 @@ Future<String> getColorOfUser({String userID, Map salfh}) async {
   });
   return colorName;
 }
-
-
