@@ -3,14 +3,16 @@ import 'package:provider/provider.dart';
 import 'package:solif/components/ColorDrawerTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/Salfh.dart';
 
 class ChatScreenDrawer extends StatefulWidget {
   final String title;
   final String creatorID;
   final Map colorsStatus;
   final String color;
+  final String salfhID; 
 
-  ChatScreenDrawer({this.title, this.creatorID, this.colorsStatus, this.color});
+  ChatScreenDrawer({this.title, this.creatorID, this.colorsStatus, this.color,this.salfhID});
   @override
   _ChatScreenDrawerState createState() => _ChatScreenDrawerState();
 }
@@ -120,14 +122,20 @@ class _ChatScreenDrawerState extends State<ChatScreenDrawer> {
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
-                child: ListTile(
-                  trailing: Icon(Icons.exit_to_app, color: Colors.white),
-                  title: Text(
-                    'اطلع من السالفة',
-                    style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.normal,
-                        color: Colors.white),
+                child: GestureDetector(
+                  onTap: () => removeUser(
+                    salfhID: widget.salfhID,
+                    userColor:  widget.color, 
+                  ),
+                  child: ListTile(
+                    trailing: Icon(Icons.exit_to_app, color: Colors.white),
+                    title: Text(
+                      'اطلع من السالفة',
+                      style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.normal,
+                          color: Colors.white),
+                    ),
                   ),
                 ),
               ),

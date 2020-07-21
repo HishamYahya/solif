@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/SalfhTile.dart';
@@ -140,3 +141,16 @@ Future<String> getColorOfUser({String userID, Map salfh}) async {
   });
   return colorName;
 }
+
+Future<void> removeUser({String userColor, String salfhID}) async {
+  final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
+    functionName: 'removeUser',
+  );
+  dynamic resp = await callable.call(<String, dynamic>{
+    'salfhID': salfhID,
+    'color': userColor
+  });
+  print(resp.data); 
+}
+
+

@@ -368,6 +368,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           creatorID: widget.creatorID,
           colorsStatus: colorsStatus,
           color: colorName,
+          salfhID: widget.salfhID
         ),
         endDrawerEnableOpenDragGesture: isInSalfh,
         body: Column(

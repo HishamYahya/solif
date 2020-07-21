@@ -14,17 +14,73 @@ const FieldValue = require('firebase-admin').firestore.FieldValue;
 //  response.send("Hello from Firebase!");
 // });
 
-exports.kickUser = functions.https.onCall((data,context)=> {
+
+
+exports.testFunc = functions.https.onCall(async (data, context) => {
+    var a = 5;
+    var b = 6;
+    return a+b; 
+})
+
+exports.removeUser = functions.https.onCall(async (data, context) => {
+
     /* data: map{
-        salfhid,
-        adminID
-        ,kickedID}
+        salfhID,
+        ,color}
     */
 
-    const salfhID = data.salfhID; 
-    const salfhMap = await firestore.collection("Swalf").doc(salfhID).get();
+    const salfhID = data.salfhID
+    const color = data.color;
+    console.log(data);
+    console.log(salfhID);
+    console.log(color); 
+    const ref = await firestore.collection('Swalf').doc(salfhID).collection('userColors').doc('userColors')
+
+    await firestore.runTransaction ( async function(transaction )  { 
 
 
+        
+       let snapshot =  await transaction.get(ref);
+       updatedData = {}; 
+
+       console.log(snapshot.data());
+
+       console.log(context.auth.uid);
+
+
+       console.log(snapshot.data()[color]);
+       
+       if(snapshot.data()[color] == context.auth.uid){
+           updatedData[color] = null; 
+       }
+       else if(snapshot.data()[color] == snapshot.data()['adminID'] &&  snapshot.data()['adminID'] == context.auth.uid){
+            updatedData[color] = null; 
+       }
+       else{
+           throw "3rd else, Permission Denied";
+       }
+
+       transaction.update(ref,updatedData);
+       
+
+    } ).then((value)=>{
+        return true;
+    })
+    return false; 
+
+
+})
+
+
+exports.onUserCreated = functions.firestore.document('/users/{userID}').onCreate((snapshot,context) =>{
+    const userID = context.params.userID;
+    return firestore.collection('likes').doc(userID).create(
+        {
+            'likes': 0,
+            'dislikes': 0,
+            'usersVotes': {}
+        }   
+    )
 })
 
 exports.onLikeOrDislike = functions.firestore.document('/likes/{likedUserID}').onUpdate((change, context) => {
@@ -34,11 +90,11 @@ exports.onLikeOrDislike = functions.firestore.document('/likes/{likedUserID}').o
     const likedUserID = context.params.likedUserID;
 
     console.log('this is before');
-    console.log(before); 
-    console.log('this is after' );
-    console.log(after); 
-    
-    console.log(typeof(after));
+    console.log(before);
+    console.log('this is after');
+    console.log(after);
+
+    console.log(typeof (after));
 
     if ((after.hasOwnProperty('likes') && after.likes != before.likes) || (after.hasOwnProperty('dislikes') && after.dislikes != before.dislikes)) {
         console.log('here-----------------------------------') // to avoid recursive calls.
@@ -46,14 +102,14 @@ exports.onLikeOrDislike = functions.firestore.document('/likes/{likedUserID}').o
     }
     else {
         const difference = getObjectDiff(before.usersVotes, after.usersVotes); // returns an array of the differnt keys between the two maps.
-        console.log('size') 
+        console.log('size')
 
         afterSize = Object.keys(after.usersVotes).length;
         beforeSize = Object.keys(before.usersVotes).length
 
         console.log(afterSize);
-        console.log(beforeSize);    
-        
+        console.log(beforeSize);
+
         if (afterSize > beforeSize) { // a user has just liked or disliked
             if (after.usersVotes[difference[0]] == 'like') {
                 return firestore.collection("likes").doc(likedUserID).set({
@@ -67,7 +123,7 @@ exports.onLikeOrDislike = functions.firestore.document('/likes/{likedUserID}').o
             }
 
         }
-        else if(afterSize == beforeSize){
+        else if (afterSize == beforeSize) {
             if (after.usersVotes[difference[0]] == 'like') {
                 return firestore.collection("likes").doc(likedUserID).set({
                     'likes': FieldValue.increment(1),
@@ -81,9 +137,9 @@ exports.onLikeOrDislike = functions.firestore.document('/likes/{likedUserID}').o
                 }, { merge: true });
             }
         }
-        else{ // user unliked or undisliked
+        else { // user unliked or undisliked
             console.log(difference[0]);
-            console.log(after.usersVotes[difference[0]]); 
+            console.log(after.usersVotes[difference[0]]);
             if (before.usersVotes[difference[0]] == 'like') {
                 return firestore.collection("likes").doc(likedUserID).set({
                     'likes': FieldValue.increment(-1)
@@ -122,6 +178,8 @@ exports.messageSent = functions.firestore.document('/chatRooms/{salfhID}/message
 
     // return "yo";
 });
+
+
 
 const kColorNames = ["purple", "green", "yellow", "red", "blue"];
 // makes changing color names in the future easier, if ever needed
@@ -163,8 +221,11 @@ exports.colorsStatusUpdated = functions.firestore.document('/Swalf/{salfhID}/use
 exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate((snapshot, context) => {
 
     const salfh = snapshot.data();
-    colorStatus = salfh.colorsStatus; 
+
+
+    colorStatus = salfh.colorsStatus;
     colorStatus['adminID'] = salfh.creatorID;
+
     firestore.collection('Swalf').doc(context.params.salfhID).collection('userColors').doc('userColors').set(colorStatus, { merge: true });
 
     let colorName;
@@ -242,7 +303,7 @@ function stringKeys(tag) {
     return keys;
 }
 
-function getObjectDiff(obj1, obj2) {
+function getObjectDiff(obj1, obj2) { // returns added,removed or modified keys in a list.
     const diff = Object.keys(obj1).reduce((result, key) => {
         if (!obj2.hasOwnProperty(key)) {
             result.push(key);

@@ -6,20 +6,22 @@ final firestore = Firestore.instance;
 final deleteKey = FieldValue.delete();
 
 likeUser(String currentUserID, String likedUserID){
-
-
+  print('like');
   firestore.collection('likes').document(likedUserID).setData({
     'usersVotes':{
-      currentUserID: 'like'
-    }
+      currentUserID: 'like',
+      //'otherUserID': 'like'  --> PERMISSION_DENIED
+    },
+    // 'likes': 30 --> PERMISSION_DENIED
   },merge: true);
   
 }
 unLikeUser(String currentUserID, String likedUserID){
+  print("unlike");
 
 
   firestore.collection('likes').document(likedUserID).setData({
-        'usersVotes':{
+        'usersVotes':{  
       currentUserID: deleteKey
     }
   },merge: true);
@@ -28,6 +30,8 @@ unLikeUser(String currentUserID, String likedUserID){
 
 
 dislikeUser(String currentUserID, String likedUserID){
+
+  print("dis");
 
 
   firestore.collection('likes').document(likedUserID).setData({
@@ -38,5 +42,6 @@ dislikeUser(String currentUserID, String likedUserID){
   
 }
 unDislikeUser(String currentUserID, String likedUserID){
+  print('unDis');
   unLikeUser(currentUserID, likedUserID); 
 }

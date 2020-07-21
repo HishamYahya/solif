@@ -11,6 +11,7 @@ import 'package:solif/components/TagTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/Tag.dart';
 import 'package:solif/models/Salfh.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 class AppData with ChangeNotifier {
   FirebaseUser currentUser;
@@ -282,14 +283,21 @@ class AppData with ChangeNotifier {
     return isTagslLoaded;
   }
 
-  void trigger() {
+  Future<void> trigger() async {
     print('triggered');
-    Firestore.instance
-        .collection('Swalf')
-        .document('zdR8kEGrOH208WKUU1kk')
-        .collection('userColors')
-        .document('userColors')
-        .setData({'XD': 33333}, merge: true);
-     
+    final HttpsCallable testFunc = CloudFunctions.instance.getHttpsCallable(
+      functionName: 'testFunc',
+    );
+
+    HttpsCallableResult resp = await testFunc.call();
+    print(resp.data); 
+  
+    
+    // Firestore.instance
+    //     .collection('Swalf')
+    //     .document('zdR8kEGrOH208WKUU1kk')
+    //     .collection('userColors')
+    //     .document('userColors')
+    //     .setData({'XD': 33333}, merge: true);
   }
 }
