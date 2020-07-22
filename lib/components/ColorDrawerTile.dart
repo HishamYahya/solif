@@ -84,7 +84,7 @@ class _ColorDrawerTileState extends State<ColorDrawerTile> {
                     final currentUserID =
                         Provider.of<AppData>(context, listen: false)
                             .currentUserID;
-                    if (!isSelected[0] && !isSelected[0]) {
+                    if (!isSelected[0] && !isSelected[1]) {
                       // when removing like/dislike
                       prevSelected[0]
                           ? unLikeUser(currentUserID, widget.id)
@@ -94,7 +94,7 @@ class _ColorDrawerTileState extends State<ColorDrawerTile> {
                           ? likeUser(currentUserID, widget.id)
                           : dislikeUser(currentUserID, widget.id);
                     }
-                    Future.delayed(Duration(milliseconds: 100)).then((value) {
+                    Future.delayed(Duration(milliseconds: 250)).then((value) {
                       setState(() {
                         liking = false;
                       });
