@@ -53,16 +53,18 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
        if(snapshot.data()[color] ==snapshot.data()['adminID']) {
            var colorsInOrder = snapshot.data()['colorsInOrder']
            if(colorsInOrder.length == 0 ){
-              return await deleteSalfh(salfhID); 
+               
+            return await deleteSalfh(salfhID); // not tested; 
            }
            else{
-               newAdminColor = colorsInOrder.shift(); 
-               updatedData['adminID'] = snapshot.data()[napnewAdminColor]; 
-               updatedData['colorsInOrder'] = colorsInOrder; 
+               newAdminColor = colorsInOrder[0];
+               updatedData[color] = null;
+               updatedData['adminID'] = snapshot.data()[newAdminColor]; 
+               updatedData['colorsInOrder'] = FieldValue.arrayRemove(newAdminColor); // not tested. 
            }
        }
         
-       if(snapshot.data()[color] == context.auth.uid){
+       else if(snapshot.data()[color] == context.auth.uid){
            updatedData[color] = null;
            updatedData['colorsInOrder'] = FieldValue.arrayRemove(color); 
            
@@ -208,12 +210,15 @@ exports.colorsStatusUpdated = functions.firestore.document('/Swalf/{salfhID}/use
     let colorChanged;
     const before = change.before.data()
     const after = change.after.data()
+    const adminID = after['adminID'];
     for (const color in before) {
         if(color == 'colorsInOrder' || color == 'adminID') {
             continue;
         }
         if (before[color] != after[color]) {
             
+            
+
             colorChanged = color;
             break;
         }
@@ -230,6 +235,7 @@ exports.colorsStatusUpdated = functions.firestore.document('/Swalf/{salfhID}/use
 
         const changedDoc = { colorsStatus: {} };
         changedDoc.colorsStatus[colorChanged] = null;
+        changedDoc.creatorID = adminID; 
 
        // changedDoc.colorsInOrder = FieldValue.arrayRemove([colorChanged]);
 
@@ -239,7 +245,7 @@ exports.colorsStatusUpdated = functions.firestore.document('/Swalf/{salfhID}/use
         return firestore.collection('users').doc(userID).update(deletedSalfh);
     }
     else { // if user joined
-        const userID = after[colorChanged];
+        const userID = after[colorChanged]; 
         const changedDoc = { colorsStatus: {} }
         changedDoc.colorsStatus[colorChanged] = userID;
       //  changedDoc.colorsInOrder = FieldValue.arrayUnion([colorChanged]);
@@ -350,8 +356,8 @@ function getObjectDiff(obj1, obj2) { // returns added,removed or modified keys i
     return diff;
 }
 
-function setNewAdmin(){
+async function deleteSalfh(salfhID){ 
 
-
-
+    await firestore.collection("Swalf").doc(salfhID).collection("userColors").doc('userColors').delete();
+    await firestore.collection("Swalf").doc(salfhID).delete(); 
 }
