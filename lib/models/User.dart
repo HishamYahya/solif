@@ -28,9 +28,9 @@ addSalfhToUser(String userID, String salfhID, String userColor) async {
 //   },merge: true);
 // }
 
-addKarma({String userID,int amount}){
+// addKarma({String userID,int amount}){
 
-  firestore.collection('users').document(userID).setData({
-    'karma': FieldValue.increment(amount)
-  },merge: true);
-}
+//   firestore.collection('users').document(userID).setData({
+//     'karma': FieldValue.increment(amount)
+//   },merge: true);
+// }
