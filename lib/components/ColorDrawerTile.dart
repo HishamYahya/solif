@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:solif/models/Likes.dart';
+import 'package:solif/models/Salfh.dart';
 
 import '../constants.dart';
 
@@ -10,9 +11,10 @@ class ColorDrawerTile extends StatefulWidget {
   final bool currentUserIsAdmin;
   final String color;
   final String id;
+  final String salfhID; 
 
   ColorDrawerTile(
-      {this.isCreator, this.color, this.id, this.currentUserIsAdmin});
+      {this.isCreator, this.color, this.id, this.currentUserIsAdmin,this.salfhID});
 
   @override
   _ColorDrawerTileState createState() => _ColorDrawerTileState();
@@ -107,12 +109,21 @@ class _ColorDrawerTileState extends State<ColorDrawerTile> {
     if (widget.currentUserIsAdmin)
       icons.insert(
         0,
-        IconButton(
-            icon: Icon(
-              Icons.close,
-              color: Colors.grey[200],
-            ),
-            onPressed: null),
+        GestureDetector(
+          onTap: (){
+            print("tapping kick");
+            removeUser(
+              userColor: widget.color,
+              salfhID: widget.salfhID
+            );
+          },
+                  child: IconButton(
+              icon: Icon(
+                Icons.close,
+                color: Colors.grey[200],
+              ),
+              onPressed: null),
+        ),
       );
     return icons;
   }

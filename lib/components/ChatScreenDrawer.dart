@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:solif/components/ColorDrawerTile.dart';
+import 'package:solif/components/OurErrorWidget.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:solif/models/Salfh.dart';
@@ -10,9 +11,14 @@ class ChatScreenDrawer extends StatefulWidget {
   final String creatorID;
   final Map colorsStatus;
   final String color;
-  final String salfhID; 
+  final String salfhID;
 
-  ChatScreenDrawer({this.title, this.creatorID, this.colorsStatus, this.color,this.salfhID});
+  ChatScreenDrawer(
+      {this.title,
+      this.creatorID,
+      this.colorsStatus,
+      this.color,
+      this.salfhID});
   @override
   _ChatScreenDrawerState createState() => _ChatScreenDrawerState();
 }
@@ -31,6 +37,7 @@ class _ChatScreenDrawerState extends State<ChatScreenDrawer> {
             color: color,
             id: id,
             isCreator: id == widget.creatorID,
+            salfhID: widget.salfhID,
             currentUserIsAdmin:
                 Provider.of<AppData>(context, listen: false).currentUserID ==
                     widget.creatorID,
@@ -123,10 +130,16 @@ class _ChatScreenDrawerState extends State<ChatScreenDrawer> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: GestureDetector(
-                  onTap: () => removeUser(
-                    salfhID: widget.salfhID,
-                    userColor:  widget.color, 
-                  ),
+                  onTap: () {
+                    removeUser(
+                      salfhID: widget.salfhID,
+                      userColor: widget.color,
+                    ).then((value) => Navigator.of(context)
+                        .popUntil((route) => route.isFirst));
+                        //.catchError((){
+                          // return OurErrorWidget(errorMessage: 'Unexpected Error'); 
+                        //}); 
+                  },
                   child: ListTile(
                     trailing: Icon(Icons.exit_to_app, color: Colors.white),
                     title: Text(
