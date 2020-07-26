@@ -92,6 +92,7 @@ class AppData with ChangeNotifier {
   init() async {
     // await auth.signOut();
     prefs = await SharedPreferences.getInstance();
+    await auth.signOut();
     await loadUser();
     listenForNewUserSwalf();
     loadTiles();
@@ -290,9 +291,8 @@ class AppData with ChangeNotifier {
     );
 
     HttpsCallableResult resp = await testFunc.call();
-    print(resp.data); 
-  
-    
+    print(resp.data);
+
     // Firestore.instance
     //     .collection('Swalf')
     //     .document('zdR8kEGrOH208WKUU1kk')

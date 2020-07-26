@@ -6,7 +6,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:solif/Services/FirebaseServices.dart';
-import 'package:solif/components/CustomSliverAppBar.dart';
+import 'package:solif/components/SliverSearchBar.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/constants.dart';
@@ -21,13 +21,7 @@ class PublicChatsScreen extends StatefulWidget {
   _PublicChatsScreenState createState() => _PublicChatsScreenState();
 }
 
-class _PublicChatsScreenState extends State<PublicChatsScreen>
-    with AutomaticKeepAliveClientMixin<PublicChatsScreen> {
-  @override
-  // to keep the page from refreshing each time you change back to it
-  // (now only loaded once but always saved which might be a problem)
-  bool get wantKeepAlive => true;
-
+class _PublicChatsScreenState extends State<PublicChatsScreen> {
   RefreshController _refreshController =
       RefreshController(initialRefresh: false);
 
@@ -67,7 +61,7 @@ class _PublicChatsScreenState extends State<PublicChatsScreen>
       enablePullUp: true,
       enableTwoLevel: true,
       header: WaterDropMaterialHeader(
-        offset: 55,
+        offset: 0,
         distance: 40,
       ),
       footer: ClassicFooter(
@@ -76,12 +70,38 @@ class _PublicChatsScreenState extends State<PublicChatsScreen>
       ),
       child: CustomScrollView(
         slivers: <Widget>[
-          CustomSliverAppBar(
-            title: Text(
-              "سواليفهم",
-              style: TextStyle(color: Colors.white),
+          SliverSearchBar(
+            expandableHeight: MediaQuery.of(context).size.height * 0.2,
+            title: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: TextField(
+                  style: TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white),
+                        borderRadius: BorderRadius.all(Radius.circular(30))),
+                  ),
+                ),
+              ),
             ),
+            actions: [Icon(Icons.search)],
           ),
+          // SliverList(
+          //   delegate: SliverChildListDelegate(
+          //     [
+          //       TextField(
+          //         style: TextStyle(color: Colors.white),
+          //         decoration: InputDecoration(
+          //           enabledBorder: OutlineInputBorder(
+          //               borderSide: BorderSide(color: Colors.white),
+          //               borderRadius: BorderRadius.all(Radius.circular(30))),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
+
           SliverList(
             delegate: SliverChildListDelegate(
               isLoaded

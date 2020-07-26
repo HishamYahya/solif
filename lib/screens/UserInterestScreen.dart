@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:solif/components/CustomSliverAppBar.dart';
+import 'package:solif/components/SliverSearchBar.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/TagTile.dart';
 import 'package:solif/models/AppData.dart';
@@ -48,7 +48,7 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
     String userID = Provider.of<AppData>(context, listen: false).currentUserID;
     List<TagTile> tags = [];
     print("?XD");
-    await firestore 
+    await firestore
         .collection("users")
         .document(userID)
         .collection('userTags')

@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/LoadingWidget.dart';
-import 'package:solif/components/CustomSliverAppBar.dart';
+import 'package:solif/components/SliverSearchBar.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
@@ -38,23 +38,6 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
     bool isLoaded = Provider.of<AppData>(context).isUsersTilesLoaded();
     return CustomScrollView(
       slivers: <Widget>[
-        CustomSliverAppBar(
-            title: Text(
-              "سوالفي2",
-              style: TextStyle(color: Colors.white),
-            ),
-            leadingWidget: IconButton(
-              icon: Icon(
-                Icons.settings,
-                size: 30,
-                color: Colors.white,
-              ),
-              onPressed: () =>
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  Provider.of<AppData>(context,listen: false).trigger(); 
-                return SettingsScreen();
-              })),
-            )),
         SliverList(
           delegate: SliverChildListDelegate(
             isLoaded
