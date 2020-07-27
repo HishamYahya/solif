@@ -19,7 +19,7 @@ const FieldValue = require('firebase-admin').firestore.FieldValue;
 exports.testFunc = functions.https.onCall(async (data, context) => {
     var a = 5;
     var b = 6;
-    return a+b; 
+    return a + b;
 })
 
 exports.removeUser = functions.https.onCall(async (data, context) => {
@@ -33,71 +33,72 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
     const color = data.color;
     console.log(data);
     console.log(salfhID);
-    console.log(color); 
+    console.log(color);
     const ref = await firestore.collection('Swalf').doc(salfhID).collection('userColors').doc('userColors')
 
-    await firestore.runTransaction ( async function(transaction )  { 
+    await firestore.runTransaction(async function (transaction) {
 
 
-        
-       let snapshot =  await transaction.get(ref);
-       updatedData = {}; 
 
-       console.log(snapshot.data());
+        let snapshot = await transaction.get(ref);
+        updatedData = {};
 
-       console.log(context.auth.uid);
+        console.log(snapshot.data());
+
+        console.log(context.auth.uid);
 
 
-       console.log(snapshot.data()[color]);
+        console.log(snapshot.data()[color]);
 
-       if(snapshot.data()[color] ==snapshot.data()['adminID']) {
-           var colorsInOrder = snapshot.data()['colorsInOrder']
-           if(colorsInOrder.length == 0 ){
-               
-            return await deleteSalfh(salfhID); // not tested; 
-           }
-           else{
-               newAdminColor = colorsInOrder[0];
-               updatedData[color] = null;
-               updatedData['adminID'] = snapshot.data()[newAdminColor]; 
-               updatedData['colorsInOrder'] = FieldValue.arrayRemove(newAdminColor); // not tested. 
-           }
-       }
-        
-       else if(snapshot.data()[color] == context.auth.uid){
-           updatedData[color] = null;
-           updatedData['colorsInOrder'] = FieldValue.arrayRemove(color); 
-           
+        if (snapshot.data()[color] == snapshot.data()['adminID']) {
+            var colorsInOrder = snapshot.data()['colorsInOrder']
+            if (colorsInOrder.length == 0) {
 
-       }
-       else if(snapshot.data()['adminID'] == context.auth.uid){
-            updatedData[color] = null; 
-            updatedData['colorsInOrder'] = FieldValue.arrayRemove(color); 
-       }
-       else{
-           throw "3rd else, Permission Denied";
-       }
+                return await deleteSalfh(salfhID, snapshot.data()[color]); // not tested;  
 
-       transaction.update(ref,updatedData);
-       
+            }
+            else {
+                newAdminColor = colorsInOrder[0];
+                updatedData[color] = null;
+                updatedData['adminID'] = snapshot.data()[newAdminColor];
+                updatedData['colorsInOrder'] = FieldValue.arrayRemove(newAdminColor); // tested.
+            }
+        }
 
-    } ).then((value)=>{
+        else if (snapshot.data()[color] == context.auth.uid) {
+            updatedData[color] = null;
+            updatedData['colorsInOrder'] = FieldValue.arrayRemove(color);
+
+
+        }
+        else if (snapshot.data()['adminID'] == context.auth.uid) {
+            updatedData[color] = null;
+            updatedData['colorsInOrder'] = FieldValue.arrayRemove(color);
+        }
+        else {
+            throw "3rd else, Permission Denied";
+        }
+
+        transaction.update(ref, updatedData);
+
+
+    }).then((value) => {
         return true;
     })
-    return false; 
+    return false;
 
 
 })
 
 
-exports.onUserCreated = functions.firestore.document('/users/{userID}').onCreate((snapshot,context) =>{
+exports.onUserCreated = functions.firestore.document('/users/{userID}').onCreate((snapshot, context) => {
     const userID = context.params.userID;
     return firestore.collection('likes').doc(userID).create(
         {
             'likes': 0,
             'dislikes': 0,
             'usersVotes': {}
-        }   
+        }
     )
 })
 
@@ -143,7 +144,7 @@ exports.onLikeOrDislike = functions.firestore.document('/likes/{likedUserID}').o
 
         }
         else if (afterSize == beforeSize) { // changed from like to dislike, or vice versa 
-            
+
             if (after.usersVotes[difference[0]] == 'like') {
                 return firestore.collection("likes").doc(likedUserID).set({
                     'likes': FieldValue.increment(1),
@@ -212,12 +213,12 @@ exports.colorsStatusUpdated = functions.firestore.document('/Swalf/{salfhID}/use
     const after = change.after.data()
     const adminID = after['adminID'];
     for (const color in before) {
-        if(color == 'colorsInOrder' || color == 'adminID') {
+        if (color == 'colorsInOrder' || color == 'adminID') {
             continue;
         }
         if (before[color] != after[color]) {
-            
-            
+
+
 
             colorChanged = color;
             break;
@@ -235,9 +236,9 @@ exports.colorsStatusUpdated = functions.firestore.document('/Swalf/{salfhID}/use
 
         const changedDoc = { colorsStatus: {} };
         changedDoc.colorsStatus[colorChanged] = null;
-        changedDoc.creatorID = adminID; 
+        changedDoc.creatorID = adminID;
 
-       // changedDoc.colorsInOrder = FieldValue.arrayRemove([colorChanged]);
+        // changedDoc.colorsInOrder = FieldValue.arrayRemove([colorChanged]);
 
         firestore.collection('Swalf').doc(context.params.salfhID).set(changedDoc, { merge: true });
         const deletedSalfh = {};
@@ -245,10 +246,10 @@ exports.colorsStatusUpdated = functions.firestore.document('/Swalf/{salfhID}/use
         return firestore.collection('users').doc(userID).update(deletedSalfh);
     }
     else { // if user joined
-        const userID = after[colorChanged]; 
+        const userID = after[colorChanged];
         const changedDoc = { colorsStatus: {} }
         changedDoc.colorsStatus[colorChanged] = userID;
-      //  changedDoc.colorsInOrder = FieldValue.arrayUnion([colorChanged]);
+        //  changedDoc.colorsInOrder = FieldValue.arrayUnion([colorChanged]);
         firestore.collection('Swalf').doc(context.params.salfhID).set(changedDoc, { merge: true });
         const newUserSwalf = {};
         newUserSwalf[context.params.salfhID] = colorChanged;
@@ -263,7 +264,7 @@ exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate
 
     colorStatus = salfh.colorsStatus;
     colorStatus['adminID'] = salfh.creatorID;
-    colorStatus['colorsInOrder'] = []; 
+    colorStatus['colorsInOrder'] = [];
 
     firestore.collection('Swalf').doc(context.params.salfhID).collection('userColors').doc('userColors').set(colorStatus, { merge: true });
 
@@ -356,8 +357,33 @@ function getObjectDiff(obj1, obj2) { // returns added,removed or modified keys i
     return diff;
 }
 
-async function deleteSalfh(salfhID){ 
+async function deleteSalfh(salfhID, userID) {
 
-    await firestore.collection("Swalf").doc(salfhID).collection("userColors").doc('userColors').delete();
-    await firestore.collection("Swalf").doc(salfhID).delete(); 
+
+    var batch = firestore.batch();
+
+
+
+
+    var userColorsref = firestore.collection("Swalf").doc(salfhID).collection("userColors").doc('userColors');
+    var salfhRef = firestore.collection("Swalf").doc(salfhID);
+    var chatRoomRef = firestore.collection('chatRooms').doc(salfhID);
+    // TODO: delete full subcollection of messages. 
+    //var messageRef = firestore.collection('chatRooms').doc(salfh).collection('messages'); 
+    var userRef = firestore.collection('users').doc(userID);
+
+    batch.delete(userColorsref)
+    batch.delete(salfhRef)
+    batch.delete(chatRoomRef)
+    batch.set(userRef, {
+        'userSwalf': {
+            [salfhID]: FieldValue.delete()
+        }
+    }, { merge: true });
+
+
+    batch.commit().then(function () {
+        return true;
+    })
+    return false;
 }
