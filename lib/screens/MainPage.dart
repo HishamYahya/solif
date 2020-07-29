@@ -32,13 +32,13 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     super.initState();
     fcm.configure(
       onLaunch: (message) {
-        print(message);
+        print("XD12341234 $message");
       },
       onResume: (message) {
-        print(message);
+        print("XD12341234 $message");
       },
       onMessage: (message) {
-        print(message);
+       print("XD12341234 $message");
       },
     );
 
