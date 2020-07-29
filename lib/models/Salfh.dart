@@ -16,12 +16,12 @@ class Salfh {
   final Map<String, dynamic>
       colorsStatus; // Color: {"userID": id, "lastMessageRead":messageID, "isInChatRoom":bool}
   int maxUsers;
-  String creatorID;
+  String adminID;
   String title;
   FieldValue timeCreated;
   Map lastMessageSent;
   List<String> tags;
-  List<String> colorsInOrder;  
+  List<String> colorsInOrder;
 
   Salfh({
     @required this.maxUsers,
@@ -29,35 +29,35 @@ class Salfh {
     @required this.title,
     @required this.timeCreated,
     @required this.lastMessageSent,
-    @required this.creatorID,
+    @required this.adminID,
     @required this.tags,
-    @required this.colorsInOrder, 
+    @required this.colorsInOrder,
   });
 
   Map<String, dynamic> toMap() {
     return {
       'colorsStatus': colorsStatus,
-      'creatorID': creatorID,
+      'adminID': adminID,
       'maxUsers': maxUsers,
       'title': title,
       'timeCreated': timeCreated,
       'lastMessageSent': lastMessageSent,
       'tags': this.tags,
-      // 'colorsInOrder': colorsInOrder
+      'colorsInOrder': colorsInOrder
     };
   }
 }
 
-Future<bool> joinSalfh({String userID, String salfhID, colorName}) async {
-  final ref = firestore
-      .collection('Swalf')
-      .document(salfhID)
-      .collection('userColors')
-      .document('userColors');
-  bool added = false;
-
-  await ref
-      .setData({colorName: userID,'colorsInOrder': FieldValue.arrayUnion([colorName])}, merge: true).then((value) => added = true);
+Future<bool> joinSalfh(
+    {String userID, String salfhID, String colorName}) async {
+  final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
+    functionName: 'joinSalfh',
+  );
+  HttpsCallableResult resp = await callable
+      .call(<String, dynamic>{'salfhID': salfhID, 'color': colorName});
+  print('response');
+  print(resp.data);
+  return resp.data;
   // await firestore.runTransaction((transaction) async {
   //   final snapshot = await transaction.get(ref);
 
@@ -74,48 +74,38 @@ Future<bool> joinSalfh({String userID, String salfhID, colorName}) async {
   // if (added) {
   //   await addSalfhToUser(userID, salfhID, colorName);
   // }
-  return added;
 }
 
 Future<Map<String, dynamic>> saveSalfh(
-    {String creatorID,
+    {String adminID,
     int maxUsers,
     String category,
     String title,
     List<String> tags}) async {
-
-
-    // List colorStatusResult = getInitialColorStatus(creatorID, maxUsers);
-    Map<String,dynamic> colorStatus=   getInitialColorStatus(creatorID,maxUsers); 
-    //String creatorColor = colorStatusResult[1]; 
+  // List colorStatusResult = getInitialColorStatus(adminID, maxUsers);
+  Map<String, dynamic> colorStatus = getInitialColorStatus(adminID, maxUsers);
+  //String creatorColor = colorStatusResult[1];
 
   Map<String, dynamic> salfh = Salfh(
-          maxUsers: maxUsers,
-          creatorID: creatorID,
-          colorsStatus: colorStatus,
-          title: title,
-          timeCreated: FieldValue.serverTimestamp(),
-          lastMessageSent: {},
-          tags: tags,
-          // colorsInOrder: [creatorColor]
-          )
-      .toMap();
+      maxUsers: maxUsers,
+      adminID: adminID,
+      colorsStatus: colorStatus,
+      title: title,
+      timeCreated: FieldValue.serverTimestamp(),
+      lastMessageSent: {},
+      tags: tags,
+      colorsInOrder: []).toMap();
 
   DocumentReference ref = await firestore.collection("Swalf").add(salfh);
   salfh['id'] = ref.documentID;
 
-  String color = await getColorOfUser(userID: creatorID, salfh: salfh);
+  String color = await getColorOfUser(userID: adminID, salfh: salfh);
   if (ref != null) {
     print('yooo');
 
-    // addSalfhToUser(creatorID, ref.documentID, color);
+    // addSalfhToUser(adminID, ref.documentID, color);
     // createSalfhChatRoom(ref.documentID);
-    await for (DocumentSnapshot snapshot in firestore
-        .collection('chatRooms')
-        .document(salfh['id'])
-        .snapshots()) {
-      if (snapshot.exists) break;
-    }
+
     return salfh;
   }
   return null;
@@ -131,15 +121,16 @@ void createSalfhChatRoom(String salfhID) async {
   });
 }
 
-Map<String,dynamic> getInitialColorStatus(String creatorID, int maxUsers) {
+Map<String, dynamic> getInitialColorStatus(String adminID, int maxUsers) {
   Map<String, dynamic> res = Map<String, dynamic>();
-  String colorName = kColorNames[Random().nextInt(maxUsers)];
-  String creatorColor; 
+  List shuffledNames = [...kColorNames]..shuffle();
+  String colorName = shuffledNames[Random().nextInt(maxUsers)];
+  String creatorColor;
 
-  for (String color in kColorNames.sublist(0, maxUsers)..shuffle()) {
+  for (String color in shuffledNames.sublist(0, maxUsers)..shuffle()) {
     if (color == colorName) {
-      creatorColor = color; 
-      res[color] = creatorID;
+      creatorColor = color;
+      res[color] = adminID;
     } else {
       res[color] = null;
     }
@@ -159,12 +150,7 @@ Future<void> removeUser({String userColor, String salfhID}) async {
   final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
     functionName: 'removeUser',
   );
-  dynamic resp = await callable.call(<String, dynamic>{
-    'salfhID': salfhID,
-    'color': userColor
-  });
-  print(resp.data); 
+  dynamic resp = await callable
+      .call(<String, dynamic>{'salfhID': salfhID, 'color': userColor});
+  print(resp.data);
 }
-
-
-  

@@ -200,7 +200,7 @@ class AppData with ChangeNotifier {
     List<SalfhTile> newSalfhTiles = [];
     Random random = Random();
     for (var salfh in salfhDocs.documents) {
-      if (salfh['creatorID'] != currentUserID) {
+      if (salfh['adminID'] != currentUserID) {
         bool isFull = true;
         salfh['colorsStatus'].forEach((color, id) {
           if (id == null) isFull = false;
@@ -210,7 +210,7 @@ class AppData with ChangeNotifier {
             // color now generated in SalfhTile
             colorsStatus: salfh['colorsStatus'],
             title: salfh['title'],
-            creatorID: salfh['creatorID'],
+            adminID: salfh['adminID'],
 
             id: salfh.documentID,
             tags: salfh['tags'] ?? [], //////// TODO: remove null checking
@@ -290,9 +290,8 @@ class AppData with ChangeNotifier {
     );
 
     HttpsCallableResult resp = await testFunc.call();
-    print(resp.data); 
-  
-    
+    print(resp.data);
+
     // Firestore.instance
     //     .collection('Swalf')
     //     .document('zdR8kEGrOH208WKUU1kk')

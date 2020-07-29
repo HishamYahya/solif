@@ -41,7 +41,7 @@ class _AddScreenState extends State<AddScreen> {
 
     //create new salfh
     final newSalfh = await saveSalfh(
-      creatorID: Provider.of<AppData>(context, listen: false).currentUserID,
+      adminID: Provider.of<AppData>(context, listen: false).currentUserID,
       maxUsers: groupSize + 1,
       title: salfhName,
       tags: salfhTags,

@@ -8,17 +8,13 @@ import 'package:solif/models/Salfh.dart';
 
 class ChatScreenDrawer extends StatefulWidget {
   final String title;
-  final String creatorID;
+  final String adminID;
   final Map colorsStatus;
   final String color;
   final String salfhID;
 
   ChatScreenDrawer(
-      {this.title,
-      this.creatorID,
-      this.colorsStatus,
-      this.color,
-      this.salfhID});
+      {this.title, this.adminID, this.colorsStatus, this.color, this.salfhID});
   @override
   _ChatScreenDrawerState createState() => _ChatScreenDrawerState();
 }
@@ -30,17 +26,17 @@ class _ChatScreenDrawerState extends State<ChatScreenDrawer> {
     widget.colorsStatus.forEach((color, id) {
       if (id != Provider.of<AppData>(context, listen: false).currentUserID &&
           id != null) {
-        print(widget.creatorID);
+        print(widget.adminID);
         print(id);
         colorTiles.add(
           ColorDrawerTile(
             color: color,
             id: id,
-            isCreator: id == widget.creatorID,
+            isCreator: id == widget.adminID,
             salfhID: widget.salfhID,
             currentUserIsAdmin:
                 Provider.of<AppData>(context, listen: false).currentUserID ==
-                    widget.creatorID,
+                    widget.adminID,
           ),
         );
       }
@@ -136,9 +132,9 @@ class _ChatScreenDrawerState extends State<ChatScreenDrawer> {
                       userColor: widget.color,
                     ).then((value) => Navigator.of(context)
                         .popUntil((route) => route.isFirst));
-                        //.catchError((){
-                          // return OurErrorWidget(errorMessage: 'Unexpected Error'); 
-                        //}); 
+                    //.catchError((){
+                    // return OurErrorWidget(errorMessage: 'Unexpected Error');
+                    //});
                   },
                   child: ListTile(
                     trailing: Icon(Icons.exit_to_app, color: Colors.white),
