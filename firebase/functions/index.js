@@ -1,6 +1,7 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const { user } = require('firebase-functions/lib/providers/auth');
+const { HttpsError } = require('firebase-functions/lib/providers/https');
 admin.initializeApp();
 
 const firestore = admin.firestore();
@@ -16,10 +17,49 @@ const FieldValue = require('firebase-admin').firestore.FieldValue;
 
 
 
-exports.testFunc = functions.https.onCall(async (data, context) => {
-    var a = 5;
-    var b = 6;
-    return a + b;
+exports.inviteUSer = functions.https.onCall(async (data, context) => {
+
+    /*
+    data keys: [salfhID, invitedID]
+    */
+
+    const salfhID = data.salfhID
+    const invitedID = data.invitedID;
+
+    const functionCallerID = context.auth.uid;
+
+
+    var salfhData = await firestore.collection('Swalf').doc(salfhID).get();
+
+    const adminID = salfhData.data()['adminID'];
+
+    if (functionCallerID != adminID) {
+        throw new functions.https.HttpsError('unauthorized', 'User is not authorized to perform the desired action, check your security rules to ensure they are correct');
+    }
+    
+
+    condition = `'${invitedID}' in topics`; 
+
+    const payload = {
+        notification: {
+            title: "You are getting invited to this salfh", // TODO: change message
+            body: salfhData['title'],
+            //tag: context.params.salfhID
+        },
+        data: {
+            click_action: 'FLUTTER_NOTIFICATION_CLICK',
+            id: salfhData.id
+        },
+        condition: condition
+    };
+
+
+    return admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
+
+
+
+
+
 })
 
 exports.joinSalfh = functions.https.onCall(async (data, context) => {
@@ -355,6 +395,7 @@ exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate
     return admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
 
 });
+
 
 
 function incrementTags(tags) {
