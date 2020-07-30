@@ -36,9 +36,15 @@ exports.inviteUSer = functions.https.onCall(async (data, context) => {
     if (functionCallerID != adminID) {
         throw new functions.https.HttpsError('unauthorized', 'User is not authorized to perform the desired action, check your security rules to ensure they are correct');
     }
-    
 
-    condition = `'${invitedID}' in topics`; 
+
+    await firestore.collection("Swalf").doc(salfhID).set({
+
+        'usersInvited': FieldValue.arrayUnion(invitedID)
+
+    }, { merge: true })
+
+    condition = `'${invitedID}' in topics`;
 
     const payload = {
         notification: {
@@ -48,12 +54,12 @@ exports.inviteUSer = functions.https.onCall(async (data, context) => {
         },
         data: {
             click_action: 'FLUTTER_NOTIFICATION_CLICK',
-            id: salfhData.id
+            id: salfhData.id,
+            type: 'inv'
+
         },
         condition: condition
     };
-
-
     return admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
 
 
@@ -73,7 +79,7 @@ exports.joinSalfh = functions.https.onCall(async (data, context) => {
             const snapshot = await transaction.get(salfhRef);
             let updatedData = {};
             if (snapshot.data()['colorsStatus'][color] == null) {
-                updatedData = { colorsStatus: {}, colorsInOrder: FieldValue.arrayUnion(color) }
+                updatedData = { colorsStatus: {}, colorsInOrder: FieldValue.arrayUnion(color) , 'usersInvited': arrayRemove(context.auth.uid)}
                 updatedData.colorsStatus[color] = context.auth.uid;
             }
             transaction.set(salfhRef, updatedData, { merge: true });
