@@ -38,11 +38,8 @@ exports.inviteUSer = functions.https.onCall(async (data, context) => {
     }
 
 
-    await firestore.collection("Swalf").doc(salfhID).set({
-
-        'usersInvited': FieldValue.arrayUnion(invitedID)
-
-    }, { merge: true })
+   // await firestore.collection("Swalf").doc(salfhID).set({  'usersInvited': FieldValue.arrayUnion(invitedID) }, { merge: true })
+   // in case sharedprefrence method doesn't work uncomment. 
 
     condition = `'${invitedID}' in topics`;
 
