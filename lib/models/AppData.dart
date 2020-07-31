@@ -283,20 +283,20 @@ class AppData with ChangeNotifier {
     return isTagslLoaded;
   }
 
-  Future<void> trigger() async {
-    print('triggered');
-    final HttpsCallable testFunc = CloudFunctions.instance.getHttpsCallable(
-      functionName: 'testFunc',
-    );
+  // Future<void> trigger() async {
+  //   print('triggered');
+  //   final HttpsCallable testFunc = CloudFunctions.instance.getHttpsCallable(
+  //     functionName: 'testFunc',
+  //   );
 
-    HttpsCallableResult resp = await testFunc.call();
-    print(resp.data);
+  //   HttpsCallableResult resp = await testFunc.call();
+  //   print(resp.data);
 
-    // Firestore.instance
-    //     .collection('Swalf')
-    //     .document('zdR8kEGrOH208WKUU1kk')
-    //     .collection('userColors')
-    //     .document('userColors')
-    //     .setData({'XD': 33333}, merge: true);
-  }
+  //   // Firestore.instance
+  //   //     .collection('Swalf')
+  //   //     .document('zdR8kEGrOH208WKUU1kk')
+  //   //     .collection('userColors')
+  //   //     .document('userColors')
+  //   //     .setData({'XD': 33333}, merge: true);
+  // }
 }
