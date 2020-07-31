@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:solif/screens/UserInterestScreen.dart';
+import 'package:solif/models/Salfh.dart';
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -14,6 +16,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String themeName = 'صباحي';
   @override
   Widget build(BuildContext context) {
+    String invitedID = "2AryTgBqu7TDS3QkVxSUH5JJuyz1";
+    String salfhID = "XD";
     return Scaffold(
       appBar: AppBar(
         title: Text('Settings'),
@@ -50,6 +54,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Icon(Icons.signal_cellular_connected_no_internet_4_bar),
                   onTap: Provider.of<AppData>(context).reset,
                 ),
+
+                SettingsTile(
+                    title: 'invite $invitedID',
+                    leading: Icon(Icons.airline_seat_individual_suite),
+                    onTap: () {
+                      inviteUserToSalfh(
+                        invitedID: invitedID,
+                        salfhID: salfhID,
+                      );
+                    }),
+                    
+                    SettingsTile(
+                    title: 'print my invites',
+                    leading: Icon(Icons.airline_seat_individual_suite),
+                    onTap: () async {
+
+                      print('waiting for prefs'); 
+                      var prefs = await SharedPreferences.getInstance();
+                      List<String> listOfInvites = prefs.getStringList('invited') ?? [];
+                      print("list: $listOfInvites");  
+                      
+                    }),
 
                 // SettingsTile.switchTile(
                 //   title: 'Use fingerprint',

@@ -48,6 +48,21 @@ class Salfh {
   }
 }
 
+Future<bool> createSalfhAndInvite({invitedID,salfhTitle}){
+  // String salfhID = await saveSalfh(salfhTitle);
+  // return await inviteUserToNewSalfh(invitedID: invitedID,salfhID:salfhID); 
+}
+
+Future<bool> inviteUserToSalfh({invitedID,salfhID}) async {
+
+ final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
+    functionName: 'inviteUSer',
+  );
+
+    HttpsCallableResult resp = await callable
+      .call(<String, dynamic>{'salfhID': salfhID, 'invitedID': invitedID});
+}
+
 Future<bool> joinSalfh(
     {String userID, String salfhID, String colorName}) async {
   final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
@@ -137,6 +152,9 @@ Map<String, dynamic> getInitialColorStatus(String adminID, int maxUsers) {
   }
   return res;
 }
+
+
+
 
 Future<String> getColorOfUser({String userID, Map salfh}) async {
   String colorName;

@@ -285,12 +285,12 @@ class AppData with ChangeNotifier {
 
   Future<void> trigger() async {
     print('triggered');
-    final HttpsCallable testFunc = CloudFunctions.instance.getHttpsCallable(
-      functionName: 'testFunc',
-    );
+    // final HttpsCallable testFunc = CloudFunctions.instance.getHttpsCallable(
+    //   functionName: 'testFunc',
+    // );
 
-    HttpsCallableResult resp = await testFunc.call();
-    print(resp.data);
+    // HttpsCallableResult resp = await testFunc.call();
+    // print(resp.data);
 
     // Firestore.instance
     //     .collection('Swalf')
