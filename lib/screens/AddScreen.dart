@@ -42,10 +42,9 @@ class _AddScreenState extends State<AddScreen> {
     //create new salfh
     final newSalfh = await saveSalfh(
       adminID: Provider.of<AppData>(context, listen: false).currentUserID,
-      maxUsers: groupSize + 1,
       title: salfhName,
       tags: salfhTags,
-    );
+    ); 
 
     //if suceeded
     if (newSalfh != null) {
@@ -64,11 +63,11 @@ class _AddScreenState extends State<AddScreen> {
           ),
         ),
       );
-      setState(() {
-        loading = false;
-      });
-      widget.onClose();
     }
+    setState(() {
+      loading = false;
+    });
+    widget.onClose();
   }
 
   Widget getLoadingWidget() {

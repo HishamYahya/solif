@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const https_1 = require("firebase-functions/lib/providers/https");
 // import { user } from 'firebase-functions/lib/providers/auth';
 // import { HttpsError } from 'firebase-functions/lib/providers/https';
 // import { DocumentSnapshot } from "firebase-functions/lib/providers/firestore";
@@ -9,12 +10,15 @@ admin.initializeApp();
 const firestore = admin.firestore();
 // const fcm = admin.messaging();
 const FieldValue = admin.firestore.FieldValue;
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });
+var ColorNames;
+(function (ColorNames) {
+    ColorNames["purple"] = "purple";
+    ColorNames["green"] = "green";
+    ColorNames["yellow"] = "yellow";
+    ColorNames["blue"] = "blue";
+    ColorNames["red"] = "red";
+})(ColorNames || (ColorNames = {}));
+const kColorNames = [ColorNames.blue, ColorNames.green, ColorNames.purple, ColorNames.red, ColorNames.yellow];
 exports.inviteUSer = functions.https.onCall(async (data, context) => {
     /*
     data keys: [salfhID, invitedID]
@@ -84,19 +88,19 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
         ,color}
     */
     if (!context.auth) {
-        throw new Error("User not authenticated");
+        throw new https_1.HttpsError('unauthenticated', "You are not logged in");
     }
     const salfhID = data.salfhID;
     const color = data.color;
     console.log(data);
     console.log(salfhID);
     console.log(color);
-    const salfhRef = await firestore.collection('Swalf').doc(salfhID);
-    const userRef = await firestore.collection('users').doc(context.auth.uid);
+    const salfhRef = firestore.collection('Swalf').doc(salfhID);
+    const userRef = firestore.collection('users').doc(context.auth.uid);
     try {
         return firestore.runTransaction(async function (transaction) {
             var _a, _b, _c, _d;
-            const snapshotData = await (await transaction.get(salfhRef)).data();
+            const snapshotData = (await transaction.get(salfhRef)).data();
             const updatedData = { colorsStatus: {} };
             if (snapshotData === undefined) {
                 throw new Error("Error loading document");
@@ -108,7 +112,7 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
             if (colorsStatus[color] === (snapshotData === null || snapshotData === void 0 ? void 0 : snapshotData.adminID) && colorsStatus[color] === ((_b = context.auth) === null || _b === void 0 ? void 0 : _b.uid)) {
                 const colorsInOrder = snapshotData.colorsInOrder;
                 if (colorsInOrder.length === 0) {
-                    return await deleteSalfh(salfhID, colorsStatus[color]); // not tested;  
+                    deleteSalfh(salfhID, colorsStatus[color], transaction); // not tested;  
                 }
                 else {
                     const newAdminColor = colorsInOrder[0];
@@ -231,7 +235,6 @@ exports.messageSent = functions.firestore.document('/chatRooms/{salfhID}/message
     return true;
     // return "yo";
 });
-const kColorNames = ["purple", "green", "yellow", "red", "blue"];
 // makes changing color names in the future easier, if ever needed
 // always use this when refering to colors.
 // use example to get the first color:
@@ -277,21 +280,38 @@ const kColorNames = ["purple", "green", "yellow", "red", "blue"];
 //         return firestore.collection('users').doc(userID).set({ userSwalf: newUserSwalf }, { merge: true });
 //     }
 // });
-exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate((snapshot, context) => {
-    const salfh = snapshot.data();
-    const colorStatus = salfh.colorsStatus;
-    colorStatus['colorsInOrder'] = [];
-    let colorName;
-    for (const color in salfh.colorsStatus) {
-        if (salfh.colorsStatus[color] !== null) {
-            colorName = color;
-            break;
-        }
+class ColorsStatus {
+}
+function getColorsStatus(adminID) {
+    const colorsStatus = {};
+    for (const colorName of kColorNames) {
+        colorsStatus[colorName] = null;
     }
+    const color = kColorNames[Math.floor(Math.random() * 5)];
+    colorsStatus[color] = adminID;
+    return colorsStatus;
+}
+exports.createSalfh = functions.https.onCall(async (data, context) => {
+    var _a, _b, _c;
+    if (!context.auth) {
+        throw new https_1.HttpsError('unauthenticated', 'You are not logged in');
+    }
+    const salfhRef = firestore.collection('Swalf').doc();
+    const colorsStatus = getColorsStatus(context.auth.uid);
+    await salfhRef.create({
+        title: data.title,
+        visible: (_a = data.visible) !== null && _a !== void 0 ? _a : true,
+        tags: (_b = data.tags) !== null && _b !== void 0 ? _b : [],
+        timeCreated: FieldValue.serverTimestamp(),
+        lastMessageSent: {},
+        colorsInOrder: [],
+        colorsStatus: colorsStatus,
+        adminID: context.auth.uid
+    });
     const userSwalf = {};
-    userSwalf[context.params.salfhID] = colorName;
+    userSwalf[salfhRef.id] = colorsStatus[(_c = Object.keys(colorsStatus).find(key => { var _a; return colorsStatus[key] === ((_a = context.auth) === null || _a === void 0 ? void 0 : _a.uid); })) !== null && _c !== void 0 ? _c : 'blue'];
     // tslint:disable-next-line: no-floating-promises
-    firestore.collection('users').doc(salfh.adminID).set({
+    await firestore.collection('users').doc(context.auth.uid).set({
         userSwalf: userSwalf
     }, { merge: true });
     const chatRoomData = { lastLeftStatus: {}, typingStatus: {} };
@@ -299,12 +319,10 @@ exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate
         chatRoomData.lastLeftStatus[name] = FieldValue.serverTimestamp();
         chatRoomData.typingStatus[name] = false;
     });
-    // tslint:disable-next-line: no-floating-promises
-    firestore.collection("chatRooms").doc(context.params.salfhID).set(chatRoomData, { merge: true });
-    const tags = salfh['tags'];
-    console.log(snapshot.data());
-    if (tags.length === 0)
-        return;
+    await firestore.collection("chatRooms").doc(salfhRef.id).set(chatRoomData, { merge: true });
+    const tags = data.tags;
+    if (!tags || tags.length === 0)
+        return { salfhID: salfhRef.id };
     let condition = "";
     incrementTags(tags);
     for (const i in tags) {
@@ -317,18 +335,67 @@ exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate
     const payload = {
         notification: {
             title: "Check this salfh that matchs your interest",
-            body: salfh['title'],
+            body: data.title,
         },
         data: {
             click_action: 'FLUTTER_NOTIFICATION_CLICK',
-            id: context.params.salfhID
+            id: salfhRef.id
         },
         condition: condition
     };
-    // tslint:disable-next-line: no-floating-promises
-    firestore.collection('Swalf').doc(context.params.salfhID).update({ lastMessageSentID: context.params.messageID });
-    return admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
+    admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
+    return { salfhID: salfhRef.id };
 });
+// exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate((snapshot, context) => {
+//     const salfh = snapshot.data();
+//     const colorStatus = salfh.colorsStatus;
+//     colorStatus['colorsInOrder'] = [];
+//     let colorName;
+//     for (const color in salfh.colorsStatus) {
+//         if (salfh.colorsStatus[color] !== null) {
+//             colorName = color;
+//             break;
+//         }
+//     }
+//     const userSwalf = {} as any;
+//     userSwalf[context.params.salfhID] = colorName;
+//     // tslint:disable-next-line: no-floating-promises
+//     firestore.collection('users').doc(salfh.adminID).set({
+//         userSwalf: userSwalf
+//     }, { merge: true });
+//     const chatRoomData = { lastLeftStatus: {} as any, typingStatus: {} as any };
+//     kColorNames.forEach(name => {
+//         chatRoomData.lastLeftStatus[name] = FieldValue.serverTimestamp();
+//         chatRoomData.typingStatus[name] = false;
+//     });
+//     // tslint:disable-next-line: no-floating-promises
+//     firestore.collection("chatRooms").doc(context.params.salfhID).set(chatRoomData, { merge: true });
+//     const tags = salfh['tags'];
+//     console.log(snapshot.data());
+//     if (tags.length === 0) return;
+//     let condition = "";
+//     incrementTags(tags);
+//     for (const i in tags) {
+//         console.log(tags[i]);
+//         condition += `('${tags[i]}TAG' in topics) || `
+//     }
+//     condition = condition.substring(0, condition.length - 4);
+//     console.log(condition);
+//     // const condition = `'${context.params.tags[0]}' in topics || ${context.params.tags[1]}' in topics || ${context.params.tags[2]}' in topics`
+//     const payload = {
+//         notification: {
+//             title: "Check this salfh that matchs your interest", // TODO: change message
+//             body: salfh['title'],
+//             //tag: context.params.salfhID
+//         },
+//         data: {
+//             click_action: 'FLUTTER_NOTIFICATION_CLICK',
+//             id: context.params.salfhID
+//         },
+//         condition: condition
+//     };
+//     return admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
+// });
 function incrementTags(tags) {
     const increment = FieldValue.increment(1);
     tags.forEach((tag) => {
@@ -360,25 +427,20 @@ function getObjectDiff(obj1, obj2) {
     }, Object.keys(obj2));
     return diff;
 }
-async function deleteSalfh(salfhID, userID) {
-    const batch = firestore.batch();
+function deleteSalfh(salfhID, userID, transaction) {
     const userColorsref = firestore.collection("Swalf").doc(salfhID).collection("userColors").doc('userColors');
     const salfhRef = firestore.collection("Swalf").doc(salfhID);
     const chatRoomRef = firestore.collection('chatRooms').doc(salfhID);
     // TODO: delete full subcollection of messages. 
     //var messageRef = firestore.collection('chatRooms').doc(salfh).collection('messages'); 
     const userRef = firestore.collection('users').doc(userID);
-    batch.delete(userColorsref);
-    batch.delete(salfhRef);
-    batch.delete(chatRoomRef);
-    batch.set(userRef, {
+    transaction.delete(userColorsref);
+    transaction.delete(salfhRef);
+    transaction.delete(chatRoomRef);
+    transaction.set(userRef, {
         'userSwalf': {
             [salfhID]: FieldValue.delete()
         }
     }, { merge: true });
-    await batch.commit().then(function () {
-        return true;
-    });
-    return false;
 }
 //# sourceMappingURL=index.js.map
