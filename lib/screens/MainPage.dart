@@ -40,6 +40,8 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       },  
       onMessage: (message) {
        print("onMessage $message");
+       foregroundMessageHandler(message);
+       
       },
       onBackgroundMessage: backgroundMessageHandler
     );
