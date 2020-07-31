@@ -37,13 +37,13 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       },
       onResume: (message) {
         print("onResume $message");
-      },  
+      },
       onMessage: (message) {
        print("onMessage $message");
        foregroundMessageHandler(message);
        
       },
-      onBackgroundMessage: backgroundMessageHandler
+      // onBackgroundMessage: backgroundMessageHandler
     );
 
     _tabController = TabController(vsync: this, length: 2);

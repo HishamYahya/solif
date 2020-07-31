@@ -92,38 +92,46 @@ Future<bool> joinSalfh(
 }
 
 Future<Map<String, dynamic>> saveSalfh(
-    {String adminID,
-    int maxUsers,
-    String category,
-    String title,
-    List<String> tags}) async {
+    {String adminID, String category, String title, List<String> tags}) async {
   // List colorStatusResult = getInitialColorStatus(adminID, maxUsers);
-  Map<String, dynamic> colorStatus = getInitialColorStatus(adminID, maxUsers);
-  //String creatorColor = colorStatusResult[1];
+  // Map<String, dynamic> colorStatus = getInitialColorStatus(adminID, maxUsers);
+  // //String creatorColor = colorStatusResult[1];
 
-  Map<String, dynamic> salfh = Salfh(
-      maxUsers: maxUsers,
-      adminID: adminID,
-      colorsStatus: colorStatus,
-      title: title,
-      timeCreated: FieldValue.serverTimestamp(),
-      lastMessageSent: {},
-      tags: tags,
-      colorsInOrder: []).toMap();
+  // Map<String, dynamic> salfh = Salfh(
+  //     maxUsers: maxUsers,
+  //     adminID: adminID,
+  //     colorsStatus: colorStatus,
+  //     title: title,
+  //     timeCreated: FieldValue.serverTimestamp(),
+  //     lastMessageSent: {},
+  //     tags: tags,
+  //     colorsInOrder: []).toMap();
 
-  DocumentReference ref = await firestore.collection("Swalf").add(salfh);
-  salfh['id'] = ref.documentID;
+  // DocumentReference ref = await firestore.collection("Swalf").add(salfh);
+  // salfh['id'] = ref.documentID;
 
-  String color = await getColorOfUser(userID: adminID, salfh: salfh);
-  if (ref != null) {
-    print('yooo');
+  // String color = await getColorOfUser(userID: adminID, salfh: salfh);
+  // if (ref != null) {
+  //   print('yooo');
 
-    // addSalfhToUser(adminID, ref.documentID, color);
-    // createSalfhChatRoom(ref.documentID);
+  //   // addSalfhToUser(adminID, ref.documentID, color);
+  //   // createSalfhChatRoom(ref.documentID);
 
-    return salfh;
-  }
-  return null;
+  //   return salfh;
+  // }
+  // return null;
+
+  final HttpsCallable callable =
+      CloudFunctions.instance.getHttpsCallable(functionName: 'createSalfh');
+  final res =
+      await callable.call(<String, dynamic>{'title': title, 'tags': tags});
+  final salfhID = res.data['salfhID'];
+  if (salfhID == null) return null;
+
+  dynamic salfh = await firestore.collection('Swalf').document(salfhID).get();
+  salfh = salfh.data;
+  salfh['id'] = salfhID;
+  return salfh;
 }
 
 void createSalfhChatRoom(String salfhID) async {

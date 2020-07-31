@@ -1,12 +1,14 @@
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-const { user } = require('firebase-functions/lib/providers/auth');
-const { HttpsError } = require('firebase-functions/lib/providers/https');
+import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
+import { CallableContext, HttpsError } from "firebase-functions/lib/providers/https";
+// import { user } from 'firebase-functions/lib/providers/auth';
+// import { HttpsError } from 'firebase-functions/lib/providers/https';
+// import { DocumentSnapshot } from "firebase-functions/lib/providers/firestore";
 admin.initializeApp();
 
 const firestore = admin.firestore();
-const fcm = admin.messaging();
-const FieldValue = require('firebase-admin').firestore.FieldValue;
+// const fcm = admin.messaging();
+const FieldValue = admin.firestore.FieldValue;
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
@@ -15,7 +17,16 @@ const FieldValue = require('firebase-admin').firestore.FieldValue;
 //  response.send("Hello from Firebase!");
 // });
 
+type Color = 'purple' | 'green' | 'yellow' | 'red' | 'blue';
 
+enum ColorNames {
+    "purple" = "purple",
+    "green" = "green",
+    "yellow" = "yellow",
+    "blue" = "blue",
+    "red" = "red",
+}
+const kColorNames: Array<Color> = [ColorNames.blue, ColorNames.green, ColorNames.purple, ColorNames.red, ColorNames.yellow];
 
 exports.inviteUSer = functions.https.onCall(async (data, context) => {
 
@@ -23,25 +34,33 @@ exports.inviteUSer = functions.https.onCall(async (data, context) => {
     data keys: [salfhID, invitedID]
     */
 
+    if (context.auth === undefined) throw new Error("User not authenticated");
+
     const salfhID = data.salfhID
     const invitedID = data.invitedID;
+
 
     const functionCallerID = context.auth.uid;
 
 
-    var salfhData = await firestore.collection('Swalf').doc(salfhID).get();
+    const salfhData = await (await firestore.collection('Swalf').doc(salfhID).get()).data();
 
-    const adminID = salfhData.data()['adminID'];
+    if (salfhData === undefined) throw new Error("Document not found");
 
-    if (functionCallerID != adminID) {
-        throw new functions.https.HttpsError('unauthorized', 'User is not authorized to perform the desired action, check your security rules to ensure they are correct');
+    const adminID = salfhData.adminID;
+
+
+
+
+    if (functionCallerID !== adminID) {
+        throw new functions.https.HttpsError('unauthenticated', 'User is not authorized to perform the desired action, check your security rules to ensure they are correct');
     }
 
 
-   // await firestore.collection("Swalf").doc(salfhID).set({  'usersInvited': FieldValue.arrayUnion(invitedID) }, { merge: true })
-   // in case sharedprefrence method doesn't work uncomment. 
+    // await firestore.collection("Swalf").doc(salfhID).set({  'usersInvited': FieldValue.arrayUnion(invitedID) }, { merge: true })
+    // in case sharedprefrence method doesn't work uncomment. 
 
-    condition = `'${invitedID}' in topics`;
+    const condition: string = `'${invitedID}' in topics`;
 
     const payload = {
         notification: {
@@ -66,6 +85,9 @@ exports.inviteUSer = functions.https.onCall(async (data, context) => {
 })
 
 exports.joinSalfh = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new Error("User not authenticated");
+    }
     const salfhID = data.salfhID
     const color = data.color;
     const salfhRef = await firestore.collection('Swalf').doc(salfhID);
@@ -74,20 +96,22 @@ exports.joinSalfh = functions.https.onCall(async (data, context) => {
 
         return firestore.runTransaction(async function (transaction) {
             const snapshot = await transaction.get(salfhRef);
-            let updatedData = {};
-            if (snapshot.data()['colorsStatus'][color] == null) {
-                updatedData = { colorsStatus: {}, colorsInOrder: FieldValue.arrayUnion(color) , 'usersInvited': arrayRemove(context.auth.uid)}
-                updatedData.colorsStatus[color] = context.auth.uid;
+
+            let updatedData = {} as any;
+            updatedData.colorsStatus = {};
+            if (snapshot.data()?.colorsStatus[color] === null) {
+                updatedData = { colorsStatus: {}, colorsInOrder: FieldValue.arrayUnion(color), 'usersInvited': FieldValue.arrayRemove(context.auth?.uid) }
+                updatedData.colorsStatus[color] = context.auth?.uid;
             }
             transaction.set(salfhRef, updatedData, { merge: true });
 
-            const newUserSwalf = {};
+            const newUserSwalf = {} as any;
             newUserSwalf[salfhID] = color;
             transaction.set(userRef, { userSwalf: newUserSwalf }, { merge: true });
             return true;
 
         })
-    } catch (e) {
+    } catch (err) {
         console.error(err);
         return false;
 
@@ -100,14 +124,17 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
         salfhID,
         ,color}
     */
+    if (!context.auth) {
+        throw new HttpsError('unauthenticated', "You are not logged in");
+    }
 
     const salfhID = data.salfhID
     const color = data.color;
     console.log(data);
     console.log(salfhID);
     console.log(color);
-    const salfhRef = await firestore.collection('Swalf').doc(salfhID);
-    const userRef = await firestore.collection('users').doc(context.auth.uid);
+    const salfhRef = firestore.collection('Swalf').doc(salfhID);
+    const userRef = firestore.collection('users').doc(context.auth.uid);
 
     try {
 
@@ -115,48 +142,51 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
 
 
 
-            let snapshot = await transaction.get(salfhRef);
-            let updatedData = { colorsStatus: {} };
+            const snapshotData = (await transaction.get(salfhRef)).data();
 
-            console.log(snapshot.data());
+            const updatedData = { colorsStatus: {} as any } as any;
 
-            console.log(context.auth.uid);
-            const colorsStatus = snapshot.data()['colorsStatus'];
+            if (snapshotData === undefined) {
+                throw new Error("Error loading document");
+            }
+
+            console.log(snapshotData);
+
+            console.log(context.auth?.uid);
+            const colorsStatus = snapshotData.colorsStatus;
 
             console.log(colorsStatus[color]);
 
-            if (colorsStatus[color] == snapshot.data()['adminID'] && colorsStatus[color] == context.auth.uid) {
-                var colorsInOrder = snapshot.data()['colorsInOrder']
-                if (colorsInOrder.length == 0) {
-
-                    return await deleteSalfh(salfhID, colorsStatus[color]); // not tested;  
-
+            if (colorsStatus[color] === snapshotData?.adminID && colorsStatus[color] === context.auth?.uid) {
+                const colorsInOrder = snapshotData.colorsInOrder;
+                if (colorsInOrder.length === 0) {
+                    deleteSalfh(salfhID, colorsStatus[color], transaction);
                 }
                 else {
-                    newAdminColor = colorsInOrder[0];
+                    const newAdminColor = colorsInOrder[0];
                     updatedData['colorsStatus'][color] = null;
-                    updatedData['adminID'] = snapshot.data()[newAdminColor];
+                    updatedData['adminID'] = snapshotData[newAdminColor];
                     updatedData['colorsInOrder'] = FieldValue.arrayRemove(newAdminColor); // tested.
                 }
             }
 
-            else if (colorsStatus[color] == context.auth.uid) {
+            else if (colorsStatus[color] === context.auth?.uid) {
                 updatedData['colorsStatus'][color] = null;
                 updatedData['colorsInOrder'] = FieldValue.arrayRemove(color);
 
 
             }
-            else if (snapshot.data()['adminID'] == context.auth.uid) {
+            else if (snapshotData['adminID'] === context.auth?.uid) {
                 updatedData['colorsStatus'][color] = null;
                 updatedData['colorsInOrder'] = FieldValue.arrayRemove(color);
             }
             else {
-                throw "3rd else, Permission Denied";
+                throw new Error("3rd else, Permission Denied");
             }
 
             transaction.set(salfhRef, updatedData, { merge: true });
 
-            const deletedSalfh = {};
+            const deletedSalfh = {} as any;
             deletedSalfh[`userSwalf.${salfhID}`] = FieldValue.delete();
             transaction.update(userRef, deletedSalfh);
             return true;
@@ -171,7 +201,7 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
 })
 
 
-exports.onUserCreated = functions.firestore.document('/users/{userID}').onCreate((snapshot, context) => {
+exports.onUserCreated = functions.firestore.document('/users/{userID}').onCreate((_snapshot, context) => {
     const userID = context.params.userID;
     return firestore.collection('likes').doc(userID).create(
         {
@@ -195,23 +225,23 @@ exports.onLikeOrDislike = functions.firestore.document('/likes/{likedUserID}').o
 
     console.log(typeof (after));
 
-    if ((after.hasOwnProperty('likes') && after.likes != before.likes) || (after.hasOwnProperty('dislikes') && after.dislikes != before.dislikes)) {
+    if ((after.hasOwnProperty('likes') && after.likes !== before.likes) || (after.hasOwnProperty('dislikes') && after.dislikes !== before.dislikes)) {
         console.log('here-----------------------------------') // to avoid recursive calls.
-        return;
+        return false;
     }
     else {
         const difference = getObjectDiff(before.usersVotes, after.usersVotes); // returns an array of the differnt keys between the two maps.
         console.log('size')
 
-        afterSize = Object.keys(after.usersVotes).length;
-        beforeSize = Object.keys(before.usersVotes).length
+        const afterSize = Object.keys(after.usersVotes).length;
+        const beforeSize = Object.keys(before.usersVotes).length
 
         console.log(afterSize);
         console.log(beforeSize);
 
         if (afterSize > beforeSize) { // a user has just liked or disliked
 
-            if (after.usersVotes[difference[0]] == 'like') { // userLiked
+            if (after.usersVotes[difference[0]] === 'like') { // userLiked
                 return firestore.collection("likes").doc(likedUserID).set({
                     'likes': FieldValue.increment(1)
                 }, { merge: true });
@@ -223,9 +253,9 @@ exports.onLikeOrDislike = functions.firestore.document('/likes/{likedUserID}').o
             }
 
         }
-        else if (afterSize == beforeSize) { // changed from like to dislike, or vice versa 
+        else if (afterSize === beforeSize) { // changed from like to dislike, or vice versa 
 
-            if (after.usersVotes[difference[0]] == 'like') {
+            if (after.usersVotes[difference[0]] === 'like') {
                 return firestore.collection("likes").doc(likedUserID).set({
                     'likes': FieldValue.increment(1),
                     'dislikes': FieldValue.increment(-1)
@@ -241,7 +271,7 @@ exports.onLikeOrDislike = functions.firestore.document('/likes/{likedUserID}').o
         else { // user unliked or undisliked
             console.log(difference[0]);
             console.log(after.usersVotes[difference[0]]);
-            if (before.usersVotes[difference[0]] == 'like') {
+            if (before.usersVotes[difference[0]] === 'like') {
                 return firestore.collection("likes").doc(likedUserID).set({
                     'likes': FieldValue.increment(-1)
                 }, { merge: true });
@@ -273,16 +303,18 @@ exports.messageSent = functions.firestore.document('/chatRooms/{salfhID}/message
         },
         condition: condition
     };
+    // tslint:disable-next-line: no-floating-promises
     firestore.collection('Swalf').doc(context.params.salfhID).update({ lastMessageSent: message });
-
     admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
     return true;
+
+
     // return "yo";
 });
 
 
 
-const kColorNames = ["purple", "green", "yellow", "red", "blue"];
+
 // makes changing color names in the future easier, if ever needed
 // always use this when refering to colors.
 // use example to get the first color:
@@ -293,7 +325,7 @@ const kColorNames = ["purple", "green", "yellow", "red", "blue"];
 //     const after = change.after.data()
 //     const adminID = after['adminID'];
 //     for (const color in before) {
-//         if (color == 'colorsInOrder' || color == 'adminID') {
+//         if (color === 'colorsInOrder' || color === 'adminID') {
 //             continue;
 //         }
 //         if (before[color] != after[color]) {
@@ -306,10 +338,10 @@ const kColorNames = ["purple", "green", "yellow", "red", "blue"];
 //     }
 //     console.log(before);
 //     console.log(after);
-//     if (after[colorChanged] == null) { // if user left salfh
+//     if (after[colorChanged] === null) { // if user left salfh
 //         const userID = before[colorChanged];
 
-//         // if(userID == before['adminID']){
+//         // if(userID === before['adminID']){
 //         //     setNewAdmin(before) ;
 //         // }
 
@@ -336,44 +368,65 @@ const kColorNames = ["purple", "green", "yellow", "red", "blue"];
 //         return firestore.collection('users').doc(userID).set({ userSwalf: newUserSwalf }, { merge: true });
 //     }
 // });
+class ColorsStatus {
+    red?: string;
+    green?: string;
+    blue?: string;
+    purple?: string;
+    yellow?: string;
+}
 
-exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate((snapshot, context) => {
-
-    const salfh = snapshot.data();
-
-
-    colorStatus = salfh.colorsStatus;
-    colorStatus['colorsInOrder'] = [];
-
-
-    let colorName;
-    for (const color in salfh.colorsStatus) {
-        if (salfh.colorsStatus[color] != null) {
-            colorName = color;
-            break;
-        }
+function getColorsStatus(adminID: string): ColorsStatus {
+    const colorsStatus = {} as any;
+    for (const colorName of kColorNames) {
+        colorsStatus[colorName] = null;
     }
-    let userSwalf = {};
-    userSwalf[context.params.salfhID] = colorName;
-    firestore.collection('users').doc(salfh.adminID).set({
+    const color: Color = kColorNames[Math.floor(Math.random() * 5)];
+    colorsStatus[color] = adminID;
+    return colorsStatus;
+}
+
+exports.createSalfh = functions.https.onCall(async (data: {
+    title: string,
+    visible?: boolean,
+    tags?: Array<string>
+}, context: CallableContext) => {
+    if (!context.auth) {
+        throw new HttpsError('unauthenticated', 'You are not logged in');
+    }
+    const salfhRef: admin.firestore.DocumentReference = firestore.collection('Swalf').doc();
+    const colorsStatus = getColorsStatus(context.auth.uid);
+    await salfhRef.create({
+        title: data.title,
+        visible: data.visible ?? true,
+        tags: data.tags ?? [],
+        timeCreated: FieldValue.serverTimestamp(),
+        lastMessageSent: {},
+        colorsInOrder: [],
+        colorsStatus: colorsStatus,
+        adminID: context.auth.uid
+    })
+    const userSwalf = {} as any;
+    userSwalf[salfhRef.id] = colorsStatus[(Object.keys(colorsStatus) as Array<Color>).find(key => colorsStatus[key] === context.auth?.uid) ?? 'blue'];
+    // tslint:disable-next-line: no-floating-promises
+    await firestore.collection('users').doc(context.auth.uid).set({
         userSwalf: userSwalf
     }, { merge: true });
 
-    let chatRoomData = { lastLeftStatus: {}, typingStatus: {} };
+    const chatRoomData = { lastLeftStatus: {} as any, typingStatus: {} as any };
     kColorNames.forEach(name => {
         chatRoomData.lastLeftStatus[name] = FieldValue.serverTimestamp();
         chatRoomData.typingStatus[name] = false;
     });
-    firestore.collection("chatRooms").doc(context.params.salfhID).set(chatRoomData, { merge: true });
+    await firestore.collection("chatRooms").doc(salfhRef.id).set(chatRoomData, { merge: true });
 
-    const tags = salfh['tags'];
-    console.log(snapshot.data());
+    const tags = data.tags;
 
-    if (tags.length == 0) return;
+    if (!tags || tags.length === 0) return { salfhID: salfhRef.id };
 
-    var condition = "";
+    let condition = "";
     incrementTags(tags);
-    for (i in tags) {
+    for (const i in tags) {
         console.log(tags[i]);
         condition += `('${tags[i]}TAG' in topics) || `
     }
@@ -383,28 +436,91 @@ exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate
     const payload = {
         notification: {
             title: "Check this salfh that matchs your interest", // TODO: change message
-            body: salfh['title'],
+            body: data.title,
             //tag: context.params.salfhID
         },
         data: {
             click_action: 'FLUTTER_NOTIFICATION_CLICK',
-            id: context.params.salfhID
+            id: salfhRef.id
         },
         condition: condition
     };
-    //firestore.collection('Swalf').doc(context.params.salfhID).update({ lastMessageSentID: context.params.messageID });
+
+    admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
+    return { salfhID: salfhRef.id };
+})
+
+// exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate((snapshot, context) => {
+
+//     const salfh = snapshot.data();
 
 
-    return admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
-
-});
-
+//     const colorStatus = salfh.colorsStatus;
+//     colorStatus['colorsInOrder'] = [];
 
 
-function incrementTags(tags) {
-    increment = FieldValue.increment(1);
+//     let colorName;
+//     for (const color in salfh.colorsStatus) {
+//         if (salfh.colorsStatus[color] !== null) {
+//             colorName = color;
+//             break;
+//         }
+//     }
+//     const userSwalf = {} as any;
+//     userSwalf[context.params.salfhID] = colorName;
+//     // tslint:disable-next-line: no-floating-promises
+//     firestore.collection('users').doc(salfh.adminID).set({
+//         userSwalf: userSwalf
+//     }, { merge: true });
 
-    tags.forEach((tag) => {
+//     const chatRoomData = { lastLeftStatus: {} as any, typingStatus: {} as any };
+//     kColorNames.forEach(name => {
+//         chatRoomData.lastLeftStatus[name] = FieldValue.serverTimestamp();
+//         chatRoomData.typingStatus[name] = false;
+//     });
+//     // tslint:disable-next-line: no-floating-promises
+//     firestore.collection("chatRooms").doc(context.params.salfhID).set(chatRoomData, { merge: true });
+
+//     const tags = salfh['tags'];
+//     console.log(snapshot.data());
+
+//     if (tags.length === 0) return;
+
+//     let condition = "";
+//     incrementTags(tags);
+//     for (const i in tags) {
+//         console.log(tags[i]);
+//         condition += `('${tags[i]}TAG' in topics) || `
+//     }
+//     condition = condition.substring(0, condition.length - 4);
+//     console.log(condition);
+//     // const condition = `'${context.params.tags[0]}' in topics || ${context.params.tags[1]}' in topics || ${context.params.tags[2]}' in topics`
+//     const payload = {
+//         notification: {
+//             title: "Check this salfh that matchs your interest", // TODO: change message
+//             body: salfh['title'],
+//             //tag: context.params.salfhID
+//         },
+//         data: {
+//             click_action: 'FLUTTER_NOTIFICATION_CLICK',
+//             id: context.params.salfhID
+//         },
+//         condition: condition
+//     };
+
+
+
+//     return admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
+
+// });
+
+
+
+function incrementTags(tags: Array<string>) {
+    const increment = FieldValue.increment(1);
+
+    tags.forEach((tag: string) => {
+        // tslint:disable-next-line: no-floating-promises
         firestore.collection('tags').doc(tag).set({
             'tagName': tag,
             'tagCounter': increment,
@@ -413,20 +529,20 @@ function incrementTags(tags) {
     });
 }
 
-function stringKeys(tag) {
-    var keys = [];
+function stringKeys(tag: string) {
+    const keys = [];
 
-    for (i = 0; i < tag.length; i++) {
+    for (let i = 0; i < tag.length; i++) {
         keys.push(tag.substring(0, i + 1));
     }
     return keys;
 }
 
-function getObjectDiff(obj1, obj2) { // returns added,removed or modified keys in a list.
+function getObjectDiff(obj1: any, obj2: any) { // returns added,removed or modified keys in a list.
     const diff = Object.keys(obj1).reduce((result, key) => {
         if (!obj2.hasOwnProperty(key)) {
             result.push(key);
-        } else if (obj1[key] == obj2[key]) {
+        } else if (obj1[key] === obj2[key]) {
             const resultKeyIndex = result.indexOf(key);
             result.splice(resultKeyIndex, 1);
         }
@@ -436,33 +552,23 @@ function getObjectDiff(obj1, obj2) { // returns added,removed or modified keys i
     return diff;
 }
 
-async function deleteSalfh(salfhID, userID) {
+function deleteSalfh(salfhID: string, userID: string, transaction: FirebaseFirestore.Transaction) {
 
 
-    var batch = firestore.batch();
-
-
-
-
-    var userColorsref = firestore.collection("Swalf").doc(salfhID).collection("userColors").doc('userColors');
-    var salfhRef = firestore.collection("Swalf").doc(salfhID);
-    var chatRoomRef = firestore.collection('chatRooms').doc(salfhID);
+    const userColorsref = firestore.collection("Swalf").doc(salfhID).collection("userColors").doc('userColors');
+    const salfhRef = firestore.collection("Swalf").doc(salfhID);
+    const chatRoomRef = firestore.collection('chatRooms').doc(salfhID);
     // TODO: delete full subcollection of messages. 
     //var messageRef = firestore.collection('chatRooms').doc(salfh).collection('messages'); 
-    var userRef = firestore.collection('users').doc(userID);
+    const userRef = firestore.collection('users').doc(userID);
 
-    batch.delete(userColorsref)
-    batch.delete(salfhRef)
-    batch.delete(chatRoomRef)
-    batch.set(userRef, {
+    transaction.delete(userColorsref)
+    transaction.delete(salfhRef)
+    transaction.delete(chatRoomRef)
+    transaction.set(userRef, {
         'userSwalf': {
             [salfhID]: FieldValue.delete()
         }
     }, { merge: true });
 
-
-    batch.commit().then(function () {
-        return true;
-    })
-    return false;
 }
