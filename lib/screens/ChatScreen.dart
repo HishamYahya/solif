@@ -23,7 +23,7 @@ class ChatScreen extends StatefulWidget {
   final String color;
   final String salfhID;
   final Map colorsStatus;
-  final String creatorID;
+  final String adminID;
 
   final VoidCallback onUpdate;
 
@@ -33,7 +33,7 @@ class ChatScreen extends StatefulWidget {
       this.salfhID = "000test",
       this.onUpdate,
       this.colorsStatus,
-      this.creatorID});
+      this.adminID});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -364,12 +364,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       child: Scaffold(
         backgroundColor: Colors.blueAccent[50],
         endDrawer: ChatScreenDrawer(
-          title: widget.title,
-          creatorID: widget.creatorID,
-          colorsStatus: colorsStatus,
-          color: colorName,
-          salfhID: widget.salfhID
-        ),
+            title: widget.title,
+            adminID: widget.adminID,
+            colorsStatus: colorsStatus,
+            color: colorName,
+            salfhID: widget.salfhID),
         endDrawerEnableOpenDragGesture: isInSalfh,
         body: Column(
           children: <Widget>[

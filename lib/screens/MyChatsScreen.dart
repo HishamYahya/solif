@@ -51,7 +51,6 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
               ),
               onPressed: () =>
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  Provider.of<AppData>(context,listen: false).trigger(); 
                 return SettingsScreen();
               })),
             )),

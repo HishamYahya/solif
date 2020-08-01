@@ -6,7 +6,7 @@
          additional functionality it is fine to subclass or reimplement
          FlutterApplication and put your custom class here. -->
     <application
-        android:name="io.flutter.app.FlutterApplication"
+        android:name="com.example.solif.Application"
         android:label="solif"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -46,6 +46,6 @@
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
             android:name="flutterEmbedding"
-            android:value="2" />
+            android:value="default_notification_channel_id" />
     </application>
 </manifest>
