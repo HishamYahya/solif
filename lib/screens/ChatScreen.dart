@@ -387,7 +387,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       }
 
                       final doc = snapshot.data;
-                      List messages = doc['messages']; 
+                      List messages = doc['messages'] ?? []; 
                       
                       Set<String> alreadyRead = Set<String>();
                       List<Widget> messageTiles = [];
