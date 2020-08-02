@@ -66,14 +66,14 @@ function isValidSalfh(salfh) {
   salfh.lastMessageSent is map && salfh.lastMessageSent.size() == 0 &&
   salfh.tags is list && salfh.tags.size() <= 5 && // we need to check if all elements in the array are strings and that their lengths aren't too big too
 	salfh.timeCreated == request.time &&
-  salfh.creatorID == request.auth.uid &&
+  salfh.adminID == request.auth.uid &&
   
   ////// colorsStatus validation
   salfh.colorsStatus.size() == salfh.maxUsers &&
   salfh.colorsStatus.keys().size() == salfh.colorsStatus.keys().toSet().size() && // unique keys only
   ['red', 'green', 'blue', 'yellow', 'purple'].hasAll(salfh.colorsStatus.keys()) && // only keys with valid color names
   salfh.colorsStatus.values().removeAll([null]).size() == 1 && // only one non-null value
-  salfh.colorsStatus.values().removeAll([null])[0] == salfh.creatorID // and that value is the creator's id 
+  salfh.colorsStatus.values().removeAll([null])[0] == salfh.adminID // and that value is the creator's id 
   ; 
 }
 

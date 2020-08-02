@@ -22,7 +22,7 @@ class SalfhTile extends StatefulWidget {
   final String id;
   final Map colorsStatus;
   final List tags;
-  final String creatorID;
+  final String adminID;
   // ['chatID'] == false
 
   final Map lastMessageSent;
@@ -33,7 +33,7 @@ class SalfhTile extends StatefulWidget {
       this.colorsStatus,
       this.lastMessageSent,
       this.tags,
-      this.creatorID})
+      this.adminID})
       : this.lastMessageSentTime = lastMessageSent.containsKey('timeSent')
             ? lastMessageSent['timeSent'].toDate()
             : DateTime(1999);
@@ -217,7 +217,7 @@ class _SalfhTileState extends State<SalfhTile>
                 color: colorName,
                 salfhID: this.widget.id,
                 colorsStatus: colorsStatus,
-                creatorID: widget.creatorID,
+                adminID: widget.adminID,
               ),
             ),
           ).then((value) {

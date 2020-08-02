@@ -7,6 +7,7 @@ import 'package:solif/components/BottomBar.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/screens/MyChatsScreen.dart';
 import 'package:solif/screens/PublicChatsScreen.dart';
+import 'package:solif/Services/FCM.dart';
 
 import '../constants.dart';
 
@@ -32,14 +33,15 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     super.initState();
     fcm.configure(
       onLaunch: (message) {
-        print(message);
+        print("onLaunch $message");
       },
       onResume: (message) {
-        print(message);
+        print("onResume $message");
       },
       onMessage: (message) {
-        print(message);
+        print("onMessage $message");
       },
+      // onBackgroundMessage: backgroundMessageHandler
     );
 
     _tabController = TabController(vsync: this, length: 2);

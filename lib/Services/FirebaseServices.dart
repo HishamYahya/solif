@@ -21,10 +21,10 @@ Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
         await firestore.collection('Swalf').document(entry.key).get();
 
     salfhTiles.add(SalfhTile(
-      colorsStatus: currentSalfh  ['colorsStatus'],
+      colorsStatus: currentSalfh['colorsStatus'],
       title: currentSalfh['title'],
       id: currentSalfh.documentID,
-      creatorID: currentSalfh['creatorID'],
+      adminID: currentSalfh['adminID'],
       tags: currentSalfh['tags'] ?? [], //////// TODO: remove null checking
       lastMessageSent: currentSalfh['lastMessageSent'],
     ));
@@ -48,7 +48,7 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
   // List<SalfhTile> salfhTiles = [];
   // Random random = Random();
   // for (var salfh in salfhDocs.documents) {
-  //   if (salfh['creatorID'] != userID) {
+  //   if (salfh['adminID'] != userID) {
   //     bool isFull = true;
   //     salfh['colorsStatus'].forEach((name, statusMap) {
   //       if (statusMap['userID'] == null) isFull = false;
@@ -72,7 +72,7 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
   List<SalfhTile> salfhTiles = [];
   Random random = Random();
   for (var salfh in salfhDocs.documents) {
-    if (salfh['creatorID'] != userID) {
+    if (salfh['adminID'] != userID) {
       bool isFull = true;
       salfh['colorsStatus'].forEach((name, id) {
         if (id == null) isFull = false;
@@ -81,7 +81,7 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
         salfhTiles.add(SalfhTile(
           // color now generated in SalfhTile
           colorsStatus: salfh['colorsStatus'],
-          creatorID: salfh['creatorID'],
+          adminID: salfh['adminID'],
           title: salfh['title'],
           id: salfh.documentID,
           tags: salfh['tags'] ?? [],
@@ -112,9 +112,6 @@ getSalfh(salfhID) async {
   }
   return null;
 }
-
-
-
 
 // tags = {
 //   "tag1": count1,

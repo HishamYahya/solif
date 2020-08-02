@@ -201,7 +201,7 @@ class AppData with ChangeNotifier {
     List<SalfhTile> newSalfhTiles = [];
     Random random = Random();
     for (var salfh in salfhDocs.documents) {
-      if (salfh['creatorID'] != currentUserID) {
+      if (salfh['adminID'] != currentUserID) {
         bool isFull = true;
         salfh['colorsStatus'].forEach((color, id) {
           if (id == null) isFull = false;
@@ -211,7 +211,7 @@ class AppData with ChangeNotifier {
             // color now generated in SalfhTile
             colorsStatus: salfh['colorsStatus'],
             title: salfh['title'],
-            creatorID: salfh['creatorID'],
+            adminID: salfh['adminID'],
 
             id: salfh.documentID,
             tags: salfh['tags'] ?? [], //////// TODO: remove null checking
@@ -284,20 +284,20 @@ class AppData with ChangeNotifier {
     return isTagslLoaded;
   }
 
-  Future<void> trigger() async {
-    print('triggered');
-    final HttpsCallable testFunc = CloudFunctions.instance.getHttpsCallable(
-      functionName: 'testFunc',
-    );
+  // Future<void> trigger() async {
+  //   print('triggered');
+  //   final HttpsCallable testFunc = CloudFunctions.instance.getHttpsCallable(
+  //     functionName: 'testFunc',
+  //   );
 
-    HttpsCallableResult resp = await testFunc.call();
-    print(resp.data);
+  //   HttpsCallableResult resp = await testFunc.call();
+  //   print(resp.data);
 
-    // Firestore.instance
-    //     .collection('Swalf')
-    //     .document('zdR8kEGrOH208WKUU1kk')
-    //     .collection('userColors')
-    //     .document('userColors')
-    //     .setData({'XD': 33333}, merge: true);
-  }
+  //   // Firestore.instance
+  //   //     .collection('Swalf')
+  //   //     .document('zdR8kEGrOH208WKUU1kk')
+  //   //     .collection('userColors')
+  //   //     .document('userColors')
+  //   //     .setData({'XD': 33333}, merge: true);
+  // }
 }
