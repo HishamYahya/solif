@@ -5,7 +5,7 @@ import '../constants.dart';
 
 class Message {
   String content;
-  FieldValue timeSent;
+  Timestamp timeSent;
   String messageColor;
   String userID;
 
@@ -35,13 +35,16 @@ Future<bool> addMessage(
     await firestore
         .collection("chatRooms")
         .document(salfhID)
-        .collection('messages')
-        .add(Message(
-                content: messageContent,
-                timeSent: FieldValue.serverTimestamp(),
-                messageColor: color,
-                userID: userID)
-            .toMap()) 
+        .setData({
+          'messages': FieldValue.arrayUnion([
+            (Message(
+                    content: messageContent,
+                    timeSent: Timestamp.now(),
+                    messageColor: color,
+                    userID: userID)
+                .toMap())
+          ])
+        },merge: true)
         .then((value) {
           success = true;
         })
@@ -68,7 +71,7 @@ Future<bool> addMessage(
 //       }, merge: true);
 //       DocumentReference newCheckPoint = firestore
 //           .collection("chatRooms")
-//           .document(salfhID)
+//           .document(salfhID) 
 //           .collection('messages')
 //           .document(salfh['lastMessageSentID']);
 

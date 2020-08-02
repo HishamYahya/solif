@@ -375,12 +375,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             Expanded(
               child: Stack(
                 children: [
-                  StreamBuilder<QuerySnapshot>(
+                  StreamBuilder<DocumentSnapshot>(
                     stream: firestore
                         .collection("chatRooms")
                         .document(widget.salfhID)
-                        .collection('messages')
-                        .orderBy('timeSent')
                         .snapshots(),
                     builder: (context, snapshot) {
                       //TODO: display the message on sc reen only when it's been written to the database
@@ -388,19 +386,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         return LoadingWidget("");
                       }
 
-                      final messages = snapshot.data.documents.reversed;
+                      final doc = snapshot.data;
+                      List messages = doc['messages']; 
+                      
                       Set<String> alreadyRead = Set<String>();
                       List<Widget> messageTiles = [];
 
-                      for (var message in messages) {
+                      for (var message in messages.reversed) {
                         List<String> readColors = [];
                         lastLeftStatus.forEach((color, lastLeft) {
-                          var estimateTimeSent;
-                          if (message.metadata.hasPendingWrites) {
-                            estimateTimeSent = Timestamp.now();
-                          } else {
-                            estimateTimeSent = message['timeSent'];
-                          }
+                          var estimateTimeSent   =  message['timeSent'];
+                          // if (message.metadata.hasPendingWrites) {5
+                          //   estimateTimeSent = Timestamp.now();
+                          // } else {
+                          //   estimateTimeSent = message['timeSent'];
+                          // }
                           if (message['color'] != color &&
                               !alreadyRead.contains(color) &&
                               lastLeft.compareTo(estimateTimeSent) >= 0) {
@@ -415,7 +415,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           message: message["content"],
                           fromUser: message['color'] == colorName,
                           readColors: readColors,
-                          isSending: message.metadata.hasPendingWrites,
+                          isSending: true // message.metadata.hasPendingWrites,
 
                           //
                           // add stuff here when you update messageTile
