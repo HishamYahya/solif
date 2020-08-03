@@ -83,36 +83,39 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     return Scaffold(
       appBar: AppBar(),
       backgroundColor: Colors.grey[100],
-      floatingActionButton: AnimatedBuilder(
-        animation: _animationController,
-        builder: (context, child) {
-          // rotate the button 45 degrees
-          return Transform.rotate(
-            angle: _rotateAnimation.value,
-            child: FloatingActionButton(
-              backgroundColor: blueToWhiteAnimation.value,
-              elevation: 2.0,
-              onPressed: () {
-                setState(() {
-                  isAdding = !isAdding;
-                });
+      floatingActionButton:
+          MediaQuery.of(context).viewInsets.bottom == 0 || isAdding
+              ? AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    // rotate the button 45 degrees
+                    return Transform.rotate(
+                      angle: _rotateAnimation.value,
+                      child: FloatingActionButton(
+                        backgroundColor: blueToWhiteAnimation.value,
+                        elevation: 2.0,
+                        onPressed: () {
+                          setState(() {
+                            isAdding = !isAdding;
+                          });
 
-                // alternate icon between x and +
-                if (isAdding) {
-                  _animationController.forward();
-                } else {
-                  _animationController.reverse();
-                }
-              },
-              child: Icon(
-                Icons.add,
-                color: whiteToBlueAnimation.value,
-              ),
-            ),
-          );
-        },
-        child: null,
-      ),
+                          // alternate icon between x and +
+                          if (isAdding) {
+                            _animationController.forward();
+                          } else {
+                            _animationController.reverse();
+                          }
+                        },
+                        child: Icon(
+                          Icons.add,
+                          color: whiteToBlueAnimation.value,
+                        ),
+                      ),
+                    );
+                  },
+                  child: null,
+                )
+              : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
       // custom widget
