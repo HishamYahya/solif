@@ -83,6 +83,7 @@ class _PublicChatsScreenState extends State<PublicChatsScreen>
             }),
       ],
       body: TabBarView(
+        physics: NeverScrollableScrollPhysics(),
         controller: _tabController,
         children: <Widget>[
           Tab(

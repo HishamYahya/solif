@@ -134,7 +134,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         .document(widget.salfhID)
         .snapshots()
         .listen((event) {
-      print("OK");
       Map<String, Timestamp> newLastLeftStatus =
           Map<String, Timestamp>.from(event.data['lastLeftStatus']);
       // print("hereeee${event.data}");
@@ -163,10 +162,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       salfhID: widget.salfhID,
       colorName: colorName,
     );
-
-    setState(() {
-      joining = false;
-    });
+    if (mounted)
+      setState(() {
+        joining = false;
+      });
 
     return joined;
   }

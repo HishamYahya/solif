@@ -44,7 +44,7 @@ class _AddScreenState extends State<AddScreen> {
       adminID: Provider.of<AppData>(context, listen: false).currentUserID,
       title: salfhName,
       tags: salfhTags,
-    ); 
+    );
 
     //if suceeded
     if (newSalfh != null) {
@@ -107,8 +107,6 @@ class _AddScreenState extends State<AddScreen> {
         // .endAt([searchkey + '\uf8ff'])
         .getDocuments()
         .then((snapshot) {
-      print("XD");
-
       List<String> newSuggestions = [];
 
       for (var doc in snapshot.documents) {
@@ -258,7 +256,6 @@ class _AddScreenState extends State<AddScreen> {
                                         constraintSuggestion: false,
                                         suggestions: suggestions,
                                         onChanged: (searchkey) {
-                                          print(salfhTags);
                                           getSuggestion(searchkey);
                                         },
                                         inputDecoration: InputDecoration(

@@ -55,8 +55,6 @@ Future<bool> joinSalfh(
   );
   HttpsCallableResult resp = await callable
       .call(<String, dynamic>{'salfhID': salfhID, 'color': colorName});
-  print('response');
-  print(resp.data);
   return resp.data;
   // await firestore.runTransaction((transaction) async {
   //   final snapshot = await transaction.get(ref);
@@ -160,5 +158,4 @@ Future<void> removeUser({String userColor, String salfhID}) async {
   );
   dynamic resp = await callable
       .call(<String, dynamic>{'salfhID': salfhID, 'color': userColor});
-  print(resp.data);
 }

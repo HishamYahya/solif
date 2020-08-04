@@ -4,10 +4,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/BottomBar.dart';
+import 'package:solif/components/ColoredDot.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/screens/MyChatsScreen.dart';
 import 'package:solif/screens/PublicChatsScreen.dart';
 import 'package:solif/Services/FCM.dart';
+import 'package:solif/screens/SettingsScreen.dart';
 
 import '../constants.dart';
 
@@ -81,7 +83,40 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              color: Colors.grey[500],
+              icon: Icon(Icons.settings),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SettingsScreen(),
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    '1750',
+                    style: TextStyle(color: Colors.grey[500]),
+                  ),
+                ),
+                Image.asset(
+                  'images/dots.png',
+                  height: 24,
+                ),
+              ],
+            ),
+          ],
+        ),
+        centerTitle: true,
+      ),
       backgroundColor: Colors.grey[100],
       floatingActionButton:
           MediaQuery.of(context).viewInsets.bottom == 0 || isAdding

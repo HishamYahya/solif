@@ -26,8 +26,6 @@ class _ChatScreenDrawerState extends State<ChatScreenDrawer> {
     widget.colorsStatus.forEach((color, id) {
       if (id != Provider.of<AppData>(context, listen: false).currentUserID &&
           id != null) {
-        print(widget.adminID);
-        print(id);
         colorTiles.add(
           ColorDrawerTile(
             color: color,

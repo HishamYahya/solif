@@ -11,7 +11,6 @@ final firestore = Firestore.instance;
 
 Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
   int x = 1;
-  print(userID);
   final salfhDoc = await firestore.collection('users').document(userID).get();
   List<SalfhTile> salfhTiles = [];
   Map<String, dynamic> userSwalf = await salfhDoc['userSwalf'];
@@ -35,7 +34,6 @@ Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
         .compareTo(a.lastMessageSentTime); // sort using datetime comparator.
   });
 
-  print(salfhTiles.length);
   return salfhTiles;
 }
 
@@ -90,7 +88,6 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
         ));
     }
   }
-  print(salfhTiles.length);
   if (salfhTiles.isNotEmpty) {
     final Timestamp lastVisibleSalfhTime =
         salfhDocs.documents[salfhDocs.documents.length - 1]['timeCreated'];
@@ -106,7 +103,6 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
 
 getSalfh(salfhID) async {
   final ref = await firestore.collection('Swalf').document(salfhID).get();
-  print(ref);
   if (ref.exists) {
     return ref.data;
   }

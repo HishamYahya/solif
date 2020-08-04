@@ -137,7 +137,6 @@ class AppData with ChangeNotifier {
         fcm.subscribeToTopic(currentUserID);
       }
     }
-    print(currentUserID);
     notifyListeners();
   }
 
@@ -172,9 +171,7 @@ class AppData with ChangeNotifier {
     usersSalfhTiles = [];
     notifyListeners();
     usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
-    for (var tile in usersSalfhTiles) {
-      print(tile.id);
-    }
+
     notifyListeners();
   }
 

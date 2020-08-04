@@ -62,8 +62,6 @@ class _SalfhTileState extends State<SalfhTile>
         Provider.of<AppData>(context, listen: false).prefs;
     if (prefs.containsKey(widget.id)) {
       DateTime lastLeft = DateTime.parse(prefs.getString(widget.id));
-      print(lastLeft);
-      print(widget.lastMessageSentTime);
       if (lastLeft.compareTo(widget.lastMessageSentTime) > 0) {
         notRead = false;
       }
