@@ -1,14 +1,24 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:solif/components/LoadingWidget.dart';
+import 'package:solif/components/SliverSearchBar.dart';
 import 'package:solif/constants.dart';
+import 'package:solif/models/AppData.dart';
 
 final Firestore firestore = Firestore.instance;
 
 class TagSearchResultsList extends StatefulWidget {
   final String searchTerm;
+  final TextEditingController searchFieldController;
 
-  TagSearchResultsList({this.searchTerm});
+  final Function(int) changeTabTo;
+  final int curTab;
+  TagSearchResultsList(
+      {this.searchTerm,
+      this.searchFieldController,
+      this.changeTabTo,
+      this.curTab});
 
   @override
   _TagSearchResultsListState createState() => _TagSearchResultsListState();
@@ -89,6 +99,13 @@ class _TagSearchResultsListState extends State<TagSearchResultsList> {
                       return ListTile(
                         title: Text(doc['tagName']),
                         subtitle: Text(doc['tagCounter'].toString() + ' سالفة'),
+                        onTap: () {
+                          Provider.of<AppData>(context, listen: false)
+                              .searchTag = doc['tagName'];
+                          widget.searchFieldController.text = doc['tagName'];
+                          widget.changeTabTo(0);
+                          FocusScope.of(context).unfocus();
+                        },
                       );
                     },
                   );

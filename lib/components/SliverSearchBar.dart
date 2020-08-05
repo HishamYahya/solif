@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:solif/models/AppData.dart';
 
 import '../constants.dart';
 
@@ -8,8 +10,17 @@ class SliverSearchBar extends StatefulWidget {
   final FocusNode focusNode;
 
   final Function onChange;
+  final Function(int) changeTabTo;
+  final int curTab;
 
-  const SliverSearchBar({this.focusNode, this.onChange});
+  final TextEditingController controller;
+
+  const SliverSearchBar(
+      {this.focusNode,
+      this.onChange,
+      this.controller,
+      this.changeTabTo,
+      this.curTab});
 
   @override
   _SliverSearchBarState createState() => _SliverSearchBarState();
@@ -17,9 +28,8 @@ class SliverSearchBar extends StatefulWidget {
 
 class _SliverSearchBarState extends State<SliverSearchBar>
     with SingleTickerProviderStateMixin {
-  bool isFocused = false;
   Timer timer = Timer(Duration(milliseconds: 0), () => {});
-  TextEditingController _editingController = TextEditingController();
+
   AnimationController _animationController;
   CurvedAnimation _animation;
 
@@ -33,32 +43,25 @@ class _SliverSearchBarState extends State<SliverSearchBar>
         parent: _animationController, curve: Curves.easeOutCirc);
 
     widget.focusNode.addListener(() {
-      setState(() {
-        isFocused = widget.focusNode.hasFocus;
-      });
-      if (!isFocused) {
-        _editingController.clear();
-        _animationController.reverse();
-      } else {
+      if (widget.focusNode.hasFocus) {
         _animationController.forward();
+        widget.changeTabTo(1);
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(SliverSearchBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.curTab == 0) {
+      _animationController.reverse();
+    }
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
     super.dispose();
-  }
-
-  void _onTap() async {
-    if (!isFocused && !widget.focusNode.hasFocus) {
-      setState(() {
-        isFocused = true;
-      });
-      await Future.delayed(Duration(milliseconds: 1000));
-      widget.focusNode.requestFocus();
-    }
   }
 
   @override
@@ -88,16 +91,19 @@ class _SliverSearchBarState extends State<SliverSearchBar>
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.grey[300],
-                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(15),
+                      ),
                     ),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Container(
                           width: MediaQuery.of(context).size.width * 0.8,
                           child: IntrinsicWidth(
                             child: TextField(
-                              controller: _editingController,
+                              controller: widget.controller,
                               focusNode: widget.focusNode,
                               onSubmitted: (value) {
                                 widget.focusNode.requestFocus();
@@ -112,16 +118,32 @@ class _SliverSearchBarState extends State<SliverSearchBar>
                               maxLength: 30,
                               cursorRadius: Radius.circular(500),
                               cursorColor: Colors.black,
-                              textAlignVertical: TextAlignVertical.top,
+                              textAlignVertical: TextAlignVertical.center,
                               style: TextStyle(
-                                color: Colors.grey[800],
-                                textBaseline: TextBaseline.alphabetic,
-                              ),
+                                  color: Colors.grey[800],
+                                  textBaseline: TextBaseline.alphabetic,
+                                  fontSize: 18),
                               decoration: InputDecoration(
-                                border: InputBorder.none,
-                                prefixIcon: Icon(
-                                  Icons.search,
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Colors.transparent, width: 0),
                                 ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Colors.transparent, width: 0),
+                                ),
+                                disabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Colors.transparent, width: 0),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Colors.blue, width: 0.3),
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(15),
+                                  ),
+                                ),
+                                prefixIcon: Icon(Icons.search),
                                 floatingLabelBehavior:
                                     FloatingLabelBehavior.never,
                                 labelText: "ابحث عن الموضوع اللي تبي تسولف عنه",
@@ -143,7 +165,9 @@ class _SliverSearchBarState extends State<SliverSearchBar>
                         child: InkWell(
                           onTap: () {
                             widget.focusNode.unfocus();
+                            widget.changeTabTo(0);
                             widget.onChange("");
+                            widget.controller.clear();
                           },
                           splashColor: Colors.grey[100],
                           splashFactory: InkRipple.splashFactory,

@@ -19,6 +19,7 @@ class AppData with ChangeNotifier {
   List<SalfhTile> publicSalfhTiles;
   List<TagTile> tagsSavedLocally = [];
   bool isTagslLoaded = false;
+  String _searchTag;
   final Firestore firestore = Firestore.instance;
   final fcm = FirebaseMessaging();
   final auth = FirebaseAuth.instance;
@@ -33,6 +34,15 @@ class AppData with ChangeNotifier {
   get currentUserID {
     if (currentUser != null) return currentUser.uid;
     return null;
+  }
+
+  set searchTag(String tag) {
+    _searchTag = tag;
+    reloadPublicSalfhTiles();
+  }
+
+  get searchTag {
+    return _searchTag;
   }
 
   AppData() {
@@ -153,7 +163,8 @@ class AppData with ChangeNotifier {
     usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
 
     notifyListeners();
-    publicSalfhTiles = await getPublicChatScreenTiles(currentUserID);
+    publicSalfhTiles =
+        await getPublicChatScreenTiles(currentUserID, tag: _searchTag);
     notifyListeners();
   }
 
@@ -188,7 +199,8 @@ class AppData with ChangeNotifier {
   reloadPublicSalfhTiles() async {
     publicSalfhTiles = [];
     notifyListeners();
-    publicSalfhTiles = await getPublicChatScreenTiles(currentUserID);
+    publicSalfhTiles =
+        await getPublicChatScreenTiles(currentUserID, tag: _searchTag);
     notifyListeners();
   }
 
@@ -222,6 +234,8 @@ class AppData with ChangeNotifier {
       // next batch starts after the last document
       nextPublicTiles = firestore
           .collection('Swalf')
+          .where('tags', arrayContains: _searchTag)
+          .where('visible', isEqualTo: true)
           .orderBy('timeCreated', descending: true)
           .startAfter([lastVisibleSalfhTime]).limit(kMinimumSalfhTiles);
     }

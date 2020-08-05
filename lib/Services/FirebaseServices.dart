@@ -37,7 +37,8 @@ Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
   return salfhTiles;
 }
 
-Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
+Future<List<SalfhTile>> getPublicChatScreenTiles(String userID,
+    {String tag}) async {
   // final salfhDocs = await firestore
   //     .collection('Swalf')
   //     .orderBy('timeCreated', descending: true)
@@ -64,6 +65,8 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
   // return salfhTiles;
   final first = firestore
       .collection('Swalf')
+      .where('tags', arrayContains: tag)
+      .where('visible', isEqualTo: true)
       .orderBy('timeCreated', descending: true)
       .limit(kMinimumSalfhTiles);
   final salfhDocs = await first.getDocuments();
@@ -94,6 +97,8 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
     // next batch starts after the last document
     AppData.nextPublicTiles = firestore
         .collection('Swalf')
+        .where('tags', arrayContains: tag)
+        .where('visible', isEqualTo: true)
         .orderBy('timeCreated', descending: true)
         .startAfter([lastVisibleSalfhTime]).limit(kMinimumSalfhTiles);
   }

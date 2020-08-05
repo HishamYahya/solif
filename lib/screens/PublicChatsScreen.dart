@@ -30,6 +30,8 @@ class _PublicChatsScreenState extends State<PublicChatsScreen>
   String searchTerm = "";
   TabController _tabController;
   final GlobalKey<NestedScrollViewState> _scrollViewKey = GlobalKey();
+  TextEditingController _editingController = TextEditingController();
+  int curTab = 0;
 
   @override
   void initState() {
@@ -38,7 +40,6 @@ class _PublicChatsScreenState extends State<PublicChatsScreen>
     _tabController = TabController(length: 2, vsync: this);
     _searchBarFocusNode.addListener(() {
       _scrollViewKey.currentState.outerController.jumpTo(0);
-      _tabController.animateTo(_searchBarFocusNode.hasFocus ? 1 : 0);
     });
   }
 
@@ -68,6 +69,13 @@ class _PublicChatsScreenState extends State<PublicChatsScreen>
       _refreshController.loadComplete();
   }
 
+  void changeTabTo(int index) {
+    setState(() {
+      curTab = index;
+    });
+    _tabController.animateTo(index);
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isLoaded = Provider.of<AppData>(context).isPublicTilesLoaded();
@@ -80,7 +88,10 @@ class _PublicChatsScreenState extends State<PublicChatsScreen>
               setState(() {
                 searchTerm = value;
               });
-            }),
+            },
+            controller: _editingController,
+            changeTabTo: changeTabTo,
+            curTab: curTab),
       ],
       body: TabBarView(
         physics: NeverScrollableScrollPhysics(),
@@ -147,6 +158,9 @@ class _PublicChatsScreenState extends State<PublicChatsScreen>
           ),
           TagSearchResultsList(
             searchTerm: searchTerm,
+            searchFieldController: _editingController,
+            changeTabTo: changeTabTo,
+            curTab: curTab,
           ),
         ],
       ),
