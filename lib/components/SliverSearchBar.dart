@@ -164,10 +164,12 @@ class _SliverSearchBarState extends State<SliverSearchBar>
                         padding: EdgeInsets.all(_animation.value * 8.0),
                         child: InkWell(
                           onTap: () {
-                            widget.focusNode.unfocus();
-                            widget.changeTabTo(0);
                             widget.onChange("");
                             widget.controller.clear();
+                            Provider.of<AppData>(context, listen: false)
+                                .searchTag = null;
+                            widget.focusNode.unfocus();
+                            widget.changeTabTo(0);
                           },
                           splashColor: Colors.grey[100],
                           splashFactory: InkRipple.splashFactory,
