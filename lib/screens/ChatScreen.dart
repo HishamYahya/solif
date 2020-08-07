@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:localstorage/localstorage.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/components/ChatInputBox.dart';
@@ -40,7 +41,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
-  List<MessageTile> messages = getMessages();
+  List<Message> localMessages;
+  DateTime lastMessageSavedLocally;
   String inputMessage = "";
   Map colorsStatus;
   Map typingStatus = {};
@@ -81,11 +83,31 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (id == userID)
         setState(() {
           isInSalfh = true;
+          loadLocalStorageMessages();
         });
     });
     listenToChatroomChanges();
     listenToColorStatusChanges();
+
     super.initState();
+  }
+
+  Future<void> loadLocalStorageMessages() async {
+    final LocalStorage storage = new LocalStorage(widget.salfhID);
+    bool isReady = await storage.ready;
+    print('isReady:$isReady');
+
+    List<Message> storedMessages = storage.getItem('local_messages') ?? [];
+    lastMessageSavedLocally = storage.getItem('last_message_time') ??
+        DateTime(2010); // default value last messages saved in 2010.
+
+    // storedMessages.forEach((message) {
+    //   MessageTile messageTile = MessageTile(
+    //       color: message['color'],
+    //       message: message['content'],
+    //       fromUser: message['color'] == colorName,
+    //   localMessages.add(messageTile);
+    // });
   }
 
   // listen to changes in the colorsStatus in the database
@@ -380,7 +402,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         .document(widget.salfhID)
                         .collection('messages')
                         .orderBy('timeSent')
-                        .snapshots(),
+                        .startAfter([lastMessageSavedLocally]).snapshots(),
                     builder: (context, snapshot) {
                       //TODO: display the message on sc reen only when it's been written to the database
                       if (!snapshot.hasData || lastLeftStatus == null) {
@@ -388,14 +410,28 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       }
 
                       final messages = snapshot.data.documents.reversed;
+                      List<DocumentSnapshot> messagesList = messages.toList();
                       Set<String> alreadyRead = Set<String>();
-                      List<Widget> messageTiles = [];
+                      List<MessageTile> messageTiles = [];
 
-                      for (var message in messages) {
+                      for (int i = 0;
+                          i < messages.length + localMessages.length;
+                          i++) {
+                        var message;
+                        bool isSending;
+                        if (i < messages.length) {
+                          message = messagesList[i];
+                          isSending = message.metadata.hasPendingWrites;
+                        } else {
+                          message = localMessages[i - messages.length];
+                          isSending = false;
+                        }
+
                         List<String> readColors = [];
                         lastLeftStatus.forEach((color, lastLeft) {
                           var estimateTimeSent;
-                          if (message.metadata.hasPendingWrites) {
+                          if (message is! Message &&
+                              message.metadata.hasPendingWrites) {
                             estimateTimeSent = Timestamp.now();
                           } else {
                             estimateTimeSent = message['timeSent'];
@@ -414,7 +450,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           message: message["content"],
                           fromUser: message['color'] == colorName,
                           readColors: readColors,
-                          isSending: message.metadata.hasPendingWrites,
+                          isSending: isSending,
 
                           //
                           // add stuff here when you update messageTile

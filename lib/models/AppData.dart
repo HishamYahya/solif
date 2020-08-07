@@ -13,6 +13,9 @@ import 'package:solif/models/Tag.dart';
 import 'package:solif/models/Salfh.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
+import 'package:localstorage/localstorage.dart';
+
+
 class AppData with ChangeNotifier {
   FirebaseUser currentUser;
   List<SalfhTile> usersSalfhTiles;
@@ -23,6 +26,8 @@ class AppData with ChangeNotifier {
   final Firestore firestore = Firestore.instance;
   final fcm = FirebaseMessaging();
   final auth = FirebaseAuth.instance;
+
+  var messsagesDataBase; 
 
   static Query nextPublicTiles;
 
@@ -106,194 +111,202 @@ class AppData with ChangeNotifier {
     await loadUser();
     listenForNewUserSwalf();
     loadTiles();
-  }
 
-  reset() async {
-    await auth.signOut();
-    init();
-  }
-
-  Future<void> loadUser() async {
-    // String key = 'userID';
-    // String userID = prefs.getString(key);
-    // prefs.setString('salfhID', DateTime.now().toIso8601String());
-
-    // // create new user every restart for testing
-    // await prefs.remove(key);
-    // userID = prefs.getString(key);
-    // if (userID != null) {
-    //   currentUserID = userID;
-    // } else {
-    //   final ref = await firestore.collection('users').add({'userSwalf': {}});
-    //   userID = ref.documentID;
-    //   print(userID);
-    //   prefs.setString(key, userID);
-    //   currentUserID = userID;
-    //   fcm.subscribeToTopic(userID);
-    // }
-    // notifyListeners();
-
-    final user = await auth.currentUser();
-    if (user != null) {
-      currentUser = user;
-    } else {
-      final res = await auth.signInAnonymously();
-      if (res != null) {
-        currentUser = res.user;
-        await firestore
+    connectTolocalDataBase(); 
+      }
+    
+      reset() async {
+        await auth.signOut();
+        init();
+      }
+    
+      Future<void> loadUser() async {
+        // String key = 'userID';
+        // String userID = prefs.getString(key);
+        // prefs.setString('salfhID', DateTime.now().toIso8601String());
+    
+        // // create new user every restart for testing
+        // await prefs.remove(key);
+        // userID = prefs.getString(key);
+        // if (userID != null) {
+        //   currentUserID = userID;
+        // } else {
+        //   final ref = await firestore.collection('users').add({'userSwalf': {}});
+        //   userID = ref.documentID;
+        //   print(userID);
+        //   prefs.setString(key, userID);
+        //   currentUserID = userID;
+        //   fcm.subscribeToTopic(userID);
+        // }
+        // notifyListeners();
+    
+        final user = await auth.currentUser();
+        if (user != null) {
+          currentUser = user;
+        } else {
+          final res = await auth.signInAnonymously();
+          if (res != null) {
+            currentUser = res.user;
+            await firestore
+                .collection('users')
+                .document(currentUserID)
+                .setData({'userSwalf': {}, 'id': currentUserID});
+            fcm.subscribeToTopic(currentUserID);
+          }
+        }
+        notifyListeners();
+      }
+    
+      isUsersTilesLoaded() {
+        return usersSalfhTiles != null;
+      }
+    
+      isPublicTilesLoaded() {
+        return publicSalfhTiles != null;
+      }
+    
+      ///// if list is null then it hasn't been loaded yet (happens only once)
+      loadTiles() async {
+        usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
+    
+        notifyListeners();
+        publicSalfhTiles =
+            await getPublicChatScreenTiles(currentUserID, tag: _searchTag);
+        notifyListeners();
+      }
+    
+      setUsersSalfhTiles(List<SalfhTile> salfhTiles) {
+        usersSalfhTiles = salfhTiles;
+        notifyListeners();
+      }
+    
+      setPublicSalfhTiles(List<SalfhTile> salfhTiles) {
+        publicSalfhTiles = salfhTiles;
+        notifyListeners();
+      }
+    
+      reloadUsersSalfhTiles() async {
+        usersSalfhTiles = [];
+        notifyListeners();
+        usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
+    
+        notifyListeners();
+      }
+    
+      listenForNewUserSwalf() {
+        firestore
             .collection('users')
             .document(currentUserID)
-            .setData({'userSwalf': {}, 'id': currentUserID});
-        fcm.subscribeToTopic(currentUserID);
-      }
-    }
-    notifyListeners();
-  }
-
-  isUsersTilesLoaded() {
-    return usersSalfhTiles != null;
-  }
-
-  isPublicTilesLoaded() {
-    return publicSalfhTiles != null;
-  }
-
-  ///// if list is null then it hasn't been loaded yet (happens only once)
-  loadTiles() async {
-    usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
-
-    notifyListeners();
-    publicSalfhTiles =
-        await getPublicChatScreenTiles(currentUserID, tag: _searchTag);
-    notifyListeners();
-  }
-
-  setUsersSalfhTiles(List<SalfhTile> salfhTiles) {
-    usersSalfhTiles = salfhTiles;
-    notifyListeners();
-  }
-
-  setPublicSalfhTiles(List<SalfhTile> salfhTiles) {
-    publicSalfhTiles = salfhTiles;
-    notifyListeners();
-  }
-
-  reloadUsersSalfhTiles() async {
-    usersSalfhTiles = [];
-    notifyListeners();
-    usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
-
-    notifyListeners();
-  }
-
-  listenForNewUserSwalf() {
-    firestore
-        .collection('users')
-        .document(currentUserID)
-        .snapshots()
-        .listen((snapshot) {
-      reloadUsersSalfhTiles();
-    });
-  }
-
-  reloadPublicSalfhTiles() async {
-    publicSalfhTiles = [];
-    notifyListeners();
-    publicSalfhTiles =
-        await getPublicChatScreenTiles(currentUserID, tag: _searchTag);
-    notifyListeners();
-  }
-
-  loadNextPublicSalfhTiles() async {
-    if (nextPublicTiles == null) return;
-    final salfhDocs = await nextPublicTiles.getDocuments();
-    List<SalfhTile> newSalfhTiles = [];
-    Random random = Random();
-    for (var salfh in salfhDocs.documents) {
-      if (salfh['adminID'] != currentUserID) {
-        bool isFull = true;
-        salfh['colorsStatus'].forEach((color, id) {
-          if (id == null) isFull = false;
+            .snapshots()
+            .listen((snapshot) {
+          reloadUsersSalfhTiles();
         });
-        if (!isFull)
-          newSalfhTiles.add(SalfhTile(
-            // color now generated in SalfhTile
-            colorsStatus: salfh['colorsStatus'],
-            title: salfh['title'],
-            adminID: salfh['adminID'],
-
-            id: salfh.documentID,
-            tags: salfh['tags'] ?? [], //////// TODO: remove null checking
-          ));
       }
-    }
-    newSalfhTiles.insertAll(0, publicSalfhTiles);
-    if (salfhDocs.documents.isNotEmpty) {
-      final Timestamp lastVisibleSalfhTime =
-          salfhDocs.documents[salfhDocs.documents.length - 1]['timeCreated'];
-      // next batch starts after the last document
-      nextPublicTiles = firestore
-          .collection('Swalf')
-          .where('tags', arrayContains: _searchTag)
-          .where('visible', isEqualTo: true)
-          .orderBy('timeCreated', descending: true)
-          .startAfter([lastVisibleSalfhTime]).limit(kMinimumSalfhTiles);
-    }
-    publicSalfhTiles = newSalfhTiles;
-    notifyListeners();
-  }
+    
+      reloadPublicSalfhTiles() async {
+        publicSalfhTiles = [];
+        notifyListeners();
+        publicSalfhTiles =
+            await getPublicChatScreenTiles(currentUserID, tag: _searchTag);
+        notifyListeners();
+      }
+    
+      loadNextPublicSalfhTiles() async {
+        if (nextPublicTiles == null) return;
+        final salfhDocs = await nextPublicTiles.getDocuments();
+        List<SalfhTile> newSalfhTiles = [];
+        Random random = Random();
+        for (var salfh in salfhDocs.documents) {
+          if (salfh['adminID'] != currentUserID) {
+            bool isFull = true;
+            salfh['colorsStatus'].forEach((color, id) {
+              if (id == null) isFull = false;
+            });
+            if (!isFull)
+              newSalfhTiles.add(SalfhTile(
+                // color now generated in SalfhTile
+                colorsStatus: salfh['colorsStatus'],
+                title: salfh['title'],
+                adminID: salfh['adminID'],
+    
+                id: salfh.documentID,
+                tags: salfh['tags'] ?? [], //////// TODO: remove null checking
+              ));
+          }
+        }
+        newSalfhTiles.insertAll(0, publicSalfhTiles);
+        if (salfhDocs.documents.isNotEmpty) {
+          final Timestamp lastVisibleSalfhTime =
+              salfhDocs.documents[salfhDocs.documents.length - 1]['timeCreated'];
+          // next batch starts after the last document
+          nextPublicTiles = firestore
+              .collection('Swalf')
+              .where('tags', arrayContains: _searchTag)
+              .where('visible', isEqualTo: true)
+              .orderBy('timeCreated', descending: true)
+              .startAfter([lastVisibleSalfhTime]).limit(kMinimumSalfhTiles);
+        }
+        publicSalfhTiles = newSalfhTiles;
+        notifyListeners();
+      }
+    
+      // Future<void> test() async {
+      //   print("Xd 2 $currentUserID");
+      //   await firestore
+      //       .collection("users")
+      //       .document(currentUserID)
+      //       .collection('userTags')
+      //       .getDocuments()
+      //       .then((value) {
+      //     for (var doc in value.documents) {
+      //       print("hetre23");
+      //     }
+      //   });
+      // }
+    
+      void deleteTag(String tag) {
+        tagsSavedLocally.removeWhere((element) => element.tagName == tag);
+        Firestore.instance
+            .collection('users')
+            .document(currentUserID)
+            .collection('userTags')
+            .document(tag)
+            .delete();
+        fcm.unsubscribeFromTopic("${tag}TAG");
+    
+        tagsSavedLocally = tagsSavedLocally.map((e) => e).toList();
+    
+        notifyListeners();
+      }
+    
+      void addTag(String tag) {
+        if (tag == null || tag == '') return;
+        tagsSavedLocally.add(TagTile(
+          tagName: tag,
+          // onCancelPressed: deleteTag,)
+        ));
+        Firestore.instance
+            .collection('users')
+            .document(currentUserID)
+            .collection('userTags')
+            .document(tag)
+            .setData({'tagName': tag, 'timeAdded': DateTime.now()});
+        fcm.subscribeToTopic(
+            "${tag}TAG"); // without  an ending ID for tag topic, a salfh topic and a tag topic could have the same name. two topics same name = bad.
+    
+        tagsSavedLocally = tagsSavedLocally.map((e) => e).toList();
+        notifyListeners();
+      }
+    
+      bool isTagsLoadedLocally() {
+        return isTagslLoaded;
+      }
+    
+      Future<void> connectTolocalDataBase() async {
 
-  // Future<void> test() async {
-  //   print("Xd 2 $currentUserID");
-  //   await firestore
-  //       .collection("users")
-  //       .document(currentUserID)
-  //       .collection('userTags')
-  //       .getDocuments()
-  //       .then((value) {
-  //     for (var doc in value.documents) {
-  //       print("hetre23");
-  //     }
-  //   });
-  // }
 
-  void deleteTag(String tag) {
-    tagsSavedLocally.removeWhere((element) => element.tagName == tag);
-    Firestore.instance
-        .collection('users')
-        .document(currentUserID)
-        .collection('userTags')
-        .document(tag)
-        .delete();
-    fcm.unsubscribeFromTopic("${tag}TAG");
-
-    tagsSavedLocally = tagsSavedLocally.map((e) => e).toList();
-
-    notifyListeners();
-  }
-
-  void addTag(String tag) {
-    if (tag == null || tag == '') return;
-    tagsSavedLocally.add(TagTile(
-      tagName: tag,
-      // onCancelPressed: deleteTag,)
-    ));
-    Firestore.instance
-        .collection('users')
-        .document(currentUserID)
-        .collection('userTags')
-        .document(tag)
-        .setData({'tagName': tag, 'timeAdded': DateTime.now()});
-    fcm.subscribeToTopic(
-        "${tag}TAG"); // without  an ending ID for tag topic, a salfh topic and a tag topic could have the same name. two topics same name = bad.
-
-    tagsSavedLocally = tagsSavedLocally.map((e) => e).toList();
-    notifyListeners();
-  }
-
-  bool isTagsLoadedLocally() {
-    return isTagslLoaded;
-  }
+        messsagesDataBase = await openDatabase('messages.db');
+      }
 
   // Future<void> trigger() async {
   //   print('triggered');

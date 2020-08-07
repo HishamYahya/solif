@@ -6,20 +6,20 @@ import '../constants.dart';
 class Message {
   String content;
   FieldValue timeSent;
-  String messageColor;
+  String color;
   String userID;
 
   Message(
       {@required this.content,
       @required this.timeSent,
-      @required this.messageColor,
+      @required this.color,
       @required this.userID});
 
   Map<String, dynamic> toMap() {
     return {
       'content': content,
       'timeSent': timeSent,
-      'color': messageColor,
+      'color': color,
       'userID': userID
     };
   }
@@ -39,7 +39,7 @@ Future<bool> addMessage(
         .add(Message(
                 content: messageContent,
                 timeSent: FieldValue.serverTimestamp(),
-                messageColor: color,
+                color: color,
                 userID: userID)
             .toMap()) 
         .then((value) {
