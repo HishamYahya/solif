@@ -111,8 +111,6 @@ class AppData with ChangeNotifier {
     await loadUser();
     listenForNewUserSwalf();
     loadTiles();
-
-    connectTolocalDataBase(); 
       }
     
       reset() async {
@@ -300,12 +298,6 @@ class AppData with ChangeNotifier {
     
       bool isTagsLoadedLocally() {
         return isTagslLoaded;
-      }
-    
-      Future<void> connectTolocalDataBase() async {
-
-
-        messsagesDataBase = await openDatabase('messages.db');
       }
 
   // Future<void> trigger() async {

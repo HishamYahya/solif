@@ -1,11 +1,12 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import '../constants.dart';
 
 class Message {
   String content;
-  FieldValue timeSent;
+  FieldValue serverTimeSent;
+  Timestamp timeSent;
   String color;
   String userID;
 
@@ -25,6 +26,8 @@ class Message {
   }
 }
 
+}
+
 // now returns whether it succeeded or not
 Future<bool> addMessage(
     String messageContent, String color, String salfhID, String userID) async {
@@ -38,10 +41,10 @@ Future<bool> addMessage(
         .collection('messages')
         .add(Message(
                 content: messageContent,
-                timeSent: FieldValue.serverTimestamp(),
+                serverTimeSent: FieldValue.serverTimestamp(),
                 color: color,
                 userID: userID)
-            .toMap()) 
+            .toMap())
         .then((value) {
           success = true;
         })
