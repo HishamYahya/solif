@@ -44,7 +44,8 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   LocalStorage storage;
   List<Map<String, dynamic>> localMessages = [];
-  List<Map<String, dynamic>> allTheMessages = [];
+  List<Map<String, dynamic>> allTheMessages =
+      []; // messages to be written to the storage.
   var lastMessageSavedLocally;
   var futureLastMessageSavedLocallyTime;
   String inputMessage = "";
@@ -98,23 +99,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> loadLocalStorageMessages() async {
-    storage = new LocalStorage(widget.salfhID + '.json');
+    storage = new LocalStorage(widget.salfhID + '.json'); //  sqlite plan b
     bool isReady = await storage.ready;
     print('isReady:$isReady');
 
     List<dynamic> storedMessages = storage.getItem('local_messages') ?? [];
+
     print("local items length ${storedMessages.length}");
     storedMessages.forEach((element) {
-      print(element['timeSent'].runtimeType);
-      print(element['timeSent']);
-
-      if (element['timeSent'] is String)
-      {
+      if (element['timeSent'] is String) {
         element['timeSent'] =
             Timestamp.fromDate(DateTime.parse(element['timeSent']));
       }
-      print(element);
-      print(element['timeSent'].runtimeType);
+
       localMessages.add(element);
     });
 
@@ -148,17 +145,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         allLen.toString();
     print(testString);
 
-    allTheMessages.forEach((element) {
-      print("all: ${element['content']}");
-    });
+    // allTheMessages.forEach((element) {
+    //   print("all: ${element['content']}");
+    // });
     //  print("snapMessages: ${snapshotMessages.fore}");
     //  print("localMessages: ${localMessages.toString()}");
     //  print("allTheMessages: ${allTheMessages.toString()}");
 
     if (snapLen == 0) {
       return;
-    } else if ((snapLen + localLen) - allLen == 1) {
-      // case: One message behind the live data (difference in length = 1)
+    } else if ((snapLen + localLen) - allLen == 1) { // 4 8 3 
+    
+      // case: One message behind the live data (difference in length = 1) 
       var timeSent;
       var lastMessageSent = snapshotMessages.first;
       if (lastMessageSent.metadata.hasPendingWrites) {
@@ -190,9 +188,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               content: lastMessageSent['content'],
               timeSent: timeSent))
           .toJson();
-    } else {
+    } else  {
       // case: several messages behind.
-      allTheMessages = [];
+      allTheMessages = []; 
       for (var message in localMessages.reversed) {
         Timestamp timeSent = message['timeSent'];
         String encodedTimeStamp = timeSent.toDate().toIso8601String();
@@ -548,7 +546,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       Set<String> alreadyRead = Set<String>();
                       List<MessageTile> messageTiles = [];
 
-                      populateAllMessages(snapshotMessages, localMessages);
+                      populateAllMessages(snapshotMessages, localMessages); //
 
                       for (int i = 0;
                           i < snapshotMessages.length + localMessages.length;
@@ -556,9 +554,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         var message;
                         bool isSending;
                         if (i < snapshotMessages.length) {
+                          // snapshot message
                           message = snapshotMessages[i];
                           isSending = message.metadata.hasPendingWrites;
                         } else {
+                          // local message
                           message = localMessages[i - snapshotMessages.length];
                           print('message 2 $message');
                           isSending = false;
