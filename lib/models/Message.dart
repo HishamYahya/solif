@@ -12,20 +12,35 @@ class Message {
 
   Message(
       {@required this.content,
-      @required this.timeSent,
+      @required this.serverTimeSent,
       @required this.color,
-      @required this.userID});
+      @required this.userID,
+      this.timeSent});
 
   Map<String, dynamic> toMap() {
     return {
       'content': content,
-      'timeSent': timeSent,
+      'timeSent': serverTimeSent,
+      'color': color,
+      'userID': userID
+    };
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'content': content,
+      'timeSent': timeSent.toDate().toIso8601String(),
       'color': color,
       'userID': userID
     };
   }
 }
 
+Message fromJson(Map<String, dynamic> jsonMessage) {
+  return Message(
+      color: jsonMessage['color'],
+      content: jsonMessage['content'],
+      timeSent: Timestamp.fromDate(DateTime.parse(jsonMessage['timeSent'])));
 }
 
 // now returns whether it succeeded or not
