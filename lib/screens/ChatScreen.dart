@@ -52,7 +52,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Map typingStatus = {};
   Map<String, Timestamp> lastLeftStatus;
   String colorName;
-  int messageCounter = 0; 
+  int messageCounter = 0;
   bool isInSalfh = false;
   bool joining = false;
   bool sending = false;
@@ -105,8 +105,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     List<dynamic> storedMessages = storage.getItem('local_messages') ?? [];
     print("local items length ${storedMessages.length}");
     storedMessages.forEach((element) {
-      element['timeSent'] =
-          Timestamp.fromDate(DateTime.parse(element['timeSent']));
+      print(element['timeSent'].runtimeType);
+      print(element['timeSent']);
+
+      if (element['timeSent'] is String)
+      {
+        element['timeSent'] =
+            Timestamp.fromDate(DateTime.parse(element['timeSent']));
+      }
       print(element);
       print(element['timeSent'].runtimeType);
       localMessages.add(element);
@@ -156,7 +162,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       var timeSent;
       var lastMessageSent = snapshotMessages.first;
       if (lastMessageSent.metadata.hasPendingWrites) {
-        timeSent = Timestamp.now();
+        return;
       } else {
         timeSent = lastMessageSent['timeSent'];
         print("timesent $timeSent");
@@ -173,7 +179,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       var lastMessageSent = snapshotMessages.first;
       var timeSent;
       if (lastMessageSent.metadata.hasPendingWrites) {
-        timeSent = Timestamp.now();
+        return;
       } else {
         timeSent = lastMessageSent['timeSent'];
         print("timesent $timeSent");
@@ -203,11 +209,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         allTheMessages.last['timeSent'] = encodedTimeStamp;
       }
       for (var message in snapshotMessages.reversed) {
-        if(messageCounter == 0) return; 
+        if (messageCounter == 0) return;
         var timeSent;
 
         if (message.metadata.hasPendingWrites) {
-          timeSent = Timestamp.now();
+          return;
         } else {
           timeSent = message['timeSent'];
         }
@@ -341,7 +347,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         Provider.of<AppData>(context, listen: false).currentUserID);
     if (success) {
       //TODO: display the message on screen only when it's been written to the database
-      messageCounter ++; 
+      messageCounter++;
 
       messageController.clear();
     }
@@ -459,12 +465,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> setLocalStorage() async {
-    await storage.ready;
-    storage.setItem('local_messages', allTheMessages.reversed.toList());
-    print("before saving $futureLastMessageSavedLocallyTime");
     if (futureLastMessageSavedLocallyTime != null) {
-      storage.setItem('last_message_time',
-          futureLastMessageSavedLocallyTime.toDate().toIso8601String());
+      await storage.ready;
+      storage.setItem('local_messages', allTheMessages.reversed.toList());
+      print("before saving $futureLastMessageSavedLocallyTime");
+      {
+        storage.setItem('last_message_time',
+            futureLastMessageSavedLocallyTime.toDate().toIso8601String());
+      }
     }
   }
 
@@ -527,7 +535,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         .orderBy('timeSent')
                         .startAfter([lastMessageSavedLocally]).snapshots(),
                     builder: (context, snapshot) {
-                      
                       print("lastMessageTime $lastMessageSavedLocally");
 
                       //TODO: display the message on sc reen only when it's been written to the database

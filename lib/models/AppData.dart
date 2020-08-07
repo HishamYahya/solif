@@ -51,6 +51,15 @@ class AppData with ChangeNotifier {
   }
 
   AppData() {
+
+    // print('local storage test');
+
+    // LocalStorage ls = LocalStorage('test.json');
+    // ls.ready.then((value) => ls.setItem('timeStamp', [Timestamp(10,20)]));  
+    // var testTimeStamp = ls.getItem('timeStamp');
+    // print(testTimeStamp.runtimeType);
+    // print(testTimeStamp);
+
     // print('here');
     // leaveSalfh(salfhID:
     // "zFX6VZ7czRIdAirTqaZB",userColor: 'green',userID:"LX2Cw01JQlMSxPUroH37");
