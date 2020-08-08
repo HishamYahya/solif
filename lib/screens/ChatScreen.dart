@@ -154,9 +154,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     if (snapLen == 0) {
       return;
-    } else if ((snapLen + localLen) - allLen == 1) { // 4 8 3 
-    
-      // case: One message behind the live data (difference in length = 1) 
+    } else if ((snapLen + localLen) - allLen == 1) {
+      // 4 8 3
+
+      // case: One message behind the live data (difference in length = 1)
       var timeSent;
       var lastMessageSent = snapshotMessages.first;
       if (lastMessageSent.metadata.hasPendingWrites) {
@@ -188,9 +189,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               content: lastMessageSent['content'],
               timeSent: timeSent))
           .toJson();
-    } else  {
+    } else {
       // case: several messages behind.
-      allTheMessages = []; 
+      allTheMessages = [];
       for (var message in localMessages.reversed) {
         Timestamp timeSent = message['timeSent'];
         String encodedTimeStamp = timeSent.toDate().toIso8601String();
@@ -462,18 +463,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> setLocalStorage() async {
-    if (futureLastMessageSavedLocallyTime != null) {
-      await storage.ready;
-      storage.setItem('local_messages', allTheMessages.reversed.toList());
-      print("before saving $futureLastMessageSavedLocallyTime");
-      {
-        storage.setItem('last_message_time',
-            futureLastMessageSavedLocallyTime.toDate().toIso8601String());
-      }
-    }
-  }
-
   void _onClose() async {
     setUserTimeLeft();
     colorStatusListener.cancel();
@@ -481,8 +470,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (inputMessage.isNotEmpty) {
       inputMessage = '';
       _changeTypingTo(false);
+    } 
+    if (isInSalfh) {
+      setLocalStorage(
+          allTheMessages, futureLastMessageSavedLocallyTime, storage);
     }
-    if (isInSalfh) setLocalStorage();
   }
 
   @override
