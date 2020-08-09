@@ -5,7 +5,7 @@ Future<dynamic> backgroundMessageHandler(Map<String, dynamic> message) async {
     // Handle data message
     final dynamic data = message['data'];
 
-    if (data['type'] == 'inv') {
+    if (data['type'] == 'inv') {    
       var prefs = await SharedPreferences.getInstance();
       List<String> invitedToSwalf =
           prefs.getStringList('invited') ?? List<String>();

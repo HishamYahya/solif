@@ -139,7 +139,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     String testString = 'snaplen:' +
         snapLen.toString() +
-        ' localLen:' +
+        ' localLen:' +  
         localLen.toString() +
         ' allLen:' +
         allLen.toString();
@@ -470,10 +470,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (inputMessage.isNotEmpty) {
       inputMessage = '';
       _changeTypingTo(false);
-    } 
-    if (isInSalfh) {
-      setLocalStorage(
-          allTheMessages, futureLastMessageSavedLocallyTime, storage);
     }
   }
 
@@ -502,167 +498,175 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     Color backGround = Colors.white;
     Color currentColor = kOurColors[colorName];
     //////////////////// hot reload to add message
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: Colors.blueAccent[50],
-        endDrawer: ChatScreenDrawer(
-            title: widget.title,
-            adminID: widget.adminID,
-            colorsStatus: colorsStatus,
-            color: colorName,
-            salfhID: widget.salfhID),
-        endDrawerEnableOpenDragGesture: isInSalfh,
-        body: Column(
-          children: <Widget>[
-            Expanded(
-              child: Stack(
-                children: [
-                  StreamBuilder<QuerySnapshot>(
-                    stream: firestore
-                        .collection("chatRooms")
-                        .document(widget.salfhID)
-                        .collection('messages')
-                        .orderBy('timeSent')
-                        .startAfter([lastMessageSavedLocally]).snapshots(),
-                    builder: (context, snapshot) {
-                      print("lastMessageTime $lastMessageSavedLocally");
+    return WillPopScope(
+      onWillPop: () => isInSalfh
+          ? setLocalStorage(
+              allTheMessages, futureLastMessageSavedLocallyTime, storage)
+          : {},
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: Colors.blueAccent[50],
+          endDrawer: ChatScreenDrawer(
+              title: widget.title,
+              adminID: widget.adminID,
+              colorsStatus: colorsStatus,
+              color: colorName,
+              salfhID: widget.salfhID),
+          endDrawerEnableOpenDragGesture: isInSalfh,
+          body: Column(
+            children: <Widget>[
+              Expanded(
+                child: Stack(
+                  children: [
+                    StreamBuilder<QuerySnapshot>(
+                      stream: firestore
+                          .collection("chatRooms")
+                          .document(widget.salfhID)
+                          .collection('messages')
+                          .orderBy('timeSent')
+                          .startAfter([lastMessageSavedLocally]).snapshots(),
+                      builder: (context, snapshot) {
+                        print("lastMessageTime $lastMessageSavedLocally");
 
-                      //TODO: display the message on sc reen only when it's been written to the database
-                      if (!snapshot.hasData || lastLeftStatus == null) {
-                        return LoadingWidget("");
-                      }
-
-                      final messages = snapshot.data.documents.reversed;
-                      List<DocumentSnapshot> snapshotMessages =
-                          messages.toList();
-                      Set<String> alreadyRead = Set<String>();
-                      List<MessageTile> messageTiles = [];
-
-                      populateAllMessages(snapshotMessages, localMessages); //
-
-                      for (int i = 0;
-                          i < snapshotMessages.length + localMessages.length;
-                          i++) {
-                        var message;
-                        bool isSending;
-                        if (i < snapshotMessages.length) {
-                          // snapshot message
-                          message = snapshotMessages[i];
-                          isSending = message.metadata.hasPendingWrites;
-                        } else {
-                          // local message
-                          message = localMessages[i - snapshotMessages.length];
-                          print('message 2 $message');
-                          isSending = false;
+                        //TODO: display the message on sc reen only when it's been written to the database
+                        if (!snapshot.hasData || lastLeftStatus == null) {
+                          return LoadingWidget("");
                         }
 
-                        List<String> readColors = [];
-                        lastLeftStatus.forEach((color, lastLeft) {
-                          var estimateTimeSent;
-                          if (message is DocumentSnapshot &&
-                              message.metadata.hasPendingWrites) {
-                            estimateTimeSent = Timestamp.now();
+                        final messages = snapshot.data.documents.reversed;
+                        List<DocumentSnapshot> snapshotMessages =
+                            messages.toList();
+                        Set<String> alreadyRead = Set<String>();
+                        List<MessageTile> messageTiles = [];
+
+                        populateAllMessages(snapshotMessages, localMessages); //
+
+                        for (int i = 0;
+                            i < snapshotMessages.length + localMessages.length;
+                            i++) {
+                          var message;
+                          bool isSending;
+                          if (i < snapshotMessages.length) {
+                            // snapshot message
+                            message = snapshotMessages[i];
+                            isSending = message.metadata.hasPendingWrites;
                           } else {
-                            // print(message.keys);
-
-                            estimateTimeSent = message['timeSent'];
+                            // local message
+                            message =
+                                localMessages[i - snapshotMessages.length];
+                            isSending = false;
+                            
                           }
-                          if (message['color'] != color &&
-                              !alreadyRead.contains(color) &&
-                              lastLeft.compareTo(estimateTimeSent) >= 0) {
-                            readColors.add(color);
-                            alreadyRead.add(color);
-                          }
-                        });
-                        print('Stream');
+                          // print(colorsStatus);
 
-                        messageTiles.add(MessageTile(
-                          color: message['color'],
-                          message: message["content"],
-                          fromUser: message['color'] == colorName,
-                          readColors: readColors,
-                          isSending: isSending,
+                          List<String> readColors = [];
+                          lastLeftStatus.forEach((color, lastLeft) {
+                            var estimateTimeSent;
+                            if (message is DocumentSnapshot &&
+                                message.metadata.hasPendingWrites) {
+                              estimateTimeSent = Timestamp.now();
+                            } else {
+                              // print(message.keys);
 
-                          //
-                          // add stuff here when you update messageTile
-                          // time: message["time"],
-                          //
-                        ));
-                      }
-                      print('after');
-                      return ListView.builder(
-                        reverse: true,
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 10.0, vertical: 20.0),
-                        itemCount: messageTiles.length,
-                        itemBuilder: (context, index) {
-                          return messageTiles[index];
-                        },
-                      );
-                    },
-                  ),
-                  Positioned(
-                    bottom: 5,
-                    width: MediaQuery.of(context).size.width * 0.5,
-                    child: Center(
-                        child: TypingWidgetRow(typingStatus: typingStatus)),
-                  ),
-                  ChatScreenAppBar(isInSalfh: isInSalfh, color: colorName),
-                ],
+                              estimateTimeSent = message['timeSent'];
+                            }
+                            if (message['color'] != color &&
+                                !alreadyRead.contains(color) &&
+                                lastLeft.compareTo(estimateTimeSent) >= 0 && colorsStatus[color] != null ) {
+                              readColors.add(color);
+                              alreadyRead.add(color);
+                            }
+                          });
+                          print('Stream');
+
+                          messageTiles.add(MessageTile(
+                            color: message['color'],
+                            message: message["content"],
+                            fromUser: message['color'] == colorName,
+                            readColors: readColors,
+                            isSending: isSending,
+
+                            //
+                            // add stuff here when you update messageTile
+                            // time: message["time"],
+                            //
+                          ));
+                        }
+                        print('after');
+                        return ListView.builder(
+                          reverse: true,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 10.0, vertical: 20.0),
+                          itemCount: messageTiles.length,
+                          itemBuilder: (context, index) {
+                            return messageTiles[index];
+                          },
+                        );
+                      },
+                    ),
+                    Positioned(
+                      bottom: 5,
+                      width: MediaQuery.of(context).size.width * 0.5,
+                      child: Center(
+                          child: TypingWidgetRow(typingStatus: typingStatus)),
+                    ),
+                    ChatScreenAppBar(isInSalfh: isInSalfh, color: colorName),
+                  ],
+                ),
               ),
-            ),
-            Container(
-              color: Colors.grey[200],
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      width: 0,
-                      color: Colors.grey[200],
+              Container(
+                color: Colors.grey[200],
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        width: 0,
+                        color: Colors.grey[200],
+                      ),
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(150),
+                      ),
+                      color: Colors.white,
                     ),
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(150),
-                    ),
-                    color: Colors.white,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        Expanded(
-                          child: ChatInputBox(
-                            color: currentColor,
-                            messageController: messageController,
-                            onChanged: (String value) {
-                              if (isInSalfh) {
-                                updateTyping(value);
-                              }
-                              inputMessage = value;
-                            },
-                            onSubmit: (_) {
-                              _onSubmit();
-                            },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.max,
+                        children: <Widget>[
+                          Expanded(
+                            child: ChatInputBox(
+                              color: currentColor,
+                              messageController: messageController,
+                              onChanged: (String value) {
+                                if (isInSalfh) {
+                                  updateTyping(value);
+                                }
+                                inputMessage = value;
+                              },
+                              onSubmit: (_) {
+                                _onSubmit();
+                              },
+                            ),
                           ),
-                        ),
-                        SizedBox(width: 10),
-                        FloatingActionButton(
-                          backgroundColor: currentColor,
-                          child: sending
-                              ? CircularProgressIndicator(
-                                  backgroundColor: Colors.white,
-                                )
-                              : Icon(Icons.send),
-                          onPressed: _onSubmit,
-                        )
-                      ],
+                          SizedBox(width: 10),
+                          FloatingActionButton(
+                            backgroundColor: currentColor,
+                            child: sending
+                                ? CircularProgressIndicator(
+                                    backgroundColor: Colors.white,
+                                  )
+                                : Icon(Icons.send),
+                            onPressed: _onSubmit,
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
