@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/BottomBar.dart';
 import 'package:solif/components/ColoredDot.dart';
@@ -29,6 +30,32 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
   final fcm = FirebaseMessaging();
 
+  static Future<dynamic> backgroundMessageHandler(
+      Map<String, dynamic> message) async {
+    // if (message.containsKey('data')) {
+    //   // Handle data message
+    //   final dynamic data = message['data'];
+
+    //   if (data['type'] == 'inv') {
+    //     var prefs = await SharedPreferences.getInstance();
+    //     List<String> invitedToSwalf =
+    //         prefs.getStringList('invited') ?? List<String>();
+
+    //     invitedToSwalf.add(data['id']);
+
+    //     prefs.setStringList('invited', invitedToSwalf);
+    //   }
+    // }
+
+    // if (message.containsKey('notification')) {
+    //   // Handle notification message
+    //   final dynamic notification = message['notification'];
+    // }
+    print('RAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAN');
+    return null;
+    // Or do other work.
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -43,7 +70,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       onMessage: (message) {
         print("onMessage $message");
       },
-      // onBackgroundMessage: backgroundMessageHandler
+      onBackgroundMessage: backgroundMessageHandler,
     );
 
     _tabController = TabController(vsync: this, length: 2);

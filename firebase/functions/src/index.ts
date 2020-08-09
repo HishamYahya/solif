@@ -28,7 +28,7 @@ enum ColorNames {
 }
 const kColorNames: Array<Color> = [ColorNames.blue, ColorNames.green, ColorNames.purple, ColorNames.red, ColorNames.yellow];
 
-exports.inviteUSer = functions.https.onCall(async (data, context) => {
+exports.inviteUser = functions.https.onCall(async (data, context) => {
 
     /*
     data keys: [salfhID, invitedID]
@@ -43,7 +43,7 @@ exports.inviteUSer = functions.https.onCall(async (data, context) => {
     const functionCallerID = context.auth.uid;
 
 
-    const salfhData = await (await firestore.collection('Swalf').doc(salfhID).get()).data();
+    const salfhData = (await firestore.collection('Swalf').doc(salfhID).get()).data();
 
     if (salfhData === undefined) throw new Error("Document not found");
 
@@ -62,12 +62,7 @@ exports.inviteUSer = functions.https.onCall(async (data, context) => {
 
     const condition: string = `'${invitedID}' in topics`;
 
-    const payload = {
-        notification: {
-            title: "You are getting invited to this salfh", // TODO: change message
-            body: salfhData['title'],
-            //tag: context.params.salfhID
-        },
+    const dataPayload = {
         data: {
             click_action: 'FLUTTER_NOTIFICATION_CLICK',
             id: salfhData.id,
@@ -76,8 +71,18 @@ exports.inviteUSer = functions.https.onCall(async (data, context) => {
         },
         condition: condition
     };
-    return admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
+    const notification = {
+        nootification: {
+            title: "You are getting invited to this salfh", // TODO: change message
+            body: salfhData['title'],
+        },
+        condition: condition
+    };
+    await admin.messaging().send(dataPayload).then(value => console.log(value)).catch(err => console.log(err));
 
+    await admin.messaging().send(notification).then(value => console.log(value)).catch(err => console.log(err));
+
+    return true;
 
 
 

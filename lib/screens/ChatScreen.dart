@@ -108,8 +108,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       print(element['timeSent'].runtimeType);
       print(element['timeSent']);
 
-      if (element['timeSent'] is String)
-      {
+      if (element['timeSent'] is String) {
         element['timeSent'] =
             Timestamp.fromDate(DateTime.parse(element['timeSent']));
       }

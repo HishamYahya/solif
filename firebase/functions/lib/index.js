@@ -19,7 +19,7 @@ var ColorNames;
     ColorNames["red"] = "red";
 })(ColorNames || (ColorNames = {}));
 const kColorNames = [ColorNames.blue, ColorNames.green, ColorNames.purple, ColorNames.red, ColorNames.yellow];
-exports.inviteUSer = functions.https.onCall(async (data, context) => {
+exports.inviteUser = functions.https.onCall(async (data, context) => {
     /*
     data keys: [salfhID, invitedID]
     */
@@ -28,7 +28,7 @@ exports.inviteUSer = functions.https.onCall(async (data, context) => {
     const salfhID = data.salfhID;
     const invitedID = data.invitedID;
     const functionCallerID = context.auth.uid;
-    const salfhData = await (await firestore.collection('Swalf').doc(salfhID).get()).data();
+    const salfhData = (await firestore.collection('Swalf').doc(salfhID).get()).data();
     if (salfhData === undefined)
         throw new Error("Document not found");
     const adminID = salfhData.adminID;
@@ -38,11 +38,7 @@ exports.inviteUSer = functions.https.onCall(async (data, context) => {
     // await firestore.collection("Swalf").doc(salfhID).set({  'usersInvited': FieldValue.arrayUnion(invitedID) }, { merge: true })
     // in case sharedprefrence method doesn't work uncomment. 
     const condition = `'${invitedID}' in topics`;
-    const payload = {
-        notification: {
-            title: "You are getting invited to this salfh",
-            body: salfhData['title'],
-        },
+    const dataPayload = {
         data: {
             click_action: 'FLUTTER_NOTIFICATION_CLICK',
             id: salfhData.id,
@@ -50,7 +46,16 @@ exports.inviteUSer = functions.https.onCall(async (data, context) => {
         },
         condition: condition
     };
-    return admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
+    const notification = {
+        nootification: {
+            title: "You are getting invited to this salfh",
+            body: salfhData['title'],
+        },
+        condition: condition
+    };
+    await admin.messaging().send(dataPayload).then(value => console.log(value)).catch(err => console.log(err));
+    await admin.messaging().send(notification).then(value => console.log(value)).catch(err => console.log(err));
+    return true;
 });
 exports.joinSalfh = functions.https.onCall(async (data, context) => {
     if (!context.auth) {
@@ -112,7 +117,7 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
             if (colorsStatus[color] === (snapshotData === null || snapshotData === void 0 ? void 0 : snapshotData.adminID) && colorsStatus[color] === ((_b = context.auth) === null || _b === void 0 ? void 0 : _b.uid)) {
                 const colorsInOrder = snapshotData.colorsInOrder;
                 if (colorsInOrder.length === 0) {
-                    deleteSalfh(salfhID, colorsStatus[color], transaction); // not tested;  
+                    deleteSalfh(salfhID, colorsStatus[color], transaction);
                 }
                 else {
                     const newAdminColor = colorsInOrder[0];

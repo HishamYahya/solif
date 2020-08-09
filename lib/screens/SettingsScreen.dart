@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -43,6 +44,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: 'نقاطي',
                   leading:
                       Icon(Icons.signal_cellular_connected_no_internet_4_bar),
+                  onTap: () {
+                    print('tapped');
+                    HttpsCallable callable = CloudFunctions.instance
+                        .getHttpsCallable(functionName: 'inviteUser');
+                    callable.call({
+                      'salfhID': 'SDFDS',
+                      'invitedID': Provider.of<AppData>(context, listen: false)
+                          .currentUserID
+                    });
+                  },
                 ),
                 SettingsTile(
                   title: 'new user',
