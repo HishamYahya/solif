@@ -85,6 +85,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     setTimeLeftInfinity();
     // check if user is in salfh
     String userID = Provider.of<AppData>(context, listen: false).currentUserID;
+    storage = new LocalStorage(widget.salfhID + '.json'); //  sqlite plan b
+
     widget.colorsStatus.forEach((name, id) {
       if (id == userID)
         setState(() {
@@ -99,7 +101,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> loadLocalStorageMessages() async {
-    storage = new LocalStorage(widget.salfhID + '.json'); //  sqlite plan b
+    
     bool isReady = await storage.ready;
     print('isReady:$isReady');
 
@@ -464,12 +466,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   void _onClose() async {
+    print(storage.toString());
     setUserTimeLeft();
     colorStatusListener.cancel();
     timeLastLeftListener.cancel();
     if (inputMessage.isNotEmpty) {
       inputMessage = '';
       _changeTypingTo(false);
+    } 
+    if(isInSalfh){
+      await setLocalStorage(allTheMessages, futureLastMessageSavedLocallyTime, storage);
     }
   }
 
@@ -499,10 +505,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     Color currentColor = kOurColors[colorName];
     //////////////////// hot reload to add message
     return WillPopScope(
-      onWillPop: () => isInSalfh
-          ? setLocalStorage(
-              allTheMessages, futureLastMessageSavedLocallyTime, storage)
-          : {},
+      onWillPop: () {},
+      // isInSalfh  
+      //     ? setLocalStorage(
+      //         allTheMessages, futureLastMessageSavedLocallyTime, storage)
+      //     : {},
       child: SafeArea(
         child: Scaffold(
           backgroundColor: Colors.blueAccent[50],
