@@ -19,7 +19,7 @@ var ColorNames;
     ColorNames["red"] = "red";
 })(ColorNames || (ColorNames = {}));
 const kColorNames = [ColorNames.blue, ColorNames.green, ColorNames.purple, ColorNames.red, ColorNames.yellow];
-exports.inviteUSer = functions.https.onCall(async (data, context) => {
+exports.inviteUser = functions.https.onCall(async (data, context) => {
     /*
     data keys: [salfhID, invitedID]
     */
@@ -112,7 +112,7 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
             if (colorsStatus[color] === (snapshotData === null || snapshotData === void 0 ? void 0 : snapshotData.adminID) && colorsStatus[color] === ((_b = context.auth) === null || _b === void 0 ? void 0 : _b.uid)) {
                 const colorsInOrder = snapshotData.colorsInOrder;
                 if (colorsInOrder.length === 0) {
-                    deleteSalfh(salfhID, colorsStatus[color], transaction); // not tested;  
+                    deleteSalfh(salfhID, colorsStatus[color], transaction);
                 }
                 else {
                     const newAdminColor = colorsInOrder[0];
@@ -320,7 +320,7 @@ exports.createSalfh = functions.https.onCall(async (data, context) => {
         chatRoomData.typingStatus[name] = false;
     });
     await firestore.collection("chatRooms").doc(salfhRef.id).set(chatRoomData, { merge: true });
-    const tags = data.tags;
+    const tags = data.FCM_tags;
     if (!tags || tags.length === 0)
         return { salfhID: salfhRef.id };
     let condition = "";
@@ -401,7 +401,7 @@ function incrementTags(tags) {
     tags.forEach((tag) => {
         // tslint:disable-next-line: no-floating-promises
         firestore.collection('tags').doc(tag).set({
-            'tagName': tag,
+            'tagName': tag.substring(0, tag.length - 2),
             'tagCounter': increment,
             'searchKeys': stringKeys(tag)
         }, { merge: true });
@@ -409,7 +409,7 @@ function incrementTags(tags) {
 }
 function stringKeys(tag) {
     const keys = [];
-    for (let i = 0; i < tag.length; i++) {
+    for (let i = 0; i < tag.length - 2; i++) {
         keys.push(tag.substring(0, i + 1));
     }
     return keys;

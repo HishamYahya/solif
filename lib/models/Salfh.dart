@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:solif/Services/FirebaseServices.dart';
+import 'package:solif/Services/ValidFirebaseStringConverter.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/User.dart';
 import 'package:solif/models/Tag.dart';
@@ -104,10 +105,11 @@ Future<Map<String, dynamic>> saveSalfh(
   // }
   // return null;
 
+  List<String> encodedTags = ValidFireBaseStringConverter.convertList(tags);
   final HttpsCallable callable =
       CloudFunctions.instance.getHttpsCallable(functionName: 'createSalfh');
   final res =
-      await callable.call(<String, dynamic>{'title': title, 'tags': tags});
+      await callable.call(<String, dynamic>{'title': title, 'tags': tags,'FCM_tags': encodedTags});
   final salfhID = res.data['salfhID'];
   if (salfhID == null) return null;
 
