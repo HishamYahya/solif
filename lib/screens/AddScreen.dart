@@ -171,7 +171,7 @@ class _AddScreenState extends State<AddScreen> {
                                           if (value == "") return "enter title";
                                           return null;
                                         },
-                                        maxLength: 50,
+                                        maxLength: 30,
                                         style: kHintTextStyle.copyWith(
                                             color: Colors.white),
                                         decoration: InputDecoration(

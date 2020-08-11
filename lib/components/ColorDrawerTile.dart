@@ -5,6 +5,7 @@ import 'package:solif/models/Likes.dart';
 import 'package:solif/models/Salfh.dart';
 
 import '../constants.dart';
+import 'InviteDialog.dart';
 
 class ColorDrawerTile extends StatefulWidget {
   final bool isCreator;
@@ -31,11 +32,24 @@ class _ColorDrawerTileState extends State<ColorDrawerTile> {
   List<Widget> getIcons() {
     final icons = [
       IconButton(
-          icon: Icon(
-            Icons.report,
-            color: Colors.grey[200],
-          ),
-          onPressed: null),
+        icon: Icon(
+          Icons.report,
+          color: Colors.grey[200],
+        ),
+        onPressed: null,
+      ),
+      IconButton(
+        icon: Icon(
+          Icons.group_add,
+          color: Colors.grey[200],
+        ),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) => InviteDialog(color: widget.color),
+          );
+        },
+      ),
       AnimatedSwitcher(
         duration: Duration(milliseconds: 100),
         transitionBuilder: (child, animation) => ScaleTransition(

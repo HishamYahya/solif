@@ -115,7 +115,7 @@ class _ChatScreenDrawerState extends State<ChatScreenDrawer> {
             // ),
             Container(
               decoration: BoxDecoration(
-                color: Colors.red[300],
+                color: kCancelRedColor,
                 borderRadius: BorderRadius.only(
                   // topLeft: Radius.circular(40),
                   bottomLeft: Radius.circular(40),

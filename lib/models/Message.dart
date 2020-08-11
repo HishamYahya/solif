@@ -1,7 +1,5 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
 
 class Message {
   String content;
@@ -12,9 +10,9 @@ class Message {
 
   Message(
       {@required this.content,
-      @required this.serverTimeSent,
+      this.serverTimeSent,
       @required this.color,
-      @required this.userID,
+      this.userID,
       this.timeSent});
 
   Map<String, dynamic> toMap() {
