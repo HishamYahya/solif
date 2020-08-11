@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +7,6 @@ import 'package:localstorage/localstorage.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/components/ChatInputBox.dart';
-import 'package:solif/components/ChatScreenAppBar.dart';
 import 'package:solif/components/ChatScreenDrawer.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/MessageTile.dart';
@@ -44,7 +42,8 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   LocalStorage storage;
   List<Map<String, dynamic>> localMessages = [];
-  List<Map<String, dynamic>> allTheMessages = [];
+  List<Map<String, dynamic>> allTheMessages =
+      []; // messages to be written to the storage.
   var lastMessageSavedLocally;
   var futureLastMessageSavedLocallyTime;
   String inputMessage = "";
@@ -98,22 +97,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> loadLocalStorageMessages() async {
-    storage = new LocalStorage(widget.salfhID + '.json');
+    storage = new LocalStorage(widget.salfhID + '.json'); //  sqlite plan b
     bool isReady = await storage.ready;
     print('isReady:$isReady');
 
     List<dynamic> storedMessages = storage.getItem('local_messages') ?? [];
+
     print("local items length ${storedMessages.length}");
     storedMessages.forEach((element) {
-      print(element['timeSent'].runtimeType);
-      print(element['timeSent']);
-
       if (element['timeSent'] is String) {
         element['timeSent'] =
             Timestamp.fromDate(DateTime.parse(element['timeSent']));
       }
-      print(element);
-      print(element['timeSent'].runtimeType);
+
       localMessages.add(element);
     });
 
@@ -147,9 +143,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         allLen.toString();
     print(testString);
 
-    allTheMessages.forEach((element) {
-      print("all: ${element['content']}");
-    });
+    // allTheMessages.forEach((element) {
+    //   print("all: ${element['content']}");
+    // });
     //  print("snapMessages: ${snapshotMessages.fore}");
     //  print("localMessages: ${localMessages.toString()}");
     //  print("allTheMessages: ${allTheMessages.toString()}");
@@ -157,6 +153,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (snapLen == 0) {
       return;
     } else if ((snapLen + localLen) - allLen == 1) {
+      // 4 8 3
+
       // case: One message behind the live data (difference in length = 1)
       var timeSent;
       var lastMessageSent = snapshotMessages.first;
@@ -463,18 +461,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> setLocalStorage() async {
-    if (futureLastMessageSavedLocallyTime != null) {
-      await storage.ready;
-      storage.setItem('local_messages', allTheMessages.reversed.toList());
-      print("before saving $futureLastMessageSavedLocallyTime");
-      {
-        storage.setItem('last_message_time',
-            futureLastMessageSavedLocallyTime.toDate().toIso8601String());
-      }
-    }
-  }
-
   void _onClose() async {
     setUserTimeLeft();
     colorStatusListener.cancel();
@@ -483,7 +469,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       inputMessage = '';
       _changeTypingTo(false);
     }
-    if (isInSalfh) setLocalStorage();
   }
 
   @override
@@ -510,177 +495,187 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     Color currentColor = kOurColors[colorName];
     //////////////////// hot reload to add message
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        automaticallyImplyLeading: false,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
-              color: Colors.grey[500],
-            ),
-            Expanded(child: TypingWidgetRow(typingStatus: typingStatus)),
-            isInSalfh
-                ? Builder(
-                    builder: (context) => IconButton(
-                      icon: Icon(Icons.view_stream),
-                      onPressed: () => Scaffold.of(context).openEndDrawer(),
-                      color: currentColor,
-                    ),
-                  )
-                : SizedBox(),
-          ],
+
+    return WillPopScope(
+      onWillPop: () => isInSalfh
+          ? setLocalStorage(
+              allTheMessages, futureLastMessageSavedLocallyTime, storage)
+          : {},
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          automaticallyImplyLeading: false,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+                color: Colors.grey[500],
+              ),
+              Expanded(child: TypingWidgetRow(typingStatus: typingStatus)),
+              isInSalfh
+                  ? Builder(
+                      builder: (context) => IconButton(
+                        icon: Icon(Icons.view_stream),
+                        onPressed: () => Scaffold.of(context).openEndDrawer(),
+                        color: currentColor,
+                      ),
+                    )
+                  : SizedBox(),
+            ],
+          ),
+          actions: <Widget>[Container()],
         ),
-        actions: <Widget>[Container()],
-      ),
-      backgroundColor: Colors.blueAccent[50],
-      endDrawer: ChatScreenDrawer(
-          title: widget.title,
-          adminID: widget.adminID,
-          colorsStatus: colorsStatus,
-          color: colorName,
-          salfhID: widget.salfhID),
-      endDrawerEnableOpenDragGesture: isInSalfh,
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: firestore
-                  .collection("chatRooms")
-                  .document(widget.salfhID)
-                  .collection('messages')
-                  .orderBy('timeSent')
-                  .startAfter([lastMessageSavedLocally]).snapshots(),
-              builder: (context, snapshot) {
-                print("lastMessageTime $lastMessageSavedLocally");
+        backgroundColor: Colors.blueAccent[50],
+        endDrawer: ChatScreenDrawer(
+            title: widget.title,
+            adminID: widget.adminID,
+            colorsStatus: colorsStatus,
+            color: colorName,
+            salfhID: widget.salfhID),
+        endDrawerEnableOpenDragGesture: isInSalfh,
+        body: Column(
+          children: <Widget>[
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: firestore
+                    .collection("chatRooms")
+                    .document(widget.salfhID)
+                    .collection('messages')
+                    .orderBy('timeSent')
+                    .startAfter([lastMessageSavedLocally]).snapshots(),
+                builder: (context, snapshot) {
+                  print("lastMessageTime $lastMessageSavedLocally");
 
-                //TODO: display the message on sc reen only when it's been written to the database
-                if (!snapshot.hasData || lastLeftStatus == null) {
-                  return LoadingWidget("");
-                }
-
-                final messages = snapshot.data.documents.reversed;
-                List<DocumentSnapshot> snapshotMessages = messages.toList();
-                Set<String> alreadyRead = Set<String>();
-                List<MessageTile> messageTiles = [];
-
-                populateAllMessages(snapshotMessages, localMessages);
-
-                for (int i = 0;
-                    i < snapshotMessages.length + localMessages.length;
-                    i++) {
-                  var message;
-                  bool isSending;
-                  if (i < snapshotMessages.length) {
-                    message = snapshotMessages[i];
-                    isSending = message.metadata.hasPendingWrites;
-                  } else {
-                    message = localMessages[i - snapshotMessages.length];
-                    print('message 2 $message');
-                    isSending = false;
+                  //TODO: display the message on sc reen only when it's been written to the database
+                  if (!snapshot.hasData || lastLeftStatus == null) {
+                    return LoadingWidget("");
                   }
 
-                  List<String> readColors = [];
-                  lastLeftStatus.forEach((color, lastLeft) {
-                    var estimateTimeSent;
-                    if (message is DocumentSnapshot &&
-                        message.metadata.hasPendingWrites) {
-                      estimateTimeSent = Timestamp.now();
+                  final messages = snapshot.data.documents.reversed;
+                  List<DocumentSnapshot> snapshotMessages = messages.toList();
+                  Set<String> alreadyRead = Set<String>();
+                  List<MessageTile> messageTiles = [];
+
+                  populateAllMessages(snapshotMessages, localMessages); //
+
+                  for (int i = 0;
+                      i < snapshotMessages.length + localMessages.length;
+                      i++) {
+                    var message;
+                    bool isSending;
+                    if (i < snapshotMessages.length) {
+                      // snapshot message
+                      message = snapshotMessages[i];
+                      isSending = message.metadata.hasPendingWrites;
                     } else {
-                      // print(message.keys);
-
-                      estimateTimeSent = message['timeSent'];
+                      // local message
+                      message = localMessages[i - snapshotMessages.length];
+                      isSending = false;
                     }
-                    if (message['color'] != color &&
-                        !alreadyRead.contains(color) &&
-                        lastLeft.compareTo(estimateTimeSent) >= 0) {
-                      readColors.add(color);
-                      alreadyRead.add(color);
-                    }
-                  });
-                  print('Stream');
+                    // print(colorsStatus);
 
-                  messageTiles.add(MessageTile(
-                    color: message['color'],
-                    message: message["content"],
-                    fromUser: message['color'] == colorName,
-                    readColors: readColors,
-                    isSending: isSending,
+                    List<String> readColors = [];
+                    lastLeftStatus.forEach((color, lastLeft) {
+                      var estimateTimeSent;
+                      if (message is DocumentSnapshot &&
+                          message.metadata.hasPendingWrites) {
+                        estimateTimeSent = Timestamp.now();
+                      } else {
+                        // print(message.keys);
 
-                    //
-                    // add stuff here when you update messageTile
-                    // time: message["time"],
-                    //
-                  ));
-                }
-                print('after');
-                return ListView.builder(
-                  reverse: true,
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
-                  itemCount: messageTiles.length,
-                  itemBuilder: (context, index) {
-                    return messageTiles[index];
-                  },
-                );
-              },
+                        estimateTimeSent = message['timeSent'];
+                      }
+                      if (message['color'] != color &&
+                          !alreadyRead.contains(color) &&
+                          lastLeft.compareTo(estimateTimeSent) >= 0 &&
+                          colorsStatus[color] != null) {
+                        readColors.add(color);
+                        alreadyRead.add(color);
+                      }
+                    });
+                    print('Stream');
+
+                    messageTiles.add(MessageTile(
+                      color: message['color'],
+                      message: message["content"],
+                      fromUser: message['color'] == colorName,
+                      readColors: readColors,
+                      isSending: isSending,
+
+                      //
+                      // add stuff here when you update messageTile
+                      // time: message["time"],
+                      //
+                    ));
+                  }
+                  print('after');
+                  return ListView.builder(
+                    reverse: true,
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
+                    itemCount: messageTiles.length,
+                    itemBuilder: (context, index) {
+                      return messageTiles[index];
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-          Container(
-            color: Colors.grey[200],
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    width: 0,
-                    color: Colors.grey[200],
+            Container(
+              color: Colors.grey[200],
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      width: 0,
+                      color: Colors.grey[200],
+                    ),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(150),
+                    ),
+                    color: Colors.white,
                   ),
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(150),
-                  ),
-                  color: Colors.white,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 0),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      Expanded(
-                        child: ChatInputBox(
-                          color: currentColor,
-                          messageController: messageController,
-                          onChanged: (String value) {
-                            if (isInSalfh) {
-                              updateTyping(value);
-                            }
-                            inputMessage = value;
-                          },
-                          onSubmit: (_) {
-                            _onSubmit();
-                          },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: <Widget>[
+                        Expanded(
+                          child: ChatInputBox(
+                            color: currentColor,
+                            messageController: messageController,
+                            onChanged: (String value) {
+                              if (isInSalfh) {
+                                updateTyping(value);
+                              }
+                              inputMessage = value;
+                            },
+                            onSubmit: (_) {
+                              _onSubmit();
+                            },
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 10),
-                      FloatingActionButton(
-                        backgroundColor: currentColor,
-                        child: sending
-                            ? CircularProgressIndicator(
-                                backgroundColor: Colors.white,
-                              )
-                            : Icon(Icons.send),
-                        onPressed: _onSubmit,
-                      )
-                    ],
+                        SizedBox(width: 10),
+                        FloatingActionButton(
+                          backgroundColor: currentColor,
+                          child: sending
+                              ? CircularProgressIndicator(
+                                  backgroundColor: Colors.white,
+                                )
+                              : Icon(Icons.send),
+                          onPressed: _onSubmit,
+                        )
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

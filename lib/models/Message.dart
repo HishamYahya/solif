@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:localstorage/localstorage.dart';
 
 class Message {
   String content;
@@ -98,3 +99,19 @@ Future<bool> addMessage(
 //   });
 //   salfhDoc.updateData(salfh);
 // }
+
+
+ Future<void> setLocalStorage(List<Map<String,dynamic>> allTheMessages, var futureLastMessageSavedLocallyTime, LocalStorage storage) async {
+   print('here');
+   print('futureLastMessageSavedLocallyTime'); 
+    if (futureLastMessageSavedLocallyTime != null) {
+      await storage.ready;
+      
+      storage.setItem('local_messages', allTheMessages.reversed.toList());
+      print("before saving $futureLastMessageSavedLocallyTime");
+      {
+        storage.setItem('last_message_time',
+            futureLastMessageSavedLocallyTime.toDate().toIso8601String());
+      }
+    }
+  }

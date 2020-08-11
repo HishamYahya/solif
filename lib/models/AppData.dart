@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/Services/FirebaseServices.dart';
+import 'package:solif/Services/ValidFirebaseStringConverter.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/components/TagTile.dart';
 import 'package:solif/constants.dart';
@@ -159,7 +160,6 @@ class AppData with ChangeNotifier {
         fcm.subscribeToTopic(currentUserID);
       }
     }
-    print(currentUserID);
     notifyListeners();
   }
 
@@ -278,6 +278,7 @@ class AppData with ChangeNotifier {
         .collection('userTags')
         .document(tag)
         .delete();
+    tag = ValidFireBaseStringConverter.convertString(tag);
     fcm.unsubscribeFromTopic("${tag}TAG");
 
     tagsSavedLocally = tagsSavedLocally.map((e) => e).toList();
@@ -297,6 +298,7 @@ class AppData with ChangeNotifier {
         .collection('userTags')
         .document(tag)
         .setData({'tagName': tag, 'timeAdded': DateTime.now()});
+    tag = ValidFireBaseStringConverter.convertString(tag);
     fcm.subscribeToTopic(
         "${tag}TAG"); // without  an ending ID for tag topic, a salfh topic and a tag topic could have the same name. two topics same name = bad.
 

@@ -394,7 +394,8 @@ function getColorsStatus(adminID: string): ColorsStatus {
 exports.createSalfh = functions.https.onCall(async (data: {
     title: string,
     visible?: boolean,
-    tags?: Array<string>
+    tags?: Array<string>,
+    FCM_tags? : Array<string>
 }, context: CallableContext) => {
     if (!context.auth) {
         throw new HttpsError('unauthenticated', 'You are not logged in');
@@ -425,7 +426,7 @@ exports.createSalfh = functions.https.onCall(async (data: {
     });
     await firestore.collection("chatRooms").doc(salfhRef.id).set(chatRoomData, { merge: true });
 
-    const tags = data.tags;
+    const tags = data.FCM_tags;
 
     if (!tags || tags.length === 0) return { salfhID: salfhRef.id };
 
@@ -527,7 +528,7 @@ function incrementTags(tags: Array<string>) {
     tags.forEach((tag: string) => {
         // tslint:disable-next-line: no-floating-promises
         firestore.collection('tags').doc(tag).set({
-            'tagName': tag,
+            'tagName': tag.substring(0,tag.length-2),
             'tagCounter': increment,
             'searchKeys': stringKeys(tag)
         }, { merge: true });
@@ -537,7 +538,7 @@ function incrementTags(tags: Array<string>) {
 function stringKeys(tag: string) {
     const keys = [];
 
-    for (let i = 0; i < tag.length; i++) {
+    for (let i = 0; i < tag.length-2; i++) {
         keys.push(tag.substring(0, i + 1));
     }
     return keys;

@@ -325,7 +325,7 @@ exports.createSalfh = functions.https.onCall(async (data, context) => {
         chatRoomData.typingStatus[name] = false;
     });
     await firestore.collection("chatRooms").doc(salfhRef.id).set(chatRoomData, { merge: true });
-    const tags = data.tags;
+    const tags = data.FCM_tags;
     if (!tags || tags.length === 0)
         return { salfhID: salfhRef.id };
     let condition = "";
@@ -406,7 +406,7 @@ function incrementTags(tags) {
     tags.forEach((tag) => {
         // tslint:disable-next-line: no-floating-promises
         firestore.collection('tags').doc(tag).set({
-            'tagName': tag,
+            'tagName': tag.substring(0, tag.length - 2),
             'tagCounter': increment,
             'searchKeys': stringKeys(tag)
         }, { merge: true });
@@ -414,7 +414,7 @@ function incrementTags(tags) {
 }
 function stringKeys(tag) {
     const keys = [];
-    for (let i = 0; i < tag.length; i++) {
+    for (let i = 0; i < tag.length - 2; i++) {
         keys.push(tag.substring(0, i + 1));
     }
     return keys;
