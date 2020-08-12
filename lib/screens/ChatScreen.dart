@@ -44,9 +44,10 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   LocalStorage storage;
   List<Map<String, dynamic>> localMessages = [];
+  List<DocumentSnapshot> snapshotMessages = [];
   List<Map<String, dynamic>> allTheMessages =
       []; // messages to be written to the storage.
-  var lastMessageSavedLocally;
+  var lastMessageSavedLocallyTime;
   var futureLastMessageSavedLocallyTime;
   String inputMessage = "";
   Map colorsStatus;
@@ -101,7 +102,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> loadLocalStorageMessages() async {
-    
     bool isReady = await storage.ready;
     print('isReady:$isReady');
 
@@ -119,10 +119,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     // allTheMessages.addAll(storedMessages);
 
-    lastMessageSavedLocally = storage.getItem('last_message_time') ??
+    lastMessageSavedLocallyTime = storage.getItem('last_message_time') ??
         DateTime(2010); // default value last messages saved in 2010.
-    lastMessageSavedLocally =
-        DateTime.parse(lastMessageSavedLocally.toString());
+    lastMessageSavedLocallyTime =
+        DateTime.parse(lastMessageSavedLocallyTime.toString());
 
     // storedMessages.forEach((message) {
     //   MessageTile messageTile = MessageTile(
@@ -141,90 +141,38 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     String testString = 'snaplen:' +
         snapLen.toString() +
-        ' localLen:' +  
+        ' localLen:' +
         localLen.toString() +
         ' allLen:' +
         allLen.toString();
     print(testString);
 
-    // allTheMessages.forEach((element) {
-    //   print("all: ${element['content']}");
-    // });
-    //  print("snapMessages: ${snapshotMessages.fore}");
-    //  print("localMessages: ${localMessages.toString()}");
-    //  print("allTheMessages: ${allTheMessages.toString()}");
-
-    if (snapLen == 0) {
-      return;
-    } else if ((snapLen + localLen) - allLen == 1) {
-      // 4 8 3
-
-      // case: One message behind the live data (difference in length = 1)
-      var timeSent;
-      var lastMessageSent = snapshotMessages.first;
-      if (lastMessageSent.metadata.hasPendingWrites) {
-        return;
-      } else {
-        timeSent = lastMessageSent['timeSent'];
-        print("timesent $timeSent");
-      }
-      futureLastMessageSavedLocallyTime = lastMessageSent['timeSent'];
-      return allTheMessages.add(Message(
-              color: lastMessageSent['color'],
-              content: lastMessageSent['content'],
-              timeSent: timeSent)
+    Timestamp lastMessageSentTime =
+        Timestamp.fromDate(lastMessageSavedLocallyTime);
+    allTheMessages = [];
+    for (var message in localMessages.reversed) {
+      allTheMessages.add(Message(
+              color: message['color'],
+              content: message['content'],
+              timeSent: message['timeSent'])
           .toJson());
-    } else if ((snapLen + localLen) - allLen == 0) {
-      // case: up to date with live data.
-      // swap the last message with the newest message, (this happens because of FieldValue.TimeStamp causes the method to be called twice)
-      var lastMessageSent = snapshotMessages.first;
-      var timeSent;
-      if (lastMessageSent.metadata.hasPendingWrites) {
-        return;
-      } else {
-        timeSent = lastMessageSent['timeSent'];
-        print("timesent $timeSent");
+    }
+    for (var message in snapshotMessages.reversed) {
+     // if (messageCounter == 0) return;
+      if (message.metadata.hasPendingWrites) {
+        continue;
       }
-      futureLastMessageSavedLocallyTime = lastMessageSent['timeSent'];
-      allTheMessages[allLen - 1] = (Message(
-              color: lastMessageSent['color'],
-              content: lastMessageSent['content'],
-              timeSent: timeSent))
-          .toJson();
-    } else {
-      // case: several messages behind.
-      allTheMessages = [];
-      for (var message in localMessages.reversed) {
-        Timestamp timeSent = message['timeSent'];
-        String encodedTimeStamp = timeSent.toDate().toIso8601String();
-        Map<String, dynamic> copyedMessage = Map<String, dynamic>();
-        message.forEach((key, value) {
-          print(value);
-          if (key == 'timeSent') {
-            copyedMessage[key] = encodedTimeStamp;
-          } else {
-            copyedMessage[key] = value;
-          }
-        });
-        allTheMessages.add(copyedMessage);
-        allTheMessages.last['timeSent'] = encodedTimeStamp;
-      }
-      for (var message in snapshotMessages.reversed) {
-        if (messageCounter == 0) return;
-        var timeSent;
 
-        if (message.metadata.hasPendingWrites) {
-          return;
-        } else {
-          timeSent = message['timeSent'];
-        }
+      bool isCurrentMessageGreater =
+          lastMessageSentTime.compareTo(message['timeSent']) < 0;
+      if (isCurrentMessageGreater)
+        futureLastMessageSavedLocallyTime = message['timeSent'];
 
-        allTheMessages.add(Message(
-                color: message['color'],
-                content: message['content'],
-                timeSent: timeSent)
-            .toJson());
-      }
+      allTheMessages.add(Message(
+              color: message['color'],
+              content: message['content'],
+              timeSent: message['timeSent'])
+          .toJson());
     }
   }
 
@@ -473,9 +421,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (inputMessage.isNotEmpty) {
       inputMessage = '';
       _changeTypingTo(false);
-    } 
-    if(isInSalfh){
-      await setLocalStorage(allTheMessages, futureLastMessageSavedLocallyTime, storage);
+    }
+    if (isInSalfh) {
+      populateAllMessages(snapshotMessages, localMessages);
+      print('all messages before saving');
+      print(allTheMessages);
+      await setLocalStorage(
+          allTheMessages, futureLastMessageSavedLocallyTime, storage);
     }
   }
 
@@ -506,7 +458,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     //////////////////// hot reload to add message
     return WillPopScope(
       onWillPop: () {},
-      // isInSalfh  
+      // isInSalfh
       //     ? setLocalStorage(
       //         allTheMessages, futureLastMessageSavedLocallyTime, storage)
       //     : {},
@@ -531,9 +483,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           .document(widget.salfhID)
                           .collection('messages')
                           .orderBy('timeSent')
-                          .startAfter([lastMessageSavedLocally]).snapshots(),
+                          .startAfter(
+                              [lastMessageSavedLocallyTime]).snapshots(),
                       builder: (context, snapshot) {
-                        print("lastMessageTime $lastMessageSavedLocally");
+                        // print("lastMessageTime $lastMessageSavedLocally");
 
                         //TODO: display the message on sc reen only when it's been written to the database
                         if (!snapshot.hasData || lastLeftStatus == null) {
@@ -541,12 +494,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         }
 
                         final messages = snapshot.data.documents.reversed;
-                        List<DocumentSnapshot> snapshotMessages =
-                            messages.toList();
+                        snapshotMessages = messages
+                            .toList(); // this could be expensive in the long run, but easy to use.
+                        // note to self: Use iterator instead if ever preformance issues occur.
                         Set<String> alreadyRead = Set<String>();
                         List<MessageTile> messageTiles = [];
 
-                        populateAllMessages(snapshotMessages, localMessages); //
+                        // populateAllMessages(snapshotMessages, localMessages); //
 
                         for (int i = 0;
                             i < snapshotMessages.length + localMessages.length;
@@ -562,7 +516,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             message =
                                 localMessages[i - snapshotMessages.length];
                             isSending = false;
-                            
                           }
                           // print(colorsStatus);
 
@@ -579,12 +532,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             }
                             if (message['color'] != color &&
                                 !alreadyRead.contains(color) &&
-                                lastLeft.compareTo(estimateTimeSent) >= 0 && colorsStatus[color] != null ) {
+                                lastLeft.compareTo(estimateTimeSent) >= 0 &&
+                                colorsStatus[color] != null) {
                               readColors.add(color);
                               alreadyRead.add(color);
                             }
                           });
-                          print('Stream');
+                          // print('Stream');
 
                           messageTiles.add(MessageTile(
                             color: message['color'],
@@ -599,7 +553,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             //
                           ));
                         }
-                        print('after');
+                        //  print('after');
                         return ListView.builder(
                           reverse: true,
                           padding: EdgeInsets.symmetric(

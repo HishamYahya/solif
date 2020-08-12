@@ -105,7 +105,7 @@ Future<bool> addMessage(
 
  Future<void> setLocalStorage(List<Map<String,dynamic>> allTheMessages, var futureLastMessageSavedLocallyTime, LocalStorage storage) async {
    print('here');
-   print('futureLastMessageSavedLocallyTime'); 
+   print(futureLastMessageSavedLocallyTime); 
     if (futureLastMessageSavedLocallyTime != null) {
       await storage.ready;
       
