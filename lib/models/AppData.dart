@@ -299,6 +299,7 @@ class AppData with ChangeNotifier {
         .document(tag)
         .setData({'tagName': tag, 'timeAdded': DateTime.now()});
     tag = ValidFireBaseStringConverter.convertString(tag);
+    print(tag); 
     fcm.subscribeToTopic(
         "${tag}TAG"); // without  an ending ID for tag topic, a salfh topic and a tag topic could have the same name. two topics same name = bad.
 

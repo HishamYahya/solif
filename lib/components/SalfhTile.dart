@@ -34,7 +34,7 @@ class SalfhTile extends StatefulWidget {
       this.lastMessageSent,
       this.tags,
       this.adminID})
-      : this.lastMessageSentTime = lastMessageSent.containsKey('timeSent')
+      : this.lastMessageSentTime = lastMessageSent. containsKey('timeSent')
             ? lastMessageSent['timeSent'].toDate()
             : DateTime(1999);
 
