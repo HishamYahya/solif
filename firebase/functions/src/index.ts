@@ -421,15 +421,17 @@ exports.createSalfh = functions.https.onCall(async (data: {
     });
     await firestore.collection("chatRooms").doc(salfhRef.id).set(chatRoomData, { merge: true });
 
-    const tags = data.FCM_tags;
+    const FCM_tags = data.FCM_tags ?? []; 
+    const tags = data.tags ?? []; 
+    
 
     if (!tags || tags.length === 0) return { salfhID: salfhRef.id };
 
     let condition = "";
     incrementTags(tags);
-    for (const i in tags) {
-        console.log(tags[i]);
-        condition += `('${tags[i]}TAG' in topics) || `
+    for (const i in FCM_tags) {
+        console.log(FCM_tags[i]);
+        condition += `('${FCM_tags[i]}TAG' in topics) || `
     }
     condition = condition.substring(0, condition.length - 4);
     console.log(condition);
@@ -522,8 +524,8 @@ function incrementTags(tags: Array<string>) {
 
     tags.forEach((tag: string) => {
         // tslint:disable-next-line: no-floating-promises
-        firestore.collection('tags').doc(tag).set({
-            'tagName': tag.substring(0,tag.length-2),
+        firestore.collection('tags').doc().set({
+            'tagName': tag,
             'tagCounter': increment,
             'searchKeys': stringKeys(tag)
         }, { merge: true });
@@ -531,7 +533,7 @@ function incrementTags(tags: Array<string>) {
 }
 
 function stringKeys(tag: string) {
-    const keys = [];
+    const keys = [];            
 
     for (let i = 0; i < tag.length-2; i++) {
         keys.push(tag.substring(0, i + 1));
