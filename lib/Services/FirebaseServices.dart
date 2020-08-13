@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/AppData.dart';
 
@@ -9,7 +10,10 @@ import '../constants.dart';
 
 final firestore = Firestore.instance;
 
-Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
+Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async  {
+  try{
+
+ 
   int x = 1;
   final salfhDoc = await firestore.collection('users').document(userID).get();
   List<SalfhTile> salfhTiles = [];
@@ -35,6 +39,13 @@ Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
   });
 
   return salfhTiles;
+   }on AuthException catch(e){
+     print(e.toString());
+     throw("Permission Denied");
+  }catch(e){
+    print(e.toString()); 
+    throw('error');
+  }
 }
 
 Future<List<SalfhTile>> getPublicChatScreenTiles(String userID,

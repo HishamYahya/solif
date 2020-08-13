@@ -18,7 +18,7 @@ import 'package:localstorage/localstorage.dart';
 
 class AppData with ChangeNotifier {
   FirebaseUser currentUser;
-  List<SalfhTile> usersSalfhTiles;
+  Future<List<SalfhTile>> usersSalfhTiles;
   List<SalfhTile> publicSalfhTiles;
   List<TagTile> tagsSavedLocally = [];
   bool isTagslLoaded = false;
@@ -114,9 +114,10 @@ class AppData with ChangeNotifier {
 
   init() async {
     // await auth.signOut();
+    await loadUser();
     prefs = await SharedPreferences.getInstance();
     // await auth.signOut();
-    await loadUser();
+
     listenForNewUserSwalf();
     loadTiles();
   }
@@ -143,10 +144,12 @@ class AppData with ChangeNotifier {
     //   prefs.setString(key, userID);
     //   currentUserID = userID;
     //   fcm.subscribeToTopic(userID);
+
     // }
     // notifyListeners();
 
     final user = await auth.currentUser();
+
     if (user != null) {
       currentUser = user;
     } else {
@@ -173,7 +176,11 @@ class AppData with ChangeNotifier {
 
   ///// if list is null then it hasn't been loaded yet (happens only once)
   loadTiles() async {
-    usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
+    usersSalfhTiles =
+        getUsersChatScreenTiles(currentUserID).catchError((error) {
+      print('On catch error');
+      print(error.toString());
+    });
 
     notifyListeners();
     publicSalfhTiles =
@@ -181,10 +188,10 @@ class AppData with ChangeNotifier {
     notifyListeners();
   }
 
-  setUsersSalfhTiles(List<SalfhTile> salfhTiles) {
-    usersSalfhTiles = salfhTiles;
-    notifyListeners();
-  }
+  // setUsersSalfhTiles(List<SalfhTile> salfhTiles) {
+  //   usersSalfhTiles = salfhTiles;
+  //   notifyListeners();
+  // }
 
   setPublicSalfhTiles(List<SalfhTile> salfhTiles) {
     publicSalfhTiles = salfhTiles;
@@ -192,9 +199,9 @@ class AppData with ChangeNotifier {
   }
 
   reloadUsersSalfhTiles() async {
-    usersSalfhTiles = [];
+    // usersSalfhTiles = [];
     notifyListeners();
-    usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
+    usersSalfhTiles = getUsersChatScreenTiles(currentUserID);
 
     notifyListeners();
   }
@@ -299,7 +306,7 @@ class AppData with ChangeNotifier {
         .document(tag)
         .setData({'tagName': tag, 'timeAdded': DateTime.now()});
     tag = ValidFireBaseStringConverter.convertString(tag);
-    print(tag); 
+    print(tag);
     fcm.subscribeToTopic(
         "${tag}TAG"); // without  an ending ID for tag topic, a salfh topic and a tag topic could have the same name. two topics same name = bad.
 
