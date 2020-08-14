@@ -98,10 +98,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     listenToChatroomChanges();
     listenToColorStatusChanges();
 
+
+    
+
     super.initState();
   }
 
   Future<void> loadLocalStorageMessages() async {
+
+    print(await Provider.of<AppData>(context,listen: false).usersSalfhTiles);
+
     bool isReady = await storage.ready;
     print('isReady:$isReady');
 
@@ -125,7 +131,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     timeofLastMessageSavedLocally = DateTime.parse(stringFormatedTime);
 
-    // uncomment below to check theconsistency of the local data with the server data.
+    // uncomment below to check the consistency of the local data with the server data.
 
     // final testDocs =await firestore.collection('chatRooms').document(widget.salfhID).collection('messages').orderBy('timeSent').getDocuments();
     // final testSnapshots = testDocs.documents.reversed.toList();
@@ -285,7 +291,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       bool joined;
       print("here?@");
       joined = await _joinSalfh();
-      if (joined) {
+      if (joined && mounted) {
         setState(() {
           isInSalfh = true;
         });
@@ -293,9 +299,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _changeTypingTo(false);
       }
     }
+    if(mounted){
     setState(() {
       inputMessage = '';
     });
+    };
   }
 
   void sendMessage() async {

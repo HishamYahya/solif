@@ -8,6 +8,7 @@ import 'package:solif/screens/MainPage.dart';
 
 void main() async{
   // lock screen rotation
+  
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 

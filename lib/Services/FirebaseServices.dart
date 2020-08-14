@@ -12,8 +12,6 @@ final firestore = Firestore.instance;
 
 Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async  {
   try{
-
- 
   int x = 1;
   final salfhDoc = await firestore.collection('users').document(userID).get();
   List<SalfhTile> salfhTiles = [];
