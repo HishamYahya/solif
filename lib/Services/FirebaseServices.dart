@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/AppData.dart';
 
@@ -20,6 +21,7 @@ Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
         await firestore.collection('Swalf').document(entry.key).get();
 
     salfhTiles.add(SalfhTile(
+      key: GlobalKey<SalfhTileState>(),
       colorsStatus: currentSalfh['colorsStatus'],
       title: currentSalfh['title'],
       id: currentSalfh.documentID,
@@ -81,6 +83,7 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID,
       if (!isFull)
         salfhTiles.add(SalfhTile(
           // color now generated in SalfhTile
+          key: GlobalKey<SalfhTileState>(),
           colorsStatus: salfh['colorsStatus'],
           adminID: salfh['adminID'],
           title: salfh['title'],

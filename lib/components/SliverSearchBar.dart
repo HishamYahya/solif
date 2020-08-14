@@ -138,7 +138,7 @@ class _SliverSearchBarState extends State<SliverSearchBar>
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Colors.blue, width: 0.3),
+                                      color: Colors.transparent, width: 0.3),
                                   borderRadius: BorderRadius.all(
                                     Radius.circular(15),
                                   ),

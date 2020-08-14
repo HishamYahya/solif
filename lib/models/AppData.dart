@@ -231,10 +231,10 @@ class AppData with ChangeNotifier {
         if (!isFull)
           newSalfhTiles.add(SalfhTile(
             // color now generated in SalfhTile
+            key: GlobalKey<SalfhTileState>(),
             colorsStatus: salfh['colorsStatus'],
             title: salfh['title'],
             adminID: salfh['adminID'],
-
             id: salfh.documentID,
             tags: salfh['tags'] ?? [], //////// TODO: remove null checking
           ));
@@ -299,7 +299,7 @@ class AppData with ChangeNotifier {
         .document(tag)
         .setData({'tagName': tag, 'timeAdded': DateTime.now()});
     tag = ValidFireBaseStringConverter.convertString(tag);
-    print(tag); 
+    print(tag);
     fcm.subscribeToTopic(
         "${tag}TAG"); // without  an ending ID for tag topic, a salfh topic and a tag topic could have the same name. two topics same name = bad.
 
