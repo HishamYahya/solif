@@ -96,7 +96,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         });
     });
 
-    loadLocalStorageMessages();
+      loadLocalStorageMessages();
 
 
     listenToChatroomChanges();
@@ -386,8 +386,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (isInSalfh) {
       populateAllMessages(snapshotMessages, localMessages);
       print('Saving messages...');
-      // await setLocalStorage(
-      //     allTheMessages, futureLastMessageSavedLocallyTime, storage);
+      await setLocalStorage(
+          allTheMessages, futureLastMessageSavedLocallyTime, storage);
     }
     print('Done saving!');
   }
