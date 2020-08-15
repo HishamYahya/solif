@@ -2,7 +2,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/AppData.dart';
 
@@ -11,32 +12,40 @@ import '../constants.dart';
 final firestore = Firestore.instance;
 
 Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
-  int x = 1;
-  final salfhDoc = await firestore.collection('users').document(userID).get();
-  List<SalfhTile> salfhTiles = [];
-  Map<String, dynamic> userSwalf = await salfhDoc['userSwalf'];
-  if (userSwalf == null) return [];
-  for (var entry in userSwalf.entries) {
-    var currentSalfh =
-        await firestore.collection('Swalf').document(entry.key).get();
+  try {
+    int x = 1;
+    final salfhDoc = await firestore.collection('users').document(userID).get();
+    List<SalfhTile> salfhTiles = [];
+    Map<String, dynamic> userSwalf = await salfhDoc['userSwalf'];
+    if (userSwalf == null) return [];
+    for (var entry in userSwalf.entries) {
+      var currentSalfh =
+          await firestore.collection('Swalf').document(entry.key).get();
 
-    salfhTiles.add(SalfhTile(
-      key: GlobalKey<SalfhTileState>(),
-      colorsStatus: currentSalfh['colorsStatus'],
-      title: currentSalfh['title'],
-      id: currentSalfh.documentID,
-      adminID: currentSalfh['adminID'],
-      tags: currentSalfh['tags'] ?? [], //////// TODO: remove null checking
-      lastMessageSent: currentSalfh['lastMessageSent'],
-    ));
+      salfhTiles.add(SalfhTile(
+        key: GlobalKey<SalfhTileState>(),
+        colorsStatus: currentSalfh['colorsStatus'],
+        title: currentSalfh['title'],
+        id: currentSalfh.documentID,
+        adminID: currentSalfh['adminID'],
+        tags: currentSalfh['tags'] ?? [], //////// TODO: remove null checking
+        lastMessageSent: currentSalfh['lastMessageSent'],
+      ));
+    }
+
+    salfhTiles.sort((a, b) {
+      return b.lastMessageSentTime
+          .compareTo(a.lastMessageSentTime); // sort using datetime comparator.
+    });
+
+    return salfhTiles;
+  } on AuthException catch (e) {
+    print(e.toString());
+    throw ("Permission Denied");
+  } catch (e) {
+    print(e.toString());
+    throw ('error');
   }
-
-  salfhTiles.sort((a, b) {
-    return b.lastMessageSentTime
-        .compareTo(a.lastMessageSentTime); // sort using datetime comparator.
-  });
-
-  return salfhTiles;
 }
 
 Future<List<SalfhTile>> getPublicChatScreenTiles(String userID,

@@ -46,7 +46,10 @@ class _ColorDrawerTileState extends State<ColorDrawerTile> {
         onPressed: () {
           showDialog(
             context: context,
-            builder: (context) => InviteDialog(color: widget.color),
+            builder: (context) => InviteDialog(
+              color: widget.color,
+              userID: widget.id,
+            ),
           );
         },
       ),

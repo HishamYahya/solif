@@ -19,6 +19,7 @@ const FieldValue = admin.firestore.FieldValue;
 
 type Color = 'purple' | 'green' | 'yellow' | 'red' | 'blue';
 
+const UnauthenticatedException = new HttpsError('unauthenticated', 'User is not authorized to perform the desired action, check your security rules to ensure they are correct');
 enum ColorNames {
     "purple" = "purple",
     "green" = "green",
@@ -34,7 +35,7 @@ exports.inviteUser = functions.https.onCall(async (data, context) => {
     data keys: [salfhID, invitedID]
     */
 
-    if (context.auth === undefined) throw new Error("User not authenticated");
+    if (context.auth === undefined) throw UnauthenticatedException;
 
     const salfhID = data.salfhID
     const invitedID = data.invitedID;
@@ -53,7 +54,7 @@ exports.inviteUser = functions.https.onCall(async (data, context) => {
 
 
     if (functionCallerID !== adminID) {
-        throw new functions.https.HttpsError('unauthenticated', 'User is not authorized to perform the desired action, check your security rules to ensure they are correct');
+        throw UnauthenticatedException;
     }
 
 
@@ -89,30 +90,51 @@ exports.inviteUser = functions.https.onCall(async (data, context) => {
 
 })
 
-exports.joinSalfh = functions.https.onCall(async (data, context) => {
+exports.joinSalfh = functions.https.onCall(async (data: {
+    salfhID: string,
+    color: string,
+    userToAddID?: string | null,
+}, context) => {
     if (!context.auth) {
-        throw new Error("User not authenticated");
+        throw UnauthenticatedException;
     }
-    const salfhID = data.salfhID
-    const color = data.color;
-    const salfhRef = await firestore.collection('Swalf').doc(salfhID);
-    const userRef = await firestore.collection('users').doc(context.auth.uid);
+    const { salfhID, color, userToAddID } = data;
+    console.log(userToAddID);
+    const callerID: string = context.auth.uid;
+
+    const salfhRef = firestore.collection('Swalf').doc(salfhID);
     try {
 
         return firestore.runTransaction(async function (transaction) {
             const snapshot = await transaction.get(salfhRef);
+            let userRef;
+            if (!userToAddID) {
+                userRef = firestore.collection('users').doc(callerID);
+            }
+            else if (snapshot.data()?.adminID === callerID) {
+                userRef = firestore.collection('users').doc(userToAddID);
+            }
+            else {
+                throw new HttpsError('invalid-argument', 'Invalid input');
+            }
+
+            if (Object.values(snapshot.data()?.colorsStatus).includes(userRef.id)) {
+                throw new HttpsError('already-exists', 'User already in salfh');
+            }
+
 
             let updatedData = {} as any;
-            updatedData.colorsStatus = {};
             if (snapshot.data()?.colorsStatus[color] === null) {
-                updatedData = { colorsStatus: {}, colorsInOrder: FieldValue.arrayUnion(color), 'usersInvited': FieldValue.arrayRemove(context.auth?.uid) }
-                updatedData.colorsStatus[color] = context.auth?.uid;
+                updatedData = { colorsInOrder: FieldValue.arrayUnion(color), 'usersInvited': FieldValue.arrayRemove(userRef.id) }
+                updatedData[`colorsStatus.${color}`] = userRef.id;
             }
-            transaction.set(salfhRef, updatedData, { merge: true });
+            transaction.update(salfhRef, updatedData);
 
             const newUserSwalf = {} as any;
-            newUserSwalf[salfhID] = color;
-            transaction.set(userRef, { userSwalf: newUserSwalf }, { merge: true });
+
+            newUserSwalf[`userSwalf.${salfhID}`] = color;
+
+            transaction.update(userRef, newUserSwalf);
             return true;
 
         })
@@ -130,7 +152,7 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
         ,color}
     */
     if (!context.auth) {
-        throw new HttpsError('unauthenticated', "You are not logged in");
+        throw UnauthenticatedException;
     }
 
     const salfhID = data.salfhID
@@ -395,10 +417,10 @@ exports.createSalfh = functions.https.onCall(async (data: {
     title: string,
     visible?: boolean,
     tags?: Array<string>,
-    FCM_tags? : Array<string>
+    FCM_tags?: Array<string>
 }, context: CallableContext) => {
     if (!context.auth) {
-        throw new HttpsError('unauthenticated', 'You are not logged in');
+        throw UnauthenticatedException;
     }
     const salfhRef: admin.firestore.DocumentReference = firestore.collection('Swalf').doc();
     const colorsStatus = getColorsStatus(context.auth.uid);
@@ -426,9 +448,9 @@ exports.createSalfh = functions.https.onCall(async (data: {
     });
     await firestore.collection("chatRooms").doc(salfhRef.id).set(chatRoomData, { merge: true });
 
-    const FCM_tags = data.FCM_tags ?? []; 
-    const tags = data.tags ?? []; 
-    
+    const FCM_tags = data.FCM_tags ?? [];
+    const tags = data.tags ?? [];
+
 
     if (!tags || tags.length === 0) return { salfhID: salfhRef.id };
 
@@ -538,9 +560,9 @@ function incrementTags(tags: Array<string>) {
 }
 
 function stringKeys(tag: string) {
-    const keys = [];            
+    const keys = [];
 
-    for (let i = 0; i < tag.length-2; i++) {
+    for (let i = 0; i < tag.length - 2; i++) {
         keys.push(tag.substring(0, i + 1));
     }
     return keys;

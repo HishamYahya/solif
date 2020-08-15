@@ -1,30 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:solif/components/LoadingWidget.dart';
+import 'package:solif/components/OurErrorWidget.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/Salfh.dart';
 
 import '../constants.dart';
 import 'ColoredDot.dart';
 
 class DialogMySwalfTab extends StatefulWidget {
+  final String userID;
+
+  DialogMySwalfTab({this.userID});
+
   @override
   _DialogMySwalfTabState createState() => _DialogMySwalfTabState();
 }
 
 class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
-  List<SalfhTile> selectedSwalf = [];
+  String selectedSalfhID;
+  String selectedSalfhColorName;
+  bool loading = false;
 
-  List<Widget> getSalfhTiles() {
+  List<Widget> getSalfhTiles(List<SalfhTile> userSwalf) {
     final List<Widget> tiles = [];
-    for (SalfhTile tile in Provider.of<AppData>(context).publicSalfhTiles) {
+    for (SalfhTile tile in userSwalf) {
       if (tile.adminID ==
               Provider.of<AppData>(context, listen: false).currentUserID ||
           true) {
+        String colorName;
         GlobalKey<SalfhTileState> key = tile.key;
-        Color color = Colors.black;
-        for (var colorName in key.currentState.colorsStatus.keys) {
-          if (key.currentState.colorsStatus[colorName] == null) {
-            color = kOurColors[colorName];
+        for (var color in key.currentState.colorsStatus.keys) {
+          if (key.currentState.colorsStatus[color] == null) {
+            colorName = color;
             break;
           }
         }
@@ -40,7 +49,7 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
             ),
             child: ListTile(
               enabled: !key.currentState.isFull,
-              selected: selectedSwalf.contains(tile),
+              selected: selectedSalfhID == tile.id,
               trailing: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
@@ -58,9 +67,9 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
                         child: child,
                       );
                     },
-                    child: selectedSwalf.contains(tile)
+                    child: selectedSalfhID == tile.id
                         ? ColoredDot(
-                            color,
+                            kOurColors[colorName],
                             key: UniqueKey(),
                           )
                         : ColoredDot(
@@ -82,11 +91,17 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
                 children: generateDots(key.currentState.colorsStatus),
               ),
               onTap: () {
-                setState(() {
-                  selectedSwalf.contains(tile)
-                      ? selectedSwalf.remove(tile)
-                      : selectedSwalf.add(tile);
-                });
+                setState(
+                  () {
+                    if (selectedSalfhID == tile.id) {
+                      selectedSalfhColorName = null;
+                      selectedSalfhID = null;
+                    } else {
+                      selectedSalfhColorName = colorName;
+                      selectedSalfhID = tile.id;
+                    }
+                  },
+                );
               },
             ),
           ),
@@ -130,64 +145,101 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
     return newDots;
   }
 
+  void addToSalfh() async {
+    setState(() {
+      loading = true;
+    });
+    if (selectedSalfhID != null)
+      await addUserToSalfh(
+        userID: widget.userID,
+        salfhID: selectedSalfhID,
+        colorName: selectedSalfhColorName,
+        context: context,
+      );
+    if (mounted) {
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.all(
-        Radius.circular(20),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(
-            Radius.circular(20),
-          ),
-        ),
-        constraints: BoxConstraints(
-            minHeight: 0, maxHeight: MediaQuery.of(context).size.height * 0.6),
-        width: double.infinity,
-        child: Stack(
-          children: [
-            ListView(
-              shrinkWrap: true,
-              children: getSalfhTiles(),
+    return loading
+        ? LoadingWidget(
+            'نضيفهم للسالفة...',
+            color: Colors.white,
+          )
+        : ClipRRect(
+            borderRadius: BorderRadius.all(
+              Radius.circular(20),
             ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: AnimatedSwitcher(
-                duration: Duration(milliseconds: 200),
-                transitionBuilder: (child, animation) {
-                  return ScaleTransition(
-                    scale: animation,
-                    child: child,
-                  );
-                },
-                child: selectedSwalf.isEmpty
-                    ? null
-                    : Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 16.0),
-                        child: FlatButton(
-                          onPressed: () {},
-                          color: kMainColor,
-                          shape: StadiumBorder(
-                            side: BorderSide(color: Colors.white),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              "اضافة",
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(20),
+                ),
+              ),
+              constraints: BoxConstraints(
+                  minHeight: 0,
+                  maxHeight: MediaQuery.of(context).size.height * 0.6),
+              width: double.infinity,
+              child: Stack(
+                children: [
+                  FutureBuilder<List<SalfhTile>>(
+                    future: Provider.of<AppData>(context).usersSalfhTiles,
+                    builder: (context, snapshot) {
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.done:
+                          List<SalfhTile> userSwalf = snapshot.data;
+                          return ListView(
+                            shrinkWrap: false,
+                            children: getSalfhTiles(userSwalf),
+                          );
+                        default:
+                          return snapshot.hasError
+                              ? OurErrorWidget()
+                              : LoadingWidget("");
+                      }
+                    },
+                  ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: AnimatedSwitcher(
+                      duration: Duration(milliseconds: 100),
+                      transitionBuilder: (child, animation) {
+                        return ScaleTransition(
+                          scale: animation,
+                          child: child,
+                        );
+                      },
+                      child: selectedSalfhID == null
+                          ? null
+                          : Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 16.0),
+                              child: FlatButton(
+                                onPressed: addToSalfh,
+                                color: kMainColor,
+                                shape: StadiumBorder(
+                                  side: BorderSide(color: Colors.white),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    "اضافة",
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 20),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
+          );
   }
 }

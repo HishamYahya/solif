@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:solif/components/ColoredDot.dart';
 import 'package:solif/components/DialogMySwalfTab.dart';
+import 'package:solif/components/DialogNewSalfhTab.dart';
 
 import '../constants.dart';
 
 class InviteDialog extends StatefulWidget {
+  final String color;
+  final String userID;
+
   const InviteDialog({
     Key key,
     @required this.color,
+    @required this.userID,
   }) : super(key: key);
-
-  final String color;
 
   @override
   _InviteDialogState createState() => _InviteDialogState();
@@ -143,72 +146,16 @@ class _InviteDialogState extends State<InviteDialog> {
               Container(
                 // duration: Duration(milliseconds: 300),
                 child: creatingNewSalfh
-                    ? CreateNewSalfhDialogContent()
-                    : DialogMySwalfTab(),
+                    ? DialogNewSalfhTab(
+                        userID: widget.userID,
+                      )
+                    : DialogMySwalfTab(
+                        userID: widget.userID,
+                      ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class CreateNewSalfhDialogContent extends StatelessWidget {
-  const CreateNewSalfhDialogContent({
-    Key key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              width: double.infinity,
-              child: TextField(
-                maxLength: 30,
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.white,
-                ),
-                decoration: InputDecoration(
-                    enabledBorder: kTextFieldBorder,
-                    disabledBorder: kTextFieldBorder,
-                    focusedBorder: kTextFieldBorder,
-                    hintText: "موضوع سالفتكم",
-                    hintStyle: kHintTextStyle.copyWith(fontSize: 24),
-                    counterStyle: TextStyle(color: Colors.white54)),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(50),
-                ),
-              ),
-              child: FlatButton(
-                onPressed: null,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    "افتح السالفة",
-                    style: TextStyle(color: kMainColor, fontSize: 20),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

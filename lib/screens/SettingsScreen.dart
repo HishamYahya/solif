@@ -46,13 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Icon(Icons.signal_cellular_connected_no_internet_4_bar),
                   onTap: () {
                     print('tapped');
-                    HttpsCallable callable = CloudFunctions.instance
-                        .getHttpsCallable(functionName: 'inviteUser');
-                    callable.call({
-                      'salfhID': 'SDFDS',
-                      'invitedID': Provider.of<AppData>(context, listen: false)
-                          .currentUserID
-                    });
+                    print(Provider.of<AppData>(context, listen: false).currentUserID);
                   },
                 ),
                 SettingsTile(

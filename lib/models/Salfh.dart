@@ -5,6 +5,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/Services/ValidFirebaseStringConverter.dart';
+import 'package:solif/components/OurErrorWidget.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/User.dart';
 import 'package:solif/models/Tag.dart';
@@ -49,14 +50,49 @@ class Salfh {
   }
 }
 
+Future<void> addUserToSalfh(
+    {String userID,
+    String salfhID,
+    String colorName,
+    BuildContext context}) async {
+  try {
+    await joinSalfh(userID: userID, salfhID: salfhID, colorName: colorName);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('success'),
+      ),
+    );
+  } catch (error) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: OurErrorWidget(
+          errorMessage: error.toString(),
+        ),
+      ),
+    );
+  }
+}
+
 Future<bool> joinSalfh(
     {String userID, String salfhID, String colorName}) async {
   final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
     functionName: 'joinSalfh',
   );
-  HttpsCallableResult resp = await callable
-      .call(<String, dynamic>{'salfhID': salfhID, 'color': colorName});
+
+  HttpsCallableResult resp = await callable.call(<String, dynamic>{
+    'salfhID': salfhID,
+    'color': colorName,
+    'userToAddID': userID,
+  }).timeout(
+    Duration(seconds: 4),
+    onTimeout: () {
+      throw 'Timeout';
+    },
+  );
   return resp.data;
+
   // await firestore.runTransaction((transaction) async {
   //   final snapshot = await transaction.get(ref);
 
@@ -108,8 +144,8 @@ Future<Map<String, dynamic>> saveSalfh(
   List<String> encodedTags = ValidFireBaseStringConverter.convertList(tags);
   final HttpsCallable callable =
       CloudFunctions.instance.getHttpsCallable(functionName: 'createSalfh');
-  final res =
-      await callable.call(<String, dynamic>{'title': title, 'tags': tags,'FCM_tags': encodedTags});
+  final res = await callable.call(
+      <String, dynamic>{'title': title, 'tags': tags, 'FCM_tags': encodedTags});
   final salfhID = res.data['salfhID'];
   if (salfhID == null) return null;
 

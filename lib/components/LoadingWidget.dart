@@ -4,8 +4,9 @@ import '../constants.dart';
 
 class LoadingWidget extends StatelessWidget {
   final String text;
+  final Color color;
 
-  LoadingWidget(this.text);
+  LoadingWidget(this.text, {this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -17,13 +18,14 @@ class LoadingWidget extends StatelessWidget {
         children: [
           CircularProgressIndicator(
             strokeWidth: 5,
+            backgroundColor: color ?? kMainColor,
           ),
           SizedBox(
             height: 20,
           ),
           Text(
             text,
-            style: kHeadingTextStyle.copyWith(color: kMainColor),
+            style: kHeadingTextStyle.copyWith(color: color ?? kMainColor),
             textAlign: TextAlign.end,
           ),
         ],
