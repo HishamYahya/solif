@@ -45,7 +45,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   List<DocumentSnapshot> snapshotMessages = [];
   List<Map<String, dynamic>> allTheMessages =
       []; // messages to be written to the storage.
-  DateTime timeofLastMessageSavedLocally = DateTime(2010);
+  DateTime timeofLastMessageSavedLocally = DateTime(2030);
   var futureLastMessageSavedLocallyTime;
   String inputMessage = "";
   Map colorsStatus;
@@ -92,13 +92,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (id == userID)
         setState(() {
           isInSalfh = true;
-          loadLocalStorageMessages();
+         
         });
     });
+
+    loadLocalStorageMessages();
+
+
     listenToChatroomChanges();
     listenToColorStatusChanges();
 
-
+  
     
 
     super.initState();
@@ -106,7 +110,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   Future<void> loadLocalStorageMessages() async {
 
-    print(await Provider.of<AppData>(context,listen: false).usersSalfhTiles);
+
 
     bool isReady = await storage.ready;
     print('isReady:$isReady');
@@ -134,16 +138,23 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     // uncomment below to check the consistency of the local data with the server data.
 
     // final testDocs =await firestore.collection('chatRooms').document(widget.salfhID).collection('messages').orderBy('timeSent').getDocuments();
-    // final testSnapshots = testDocs.documents.reversed.toList();
+    // final testSnapshots = testDocs.documents.toList();
+
+    // int cacheCounter = 0; 
 
     // bool isEqual = true;
     // print('testsnapshot length ${testSnapshots.length}');
     // for (int i=0;i<localMessages.length;i++){
-    //   print("${testSnapshots[i]['timeSent']} == ${localMessages[i]['timeSent']} ");
-    //   isEqual &= (localMessages[i]['timeSent'] == testSnapshots[i]['timeSent']);
-    //   if(!isEqual) break;
+    //   print(i); 
+    //   if(testSnapshots[i].metadata.isFromCache){
+    //     cacheCounter++; 
+    //   }
+    //   print("${testSnapshots[i]['timeSent']} == ${localMessages[localMessages.length-i-1]['timeSent']} ");
+    //   isEqual &= (localMessages[localMessages.length-i-1]['timeSent'] == testSnapshots[i]['timeSent']);
+    //   // if(!isEqual) break;
     // }
     // print('isEqual $isEqual');
+    // print('cache counter:  $cacheCounter');
   }
 
   void populateAllMessages(List<DocumentSnapshot> snapshotMessages,
@@ -375,8 +386,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (isInSalfh) {
       populateAllMessages(snapshotMessages, localMessages);
       print('Saving messages...');
-      await setLocalStorage(
-          allTheMessages, futureLastMessageSavedLocallyTime, storage);
+      // await setLocalStorage(
+      //     allTheMessages, futureLastMessageSavedLocallyTime, storage);
     }
     print('Done saving!');
   }
@@ -457,6 +468,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     .startAfter([timeofLastMessageSavedLocally]).snapshots(),
                 builder: (context, snapshot) {
                   // print("lastMessageTime $lastMessageSavedLocally");
+                  int cacheCounter = 0; 
 
                   //TODO: display the message on sc reen only when it's been written to the database
                   if (!snapshot.hasData || lastLeftStatus == null) {
@@ -479,7 +491,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     bool isSending;
                     if (i < snapshotMessages.length) {
                       // snapshot message
+                      
                       message = snapshotMessages[i];
+                      cacheCounter++; 
                       isSending = message.metadata.hasPendingWrites;
                     } else {
                       // local message
@@ -523,6 +537,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     ));
                   }
                   //  print('after');
+                  print('messages from cache $cacheCounter');
                   return ListView.builder(
                     reverse: true,
                     padding:

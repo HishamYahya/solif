@@ -44,6 +44,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Object>(
+      // initialData: [Text('test'),Text("23")],
         future: Provider.of<AppData>(context).usersSalfhTiles,
         builder: (context, snapshot) {
           List<Widget> widgetToShow = [];
@@ -53,6 +54,7 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
             if (snapshot.hasData) {
               widgetToShow = snapshot.data;
             } else  {
+              print('the error: ${snapshot.error}');
               widgetToShow = [
                 OurErrorWidget(
                   errorMessage: "error btw xx",
