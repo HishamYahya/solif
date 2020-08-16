@@ -27,22 +27,24 @@ class SalfhTile extends StatefulWidget {
 
   final Map lastMessageSent;
   final DateTime lastMessageSentTime;
-  SalfhTile(
-      {this.title,
-      this.id,
-      this.colorsStatus,
-      this.lastMessageSent,
-      this.tags,
-      this.adminID})
-      : this.lastMessageSentTime = lastMessageSent. containsKey('timeSent')
+  SalfhTile({
+    this.title,
+    this.id,
+    this.colorsStatus,
+    this.lastMessageSent,
+    this.tags,
+    this.adminID,
+    GlobalKey<SalfhTileState> key,
+  })  : this.lastMessageSentTime = lastMessageSent.containsKey('timeSent')
             ? lastMessageSent['timeSent'].toDate()
-            : DateTime(1999);
+            : DateTime(1999),
+        super(key: key);
 
   @override
-  _SalfhTileState createState() => _SalfhTileState();
+  SalfhTileState createState() => SalfhTileState();
 }
 
-class _SalfhTileState extends State<SalfhTile>
+class SalfhTileState extends State<SalfhTile>
     with SingleTickerProviderStateMixin {
   String colorName;
   Map colorsStatus;

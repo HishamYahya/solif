@@ -102,15 +102,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     listenToChatroomChanges();
     listenToColorStatusChanges();
 
-  
-    
-
     super.initState();
   }
 
   Future<void> loadLocalStorageMessages() async {
-
-
+    print(await Provider.of<AppData>(context, listen: false).usersSalfhTiles);
 
     bool isReady = await storage.ready;
     print('isReady:$isReady');
@@ -270,7 +266,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
 
     bool joined = await joinSalfh(
-      userID: Provider.of<AppData>(context, listen: false).currentUserID,
       salfhID: widget.salfhID,
       colorName: colorName,
     );
@@ -310,11 +305,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _changeTypingTo(false);
       }
     }
-    if(mounted){
-    setState(() {
-      inputMessage = '';
-    });
-    };
+    if (mounted) {
+      setState(() {
+        inputMessage = '';
+      });
+    }
+    ;
   }
 
   void sendMessage() async {

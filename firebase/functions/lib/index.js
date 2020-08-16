@@ -10,6 +10,7 @@ admin.initializeApp();
 const firestore = admin.firestore();
 // const fcm = admin.messaging();
 const FieldValue = admin.firestore.FieldValue;
+const UnauthenticatedException = new https_1.HttpsError('unauthenticated', 'User is not authorized to perform the desired action, check your security rules to ensure they are correct');
 var ColorNames;
 (function (ColorNames) {
     ColorNames["purple"] = "purple";
@@ -24,7 +25,7 @@ exports.inviteUser = functions.https.onCall(async (data, context) => {
     data keys: [salfhID, invitedID]
     */
     if (context.auth === undefined)
-        throw new Error("User not authenticated");
+        throw UnauthenticatedException;
     const salfhID = data.salfhID;
     const invitedID = data.invitedID;
     const functionCallerID = context.auth.uid;
@@ -33,7 +34,7 @@ exports.inviteUser = functions.https.onCall(async (data, context) => {
         throw new Error("Document not found");
     const adminID = salfhData.adminID;
     if (functionCallerID !== adminID) {
-        throw new functions.https.HttpsError('unauthenticated', 'User is not authorized to perform the desired action, check your security rules to ensure they are correct');
+        throw UnauthenticatedException;
     }
     // await firestore.collection("Swalf").doc(salfhID).set({  'usersInvited': FieldValue.arrayUnion(invitedID) }, { merge: true })
     // in case sharedprefrence method doesn't work uncomment. 
@@ -59,26 +60,38 @@ exports.inviteUser = functions.https.onCall(async (data, context) => {
 });
 exports.joinSalfh = functions.https.onCall(async (data, context) => {
     if (!context.auth) {
-        throw new Error("User not authenticated");
+        throw UnauthenticatedException;
     }
-    const salfhID = data.salfhID;
-    const color = data.color;
-    const salfhRef = await firestore.collection('Swalf').doc(salfhID);
-    const userRef = await firestore.collection('users').doc(context.auth.uid);
+    const { salfhID, color, userToAddID } = data;
+    console.log(userToAddID);
+    const callerID = context.auth.uid;
+    const salfhRef = firestore.collection('Swalf').doc(salfhID);
     try {
         return firestore.runTransaction(async function (transaction) {
             var _a, _b, _c;
             const snapshot = await transaction.get(salfhRef);
-            let updatedData = {};
-            updatedData.colorsStatus = {};
-            if (((_a = snapshot.data()) === null || _a === void 0 ? void 0 : _a.colorsStatus[color]) === null) {
-                updatedData = { colorsStatus: {}, colorsInOrder: FieldValue.arrayUnion(color), 'usersInvited': FieldValue.arrayRemove((_b = context.auth) === null || _b === void 0 ? void 0 : _b.uid) };
-                updatedData.colorsStatus[color] = (_c = context.auth) === null || _c === void 0 ? void 0 : _c.uid;
+            let userRef;
+            if (!userToAddID) {
+                userRef = firestore.collection('users').doc(callerID);
             }
-            transaction.set(salfhRef, updatedData, { merge: true });
+            else if (((_a = snapshot.data()) === null || _a === void 0 ? void 0 : _a.adminID) === callerID) {
+                userRef = firestore.collection('users').doc(userToAddID);
+            }
+            else {
+                throw new https_1.HttpsError('invalid-argument', 'Invalid input');
+            }
+            if (Object.values((_b = snapshot.data()) === null || _b === void 0 ? void 0 : _b.colorsStatus).includes(userRef.id)) {
+                throw new https_1.HttpsError('already-exists', 'User already in salfh');
+            }
+            let updatedData = {};
+            if (((_c = snapshot.data()) === null || _c === void 0 ? void 0 : _c.colorsStatus[color]) === null) {
+                updatedData = { colorsInOrder: FieldValue.arrayUnion(color), 'usersInvited': FieldValue.arrayRemove(userRef.id) };
+                updatedData[`colorsStatus.${color}`] = userRef.id;
+            }
+            transaction.update(salfhRef, updatedData);
             const newUserSwalf = {};
-            newUserSwalf[salfhID] = color;
-            transaction.set(userRef, { userSwalf: newUserSwalf }, { merge: true });
+            newUserSwalf[`userSwalf.${salfhID}`] = color;
+            transaction.update(userRef, newUserSwalf);
             return true;
         });
     }
@@ -93,7 +106,7 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
         ,color}
     */
     if (!context.auth) {
-        throw new https_1.HttpsError('unauthenticated', "You are not logged in");
+        throw UnauthenticatedException;
     }
     const salfhID = data.salfhID;
     const color = data.color;
@@ -299,7 +312,7 @@ function getColorsStatus(adminID) {
 exports.createSalfh = functions.https.onCall(async (data, context) => {
     var _a, _b, _c, _d, _e;
     if (!context.auth) {
-        throw new https_1.HttpsError('unauthenticated', 'You are not logged in');
+        throw UnauthenticatedException;
     }
     const salfhRef = firestore.collection('Swalf').doc();
     const colorsStatus = getColorsStatus(context.auth.uid);
