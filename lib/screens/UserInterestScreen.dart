@@ -66,6 +66,7 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
 
   @override
   Widget build(BuildContext context) {
+    throw ('test error');
     print(_userTags);
     //print(Provider.of<AppData>(context).tagsSavedLocally.length);
     TextEditingController editor = TextEditingController();

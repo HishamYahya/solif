@@ -62,8 +62,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 //   isLightTheme: value,
                 //   onToggle: (bool value) {},
                 // ),
+                SettingsTile(
+                  title: 'Generate Error',
+                  leading:
+                      Icon(Icons.error  ),
+                  onTap: (){
+                    throw("generated error 1");
+                  }
+                ),
               ],
             ),
+              
             SettingsSection(
               title: 'المظهر',
               tiles: [
