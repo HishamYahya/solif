@@ -46,7 +46,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Icon(Icons.signal_cellular_connected_no_internet_4_bar),
                   onTap: () {
                     print('tapped');
-                    print(Provider.of<AppData>(context, listen: false).currentUserID);
+                    print(Provider.of<AppData>(context, listen: false)
+                        .currentUserID);
                   },
                 ),
                 SettingsTile(
@@ -54,6 +55,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading:
                       Icon(Icons.signal_cellular_connected_no_internet_4_bar),
                   onTap: Provider.of<AppData>(context).reset,
+                ),
+                SettingsTile(
+                  title: 'invite self',
+                  leading:
+                      Icon(Icons.signal_cellular_connected_no_internet_4_bar),
+                  onTap: () {
+                    HttpsCallable callable = CloudFunctions.instance
+                        .getHttpsCallable(functionName: 'testNotification');
+                    Future.delayed(Duration(seconds: 4))
+                        .then((value) => callable.call());
+                  },
                 ),
 
                 // SettingsTile.switchTile(

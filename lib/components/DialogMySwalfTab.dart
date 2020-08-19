@@ -190,6 +190,7 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
                   FutureBuilder<List<SalfhTile>>(
                     future: Provider.of<AppData>(context).usersSalfhTiles,
                     builder: (context, snapshot) {
+                      print(snapshot.data);
                       switch (snapshot.connectionState) {
                         case ConnectionState.done:
                           List<SalfhTile> userSwalf = snapshot.data;
