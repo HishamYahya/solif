@@ -33,11 +33,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: Icon(Icons.scatter_plot),
 
                   onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => UserInterestScreen(),
-                        ));
+                      // showDialog(
+                      //     context: context,
+                      //     builder: (_) {
+                      //       return Dialog(child: UserInterestScreen());
+                      //     });
+                      Navigator.push(context, MaterialPageRoute(builder: (context) {
+                        return  UserInterestScreen(); 
+                      }));
+
                   },
                 ),
                 SettingsTile(
@@ -46,7 +50,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Icon(Icons.signal_cellular_connected_no_internet_4_bar),
                   onTap: () {
                     print('tapped');
-                    print(Provider.of<AppData>(context, listen: false).currentUserID);
+                    print(Provider.of<AppData>(context, listen: false)
+                        .currentUserID);
                   },
                 ),
                 SettingsTile(
@@ -63,16 +68,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 //   onToggle: (bool value) {},
                 // ),
                 SettingsTile(
-                  title: 'Generate Error',
-                  leading:
-                      Icon(Icons.error  ),
-                  onTap: (){
-                    throw("generated error 1");
-                  }
-                ),
+                    title: 'Generate Error',
+                    leading: Icon(Icons.error),
+                    onTap: () {
+                      throw ("generated error 1");
+                    }),
               ],
             ),
-              
             SettingsSection(
               title: 'المظهر',
               tiles: [
