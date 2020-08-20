@@ -23,8 +23,10 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
   String selectedSalfhColorName;
   bool loading = false;
 
-  List<Widget> getSalfhTiles(List<SalfhTile> userSwalf) {
-    final List<Widget> tiles = [];
+  List<Widget> getSalfhTiles() {
+    List<SalfhTile> userSwalf = Provider.of<AppData>(context).usersSalfhTiles;
+    List<Widget> tiles = [];
+    if (userSwalf == null) return [];
     for (SalfhTile tile in userSwalf) {
       if (tile.adminID ==
               Provider.of<AppData>(context, listen: false).currentUserID ||
@@ -187,23 +189,9 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
               width: double.infinity,
               child: Stack(
                 children: [
-                  FutureBuilder<List<SalfhTile>>(
-                    future: Provider.of<AppData>(context).usersSalfhTiles,
-                    builder: (context, snapshot) {
-                      print(snapshot.data);
-                      switch (snapshot.connectionState) {
-                        case ConnectionState.done:
-                          List<SalfhTile> userSwalf = snapshot.data;
-                          return ListView(
-                            shrinkWrap: false,
-                            children: getSalfhTiles(userSwalf),
-                          );
-                        default:
-                          return snapshot.hasError
-                              ? OurErrorWidget()
-                              : LoadingWidget("");
-                      }
-                    },
+                  ListView(
+                    shrinkWrap: true,
+                    children: getSalfhTiles(),
                   ),
                   Align(
                     alignment: Alignment.bottomCenter,

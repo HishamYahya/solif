@@ -43,32 +43,17 @@ class _MyChatsScreenState extends State<MyChatsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Object>(
-      // initialData: [Text('test'),Text("23")],
-        future: Provider.of<AppData>(context).usersSalfhTiles,
-        builder: (context, snapshot) {
-          List<Widget> widgetToShow = [];
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            widgetToShow = [LoadingWidget('...نجيب سوالفك')];
-          } else {
-            if (snapshot.hasData) {
-              widgetToShow = snapshot.data;
-            } else  {
-              print('the error: ${snapshot.error}');
-              widgetToShow = [
-                OurErrorWidget(
-                  errorMessage: "error btw xx",
-                )
-              ];
-            }
-          }
-          return CustomScrollView(
-            slivers: <Widget>[
-              SliverList(
-                delegate: SliverChildListDelegate(widgetToShow),
-              ),
-            ],
-          );
-        });
+    bool isLoaded = Provider.of<AppData>(context).isUsersTilesLoaded();
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverList(
+          delegate: SliverChildListDelegate(
+            isLoaded
+                ? Provider.of<AppData>(context).usersSalfhTiles
+                : [LoadingWidget('...نجيب سوالفك')],
+          ),
+        ),
+      ],
+    );
   }
 }

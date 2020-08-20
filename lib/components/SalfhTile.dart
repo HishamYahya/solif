@@ -239,15 +239,18 @@ class SalfhTileState extends State<SalfhTile>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               ClipRRect(
-                clipBehavior: Clip.antiAliasWithSaveLayer,
+                clipBehavior: Clip.antiAlias,
                 borderRadius: BorderRadius.only(
-                    topRight: Radius.elliptical(10, 50),
-                    bottomRight: Radius.elliptical(10, 50),
-                    topLeft: Radius.circular(10),
-                    bottomLeft: Radius.circular(10)),
+                  topRight: Radius.elliptical(10, 50),
+                  bottomRight: Radius.elliptical(10, 50),
+                  topLeft: Radius.circular(10),
+                  bottomLeft: Radius.circular(10),
+                ),
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.75,
-                  color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                  ),
                   child: Column(
                     children: [
                       IntrinsicHeight(
@@ -266,9 +269,7 @@ class SalfhTileState extends State<SalfhTile>
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Text(
-                                      (widget.title +
-                                          ' notRead:' +
-                                          notRead.toString()),
+                                      (widget.title),
                                       style: TextStyle(
                                         fontSize: 20,
                                         color: Colors.grey[850],
