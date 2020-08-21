@@ -370,7 +370,7 @@ exports.createSalfh = functions.https.onCall(async (data, context) => {
     if (!tags || tags.length === 0)
         return { salfhID: salfhRef.id };
     let condition = "";
-    incrementTags(tags);
+    incrementTags(tags, FCM_tags);
     for (const i in FCM_tags) {
         console.log(FCM_tags[i]);
         condition += `('${FCM_tags[i]}TAG' in topics) || `;
@@ -442,11 +442,12 @@ exports.createSalfh = functions.https.onCall(async (data, context) => {
 //     };
 //     return admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
 // });
-function incrementTags(tags) {
+function incrementTags(tags, FCM_tags) {
     const increment = FieldValue.increment(1);
+    let i = 0;
     tags.forEach((tag) => {
         // tslint:disable-next-line: no-floating-promises
-        firestore.collection('tags').doc().set({
+        firestore.collection('tags').doc(FCM_tags[i++]).set({
             'tagName': tag,
             'tagCounter': increment,
             'searchKeys': stringKeys(tag)

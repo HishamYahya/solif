@@ -72,19 +72,25 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
   Widget renderLocalTags() {
     List<TagTile> _tags =
         Provider.of<AppData>(context, listen: true).tagsSavedLocally;
-    return Tags(
-      // alignment: WrapAlignment.center,
-      columns: 1,
-      symmetry: true,
-      // heightHorizontalScroll: 2,
-      // spacing: 10,
-      itemCount: _tags.length,
+    return Center(
+      child: Tags(
+        // alignment: WrapAlignment.center,
+        columns: 3,
         
-      
-      itemBuilder: (index) {
-        _tags[index].index = index;  
-        return _tags[index];
-      },
+        // symmetry: true,
+        // heightHorizontalScroll: 2,
+        // spacing: 10,
+        itemCount: _tags.length,
+        textField: TagsTextField(onChanged: (string) => print(string),onSubmitted:  (inputTag) {
+          addTag(inputTag);
+        },),
+          
+        
+        itemBuilder: (index) {
+          _tags[index].index = index;  
+          return _tags[index];
+        },
+      ),
     );
   }
 

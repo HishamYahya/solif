@@ -30,7 +30,7 @@ class TagTile extends StatelessWidget {
       borderRadius: BorderRadius.all(Radius.circular(20)) ,
       textColor: Colors.black,
       color:  Colors.white, //kOurColors[kColorNames[index % 5]]
-      // padding: EdgeInsets.all(15), 
+      padding: EdgeInsets.all(15), 
       alignment: MainAxisAlignment.center,
       //icon: ItemTagsIcon(icon: Icons.tag_faces),
       onPressed: (i) {
