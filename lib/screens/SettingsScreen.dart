@@ -33,14 +33,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: Icon(Icons.scatter_plot),
 
                   onTap: () {
-                      // showDialog(
-                      //     context: context,
-                      //     builder: (_) {
-                      //       return Dialog(child: UserInterestScreen());
-                      //     });
-                      Navigator.push(context, MaterialPageRoute(builder: (context) {
-                        return  UserInterestScreen(); 
-                      }));
+                      showDialog(
+                          context: context,
+                          builder: (_) {
+                            return Dialog(child: UserInterestScreen());
+                          });
+                      // Navigator.push(context, MaterialPageRoute(builder: (context) {
+                      //   return  UserInterestScreen(); 
+                      // }));
 
                   },
                 ),
