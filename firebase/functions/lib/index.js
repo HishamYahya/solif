@@ -19,6 +19,10 @@ var ColorNames;
     ColorNames["blue"] = "blue";
     ColorNames["red"] = "red";
 })(ColorNames || (ColorNames = {}));
+var NotificationType;
+(function (NotificationType) {
+    NotificationType["INVITE"] = "invite";
+})(NotificationType || (NotificationType = {}));
 const kColorNames = [ColorNames.blue, ColorNames.green, ColorNames.purple, ColorNames.red, ColorNames.yellow];
 exports.testNotification = functions.https.onCall(async (data, context) => {
     var _a;
@@ -49,12 +53,12 @@ exports.testNotification = functions.https.onCall(async (data, context) => {
 });
 exports.inviteUser = functions.https.onCall(async (data, context) => {
     /*
-    data keys: [salfhID, invitedID]
+    data keys: [salfhID, userToAddID]
     */
     if (context.auth === undefined)
         throw UnauthenticatedException;
     const salfhID = data.salfhID;
-    const invitedID = data.invitedID;
+    const userToAddID = data.userToAddID;
     const functionCallerID = context.auth.uid;
     const salfhData = (await firestore.collection('Swalf').doc(salfhID).get()).data();
     if (salfhData === undefined)
@@ -63,9 +67,11 @@ exports.inviteUser = functions.https.onCall(async (data, context) => {
     if (functionCallerID !== adminID) {
         throw UnauthenticatedException;
     }
-    // await firestore.collection("Swalf").doc(salfhID).set({  'usersInvited': FieldValue.arrayUnion(invitedID) }, { merge: true })
-    // in case sharedprefrence method doesn't work uncomment. 
-    const condition = `'${invitedID}' in topics`;
+    const notificationData = { "value": salfhID, 'type': 'invite' };
+    console.log("userToAddID" + userToAddID);
+    console.log("ourdata" + notificationData);
+    await firestore.collection("users").doc(userToAddID).collection('notifications').doc('notifications').set({ 'usersInvited': FieldValue.arrayUnion(notificationData) }, { merge: true });
+    const condition = `'${userToAddID}' in topics`;
     const dataPayload = {
         data: {
             click_action: 'FLUTTER_NOTIFICATION_CLICK',
@@ -92,11 +98,12 @@ exports.joinSalfh = functions.https.onCall(async (data, context) => {
     const { salfhID, color, userToAddID } = data;
     console.log(userToAddID);
     const callerID = context.auth.uid;
+    let snapshot;
     const salfhRef = firestore.collection('Swalf').doc(salfhID);
     try {
         return firestore.runTransaction(async function (transaction) {
             var _a, _b, _c;
-            const snapshot = await transaction.get(salfhRef);
+            snapshot = await transaction.get(salfhRef);
             let userRef;
             if (!userToAddID) {
                 userRef = firestore.collection('users').doc(callerID);
@@ -120,6 +127,11 @@ exports.joinSalfh = functions.https.onCall(async (data, context) => {
             newUserSwalf[`userSwalf.${salfhID}`] = color;
             transaction.update(userRef, newUserSwalf);
             return true;
+        }).then(async (value) => {
+            if (userToAddID !== null) {
+                const id = userToAddID;
+                await sendAndSaveNotification(id, salfhID, snapshot.data());
+            }
         });
     }
     catch (err) {
@@ -488,5 +500,29 @@ function deleteSalfh(salfhID, userID, transaction) {
             [salfhID]: FieldValue.delete()
         }
     }, { merge: true });
+}
+async function sendAndSaveNotification(userToAddID, salfhID, data) {
+    const notificationData = { "value": { "id": salfhID, "title": data['title'] }, 'type': NotificationType.INVITE, 'time': FieldValue.serverTimestamp() };
+    console.log("userToAddID" + userToAddID);
+    console.log("ourdata" + notificationData);
+    await firestore.collection("users").doc(userToAddID).collection('notifications').doc().set(notificationData);
+    const condition = `'${userToAddID}' in topics`;
+    const dataPayload = {
+        data: {
+            click_action: 'FLUTTER_NOTIFICATION_CLICK',
+            id: salfhID,
+            type: 'inv'
+        },
+        condition: condition
+    };
+    const notification = {
+        notification: {
+            title: "You are getting invited to this salfh",
+            body: data['title'],
+        },
+        condition: condition
+    };
+    await admin.messaging().send(dataPayload).then(value => console.log(value)).catch(err => console.log(err));
+    await admin.messaging().send(notification).then(value => console.log(value)).catch(err => console.log(err));
 }
 //# sourceMappingURL=index.js.map
