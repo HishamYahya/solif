@@ -18,7 +18,7 @@ import 'package:localstorage/localstorage.dart';
 
 class AppData with ChangeNotifier {
   FirebaseUser currentUser;
-  Future<List<SalfhTile>> usersSalfhTiles;
+  List<SalfhTile> usersSalfhTiles;
   List<SalfhTile> publicSalfhTiles;
   List<TagTile> tagsSavedLocally = [];
   bool isTagslLoaded = false;
@@ -176,11 +176,7 @@ class AppData with ChangeNotifier {
 
   ///// if list is null then it hasn't been loaded yet (happens only once)
   loadTiles() async {
-    usersSalfhTiles =
-        getUsersChatScreenTiles(currentUserID).catchError((error) {
-      print('On catch error');
-      print(error.toString());
-    });
+    usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
 
     notifyListeners();
     publicSalfhTiles =
@@ -201,7 +197,7 @@ class AppData with ChangeNotifier {
   reloadUsersSalfhTiles() async {
     // usersSalfhTiles = [];
     notifyListeners();
-    usersSalfhTiles = getUsersChatScreenTiles(currentUserID);
+    usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
 
     notifyListeners();
   }
@@ -243,6 +239,7 @@ class AppData with ChangeNotifier {
             title: salfh['title'],
             adminID: salfh['adminID'],
             id: salfh.documentID,
+            lastMessageSent: salfh['lastMessageSent'],
             tags: salfh['tags'] ?? [], //////// TODO: remove null checking
           ));
       }

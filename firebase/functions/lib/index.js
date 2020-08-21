@@ -20,6 +20,33 @@ var ColorNames;
     ColorNames["red"] = "red";
 })(ColorNames || (ColorNames = {}));
 const kColorNames = [ColorNames.blue, ColorNames.green, ColorNames.purple, ColorNames.red, ColorNames.yellow];
+exports.testNotification = functions.https.onCall(async (data, context) => {
+    var _a;
+    const condition = `'${(_a = context.auth) === null || _a === void 0 ? void 0 : _a.uid}' in topics`;
+    const dataPayload = {
+        data: {
+            click_action: 'FLUTTER_NOTIFICATION_CLICK',
+            id: 'DATA_ID',
+            test_field: 'TEST_FIELD_DATA',
+            type: 'test'
+        },
+        condition: condition
+    };
+    const notification = {
+        notification: {
+            title: "Test notification",
+            body: 'Test notification body',
+        },
+        data: {
+            click_action: 'FLUTTER_NOTIFICATION_CLICK',
+            id: "NOTIFICATION_ID"
+        },
+        condition: condition
+    };
+    await admin.messaging().send(dataPayload).then(value => console.log(value)).catch(err => console.log(err));
+    await admin.messaging().send(notification).then(value => console.log(value)).catch(err => console.log(err));
+    return true;
+});
 exports.inviteUser = functions.https.onCall(async (data, context) => {
     /*
     data keys: [salfhID, invitedID]

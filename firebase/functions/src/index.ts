@@ -29,6 +29,37 @@ enum ColorNames {
 }
 const kColorNames: Array<Color> = [ColorNames.blue, ColorNames.green, ColorNames.purple, ColorNames.red, ColorNames.yellow];
 
+exports.testNotification = functions.https.onCall(async (data, context) => {
+    const condition: string = `'${context.auth?.uid}' in topics`;
+
+    const dataPayload = {
+        data: {
+            click_action: 'FLUTTER_NOTIFICATION_CLICK',
+            id: 'DATA_ID',
+            test_field: 'TEST_FIELD_DATA',
+            type: 'test'
+
+        },
+        condition: condition
+    };
+    const notification = {
+        notification: {
+            title: "Test notification", // TODO: change message
+            body: 'Test notification body',
+        },
+        data: {
+            click_action: 'FLUTTER_NOTIFICATION_CLICK',
+            id: "NOTIFICATION_ID"
+        },
+        condition: condition
+    };
+    await admin.messaging().send(dataPayload).then(value => console.log(value)).catch(err => console.log(err));
+
+    await admin.messaging().send(notification).then(value => console.log(value)).catch(err => console.log(err));
+    return true;
+
+});
+
 exports.inviteUser = functions.https.onCall(async (data, context) => {
 
     /*

@@ -52,6 +52,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     //   final dynamic notification = message['notification'];
     // }
     print('RAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAN');
+    print(message);
     return null;
     // Or do other work.
   }
