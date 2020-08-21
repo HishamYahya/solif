@@ -103,8 +103,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     super.initState();
   }
 
+  void _init() async {}
+
   Future<void> loadLocalStorageMessages() async {
     bool isReady = await storage.ready;
+
     print('isReady:$isReady');
 
     List<dynamic> storedMessages = storage.getItem('local_messages') ?? [];

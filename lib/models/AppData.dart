@@ -7,9 +7,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/Services/ValidFirebaseStringConverter.dart';
+import 'package:solif/components/NotificationTile.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/components/TagTile.dart';
 import 'package:solif/constants.dart';
+import 'package:solif/models/Notification.dart';
 import 'package:solif/models/Tag.dart';
 import 'package:solif/models/Salfh.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -21,6 +23,7 @@ class AppData with ChangeNotifier {
   List<SalfhTile> usersSalfhTiles;
   List<SalfhTile> publicSalfhTiles;
   List<TagTile> tagsSavedLocally = [];
+  List<NotificationTile> notificationTiles;
   bool isTagslLoaded = false;
   String _searchTag;
   final Firestore firestore = Firestore.instance;
@@ -119,7 +122,21 @@ class AppData with ChangeNotifier {
     // await auth.signOut();
 
     listenForNewUserSwalf();
+    listenForNewNotifications();
     loadTiles();
+  }
+
+  void listenForNewNotifications() {
+    firestore
+        .collection('users')
+        .document(currentUserID)
+        .collection('notifications')
+        .snapshots()
+        .listen((snapshot) {
+      notificationTiles = generateNotificationTiles(snapshot.documents);
+      print(notificationTiles);
+      notifyListeners();
+    });
   }
 
   reset() async {
@@ -195,10 +212,10 @@ class AppData with ChangeNotifier {
   }
 
   reloadUsersSalfhTiles() async {
-    // usersSalfhTiles = [];
+    final newUsersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
+    usersSalfhTiles = [];
     notifyListeners();
-    usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
-
+    usersSalfhTiles = newUsersSalfhTiles;
     notifyListeners();
   }
 
@@ -213,10 +230,11 @@ class AppData with ChangeNotifier {
   }
 
   reloadPublicSalfhTiles() async {
-    publicSalfhTiles = [];
-    notifyListeners();
-    publicSalfhTiles =
+    final newPublicSalfhTiles =
         await getPublicChatScreenTiles(currentUserID, tag: _searchTag);
+    // publicSalfhTiles = [];
+    // notifyListeners();
+    publicSalfhTiles = newPublicSalfhTiles;
     notifyListeners();
   }
 

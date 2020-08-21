@@ -232,7 +232,7 @@ class SalfhTileState extends State<SalfhTile>
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(11),
+            borderRadius: BorderRadius.circular(10),
             color: isFull ? Colors.white : kOurColors[colorName],
           ),
           child: Row(
