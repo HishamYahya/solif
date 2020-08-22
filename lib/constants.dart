@@ -22,15 +22,18 @@ const List<String> kColorNames = ["purple", "green", "yellow", "red", "blue"];
 // always use this when refering to colors.
 // use example to get the first color:
 // color: kOurColors[kColorNames[0]];
-
 final Map<String, Color> kOurColors = {
-  kColorNames[0]: Color(0xff6E2594).withAlpha(100),
-  kColorNames[1]: Color(0xff82BC24),
-  kColorNames[2]: Color(0xffF48701),
-  kColorNames[3]:  Color(0xffCC2836),
-  kColorNames[4]: Color(0xff1982c4)
-};    
+  kColorNames[0]: Color(0xff540d6e),
+  kColorNames[1]: Color(0xff2EBD7D),
+  kColorNames[2]: Color(0xffECB22E),
+  kColorNames[3]: Color(0xffE01E5A),
+  kColorNames[4]: Color(0xff36C5F0)
+};
 
 final kMainColor = Color(0XFF1b98e0);
-  
+
 final kMinimumSalfhTiles = 10;
+
+final kDarkTextColor = Colors.grey[800];
+
+final kCancelRedColor = Colors.red[300];

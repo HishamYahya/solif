@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/AppData.dart';
 
@@ -10,36 +12,44 @@ import '../constants.dart';
 final firestore = Firestore.instance;
 
 Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
-  int x = 1;
-  print(userID);
-  final salfhDoc = await firestore.collection('users').document(userID).get();
-  List<SalfhTile> salfhTiles = [];
-  Map<String, dynamic> userSwalf = await salfhDoc['userSwalf'];
-  if (userSwalf == null) return [];
-  for (var entry in userSwalf.entries) {
-    var currentSalfh =
-        await firestore.collection('Swalf').document(entry.key).get();
+  try {
+    int x = 1;
+    final salfhDoc = await firestore.collection('users').document(userID).get();
+    List<SalfhTile> salfhTiles = [];
+    Map<String, dynamic> userSwalf = await salfhDoc['userSwalf'];
+    if (userSwalf == null) return [];
+    for (var entry in userSwalf.entries) {
+      var currentSalfh =
+          await firestore.collection('Swalf').document(entry.key).get();
 
-    salfhTiles.add(SalfhTile(
-      colorsStatus: currentSalfh['colorsStatus'],
-      title: currentSalfh['title'],
-      id: currentSalfh.documentID,
-      adminID: currentSalfh['adminID'],
-      tags: currentSalfh['tags'] ?? [], //////// TODO: remove null checking
-      lastMessageSent: currentSalfh['lastMessageSent'],
-    ));
+      salfhTiles.add(SalfhTile(
+        key: GlobalKey<SalfhTileState>(),
+        colorsStatus: currentSalfh['colorsStatus'],
+        title: currentSalfh['title'],
+        id: currentSalfh.documentID,
+        adminID: currentSalfh['adminID'],
+        tags: currentSalfh['tags'] ?? [], //////// TODO: remove null checking
+        lastMessageSent: currentSalfh['lastMessageSent'],
+      ));
+    }
+
+    salfhTiles.sort((a, b) {
+      return b.lastMessageSentTime
+          .compareTo(a.lastMessageSentTime); // sort using datetime comparator.
+    });
+
+    return salfhTiles;
+  } on AuthException catch (e) {
+    print(e.toString());
+    throw ("Permission Denied");
+  } catch (e) {
+    print(e.toString());
+    throw ('error');
   }
-
-  salfhTiles.sort((a, b) {
-    return b.lastMessageSentTime
-        .compareTo(a.lastMessageSentTime); // sort using datetime comparator.
-  });
-
-  print(salfhTiles.length);
-  return salfhTiles;
 }
 
-Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
+Future<List<SalfhTile>> getPublicChatScreenTiles(String userID,
+    {String tag}) async {
   // final salfhDocs = await firestore
   //     .collection('Swalf')
   //     .orderBy('timeCreated', descending: true)
@@ -66,6 +76,8 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
   // return salfhTiles;
   final first = firestore
       .collection('Swalf')
+      .where('tags', arrayContains: tag)
+      .where('visible', isEqualTo: true)
       .orderBy('timeCreated', descending: true)
       .limit(kMinimumSalfhTiles);
   final salfhDocs = await first.getDocuments();
@@ -80,6 +92,7 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
       if (!isFull)
         salfhTiles.add(SalfhTile(
           // color now generated in SalfhTile
+          key: GlobalKey<SalfhTileState>(),
           colorsStatus: salfh['colorsStatus'],
           adminID: salfh['adminID'],
           title: salfh['title'],
@@ -90,13 +103,14 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
         ));
     }
   }
-  print(salfhTiles.length);
   if (salfhTiles.isNotEmpty) {
     final Timestamp lastVisibleSalfhTime =
         salfhDocs.documents[salfhDocs.documents.length - 1]['timeCreated'];
     // next batch starts after the last document
     AppData.nextPublicTiles = firestore
         .collection('Swalf')
+        .where('tags', arrayContains: tag)
+        .where('visible', isEqualTo: true)
         .orderBy('timeCreated', descending: true)
         .startAfter([lastVisibleSalfhTime]).limit(kMinimumSalfhTiles);
   }
@@ -106,7 +120,6 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID) async {
 
 getSalfh(salfhID) async {
   final ref = await firestore.collection('Swalf').document(salfhID).get();
-  print(ref);
   if (ref.exists) {
     return ref.data;
   }

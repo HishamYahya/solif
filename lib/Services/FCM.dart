@@ -1,44 +1,29 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future<dynamic> backgroundMessageHandler(Map<String, dynamic> message) async {
-  print("got here");
-  if (message.containsKey('data')) {
-    // Handle data message
-    final dynamic data = message['data'];
 
-    if (data['type'] == 'inv') {
-      var prefs = await SharedPreferences.getInstance();
-      List<String> invitedToSwalf =
-          prefs.getStringList('invited') ?? List<String>();
+// Future<dynamic> backgroundMessageHandler(Map<String, dynamic> message) async {
+//   if (message.containsKey('data')) {
+//     // Handle data message
+//     final dynamic data = message['data'];
 
-      invitedToSwalf.add(data['id']);
 
-      prefs.setStringList('invited', invitedToSwalf);
-    }
-  }
+//     if (data['type'] == 'inv') {
+//       var prefs = await SharedPreferences.getInstance();
+//       List<String> invitedToSwalf =
+//           prefs.getStringList('invited') ?? List<String>();
 
-  if (message.containsKey('notification')) {
-    // Handle notification message
-    final dynamic notification = message['notification'];
-  }
+//       invitedToSwalf.add(data['id']);
 
-  // Or do other work.
-}
+//       prefs.setStringList('invited', invitedToSwalf);
+//     }
+//   }
 
-Future<dynamic> foregroundMessageHandler(Map<String, dynamic> message) async {
-  print("got here2");
-  if (message.containsKey('data')) {
-    // Handle data message
-    final dynamic data = message['data'];
+//   if (message.containsKey('notification')) {
+//     // Handle notification message
+//     final dynamic notification = message['notification'];
+//   }
 
-    if (data['type'] == 'inv') {
-      var prefs = await SharedPreferences.getInstance();
-      List<String> invitedToSwalf =
-          prefs.getStringList('invited') ?? List<String>();
+//   // Or do other work.
+// }
 
-      invitedToSwalf.add(data['id']);
-
-      prefs.setStringList('invited', invitedToSwalf);
-    }
-  }
-}
+  

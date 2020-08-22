@@ -2,12 +2,16 @@ import 'dart:math';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/BottomBar.dart';
+import 'package:solif/components/ColoredDot.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/screens/MyChatsScreen.dart';
+import 'package:solif/screens/NotificationsScreen.dart';
 import 'package:solif/screens/PublicChatsScreen.dart';
 import 'package:solif/Services/FCM.dart';
+import 'package:solif/screens/SettingsScreen.dart';
 
 import '../constants.dart';
 
@@ -23,9 +27,35 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   Animation _rotateAnimation;
   Animation whiteToBlueAnimation;
   Animation blueToWhiteAnimation;
-  TabController _tabController;
 
   final fcm = FirebaseMessaging();
+
+  static Future<dynamic> backgroundMessageHandler(
+      Map<String, dynamic> message) async {
+    // if (message.containsKey('data')) {
+    //   // Handle data message
+    //   final dynamic data = message['data'];
+
+    //   if (data['type'] == 'inv') {
+    //     var prefs = await SharedPreferences.getInstance();
+    //     List<String> invitedToSwalf =
+    //         prefs.getStringList('invited') ?? List<String>();
+
+    //     invitedToSwalf.add(data['id']);
+
+    //     prefs.setStringList('invited', invitedToSwalf);
+    //   }
+    // }
+
+    // if (message.containsKey('notification')) {
+    //   // Handle notification message
+    //   final dynamic notification = message['notification'];
+    // }
+    print('RAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAN');
+    print(message);
+    return null;
+    // Or do other work.
+  }
 
   @override
   void initState() {
@@ -43,18 +73,8 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
        foregroundMessageHandler(message);
        
       },
-      // onBackgroundMessage: backgroundMessageHandler
+      onBackgroundMessage: backgroundMessageHandler,
     );
-
-    _tabController = TabController(vsync: this, length: 2);
-
-    _tabController.addListener(() {
-      if (_tabController.index != curPageIndex) {
-        setState(() {
-          curPageIndex = _tabController.index;
-        });
-      }
-    });
 
     _animationController =
         AnimationController(vsync: this, duration: Duration(milliseconds: 200));
@@ -76,110 +96,152 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     super.dispose();
 
     _animationController.dispose();
-
-    _tabController.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: Colors.grey[100],
-        floatingActionButton: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            // rotate the button 45 degrees
-            return Transform.rotate(
-              angle: _rotateAnimation.value,
-              child: FloatingActionButton(
-                backgroundColor: blueToWhiteAnimation.value,
-                elevation: 2.0,
-                onPressed: () {
-                  setState(() {
-                    isAdding = !isAdding;
-                  });
-
-                  // alternate icon between x and +
-                  if (isAdding) {
-                    _animationController.forward();
-                  } else {
-                    _animationController.reverse();
-                  }
-                },
-                child: Icon(
-                  Icons.add,
-                  color: whiteToBlueAnimation.value,
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              color: Colors.grey[500],
+              icon: Icon(Icons.settings),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SettingsScreen(),
                 ),
               ),
-            );
-          },
-          child: null,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    '1750',
+                    style: TextStyle(color: Colors.grey[500]),
+                  ),
+                ),
+                Image.asset(
+                  'images/dots.png',
+                  height: 24,
+                ),
+              ],
+            ),
+          ],
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        centerTitle: true,
+      ),
+      backgroundColor: Colors.grey[100],
+      floatingActionButton:
+          MediaQuery.of(context).viewInsets.bottom == 0 || isAdding
+              ? AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    // rotate the button 45 degrees
+                    return Transform.rotate(
+                      angle: _rotateAnimation.value,
+                      child: FloatingActionButton(
+                        backgroundColor: blueToWhiteAnimation.value,
+                        elevation: 2.0,
+                        onPressed: () {
+                          setState(() {
+                            isAdding = !isAdding;
+                          });
 
-        // custom widget
-        bottomNavigationBar: SingleChildScrollView(
-          child: BottomBar(
-            centerText: "افتح سالفة",
-            isAdding: isAdding,
-            selectedIndex: curPageIndex,
-            onTap: (value) {
-              if (curPageIndex != value) {
-                setState(() {
-                  curPageIndex = value;
-                  _tabController.animateTo(value);
-                  isAdding = false;
-                  _animationController.reverse();
-                });
-              }
-            },
-            onClose: () {
+                          // alternate icon between x and +
+                          if (isAdding) {
+                            _animationController.forward();
+                          } else {
+                            _animationController.reverse();
+                          }
+                        },
+                        child: Icon(
+                          Icons.add,
+                          color: whiteToBlueAnimation.value,
+                        ),
+                      ),
+                    );
+                  },
+                  child: null,
+                )
+              : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+
+      // custom widget
+      bottomNavigationBar: SingleChildScrollView(
+        child: BottomBar(
+          centerText: "افتح سالفة",
+          isAdding: isAdding,
+          selectedIndex: curPageIndex,
+          onTap: (value) {
+            if (curPageIndex != value) {
               setState(() {
+                curPageIndex = value;
                 isAdding = false;
                 _animationController.reverse();
               });
-            },
-            items: [
-              BottomBarItem(
-                title: "سواليفي",
-                icon: Icons.chat_bubble_outline,
-              ),
-              BottomBarItem(
-                title: "سواليفهم",
-                icon: Icons.chat_bubble,
-              ),
-            ],
-          ),
+            }
+          },
+          onClose: () {
+            setState(() {
+              isAdding = false;
+              _animationController.reverse();
+            });
+          },
+          items: [
+            BottomBarItem(
+              title: "",
+              icon: Icons.chat_bubble_outline,
+            ),
+            BottomBarItem(
+              title: "",
+              icon: Icons.chat_bubble,
+            ),
+            BottomBarItem(
+              title: "",
+              icon: Icons.notifications,
+            ),
+            BottomBarItem(
+              title: "",
+              icon: Icons.account_circle,
+            ),
+          ],
         ),
-        // close the add popup when dragging down`
-        body: GestureDetector(
-          onVerticalDragDown: (details) {
-            if (isAdding) {
-              setState(() {
-                isAdding = false;
-              });
-              _animationController.reverse();
-            }
-          },
-          onTap: () {
-            if (isAdding) {
-              _animationController.reverse();
-              setState(() {
-                isAdding = false;
-              });
-            }
-          },
-          child: TabBarView(
-            controller: _tabController,
-            children: <Widget>[
-              MyChatsScreen(
-                disabled: isAdding,
-              ),
-              PublicChatsScreen(
-                disabled: isAdding,
-              )
-            ],
-          ),
+      ),
+      // close the add popup when dragging down`
+      body: GestureDetector(
+        onVerticalDragDown: (details) {
+          if (isAdding) {
+            setState(() {
+              isAdding = false;
+            });
+            _animationController.reverse();
+          }
+        },
+        onTap: () {
+          if (isAdding) {
+            _animationController.reverse();
+            setState(() {
+              isAdding = false;
+            });
+          }
+        },
+        child: IndexedStack(
+          index: curPageIndex,
+          children: <Widget>[
+            MyChatsScreen(
+              disabled: isAdding,
+            ),
+            PublicChatsScreen(
+              disabled: isAdding,
+            ),
+            NotificationsScreen(),
+            SettingsScreen(),
+          ],
         ),
       ),
     );

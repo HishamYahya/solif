@@ -5,16 +5,21 @@ import 'package:solif/models/Likes.dart';
 import 'package:solif/models/Salfh.dart';
 
 import '../constants.dart';
+import 'InviteDialog.dart';
 
 class ColorDrawerTile extends StatefulWidget {
   final bool isCreator;
   final bool currentUserIsAdmin;
   final String color;
   final String id;
-  final String salfhID; 
+  final String salfhID;
 
   ColorDrawerTile(
-      {this.isCreator, this.color, this.id, this.currentUserIsAdmin,this.salfhID});
+      {this.isCreator,
+      this.color,
+      this.id,
+      this.currentUserIsAdmin,
+      this.salfhID});
 
   @override
   _ColorDrawerTileState createState() => _ColorDrawerTileState();
@@ -27,11 +32,27 @@ class _ColorDrawerTileState extends State<ColorDrawerTile> {
   List<Widget> getIcons() {
     final icons = [
       IconButton(
-          icon: Icon(
-            Icons.report,
-            color: Colors.grey[200],
-          ),
-          onPressed: null),
+        icon: Icon(
+          Icons.report,
+          color: Colors.grey[200],
+        ),
+        onPressed: null,
+      ),
+      IconButton(
+        icon: Icon(
+          Icons.group_add,
+          color: Colors.grey[200],
+        ),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) => InviteDialog(
+              color: widget.color,
+              userID: widget.id,
+            ),
+          );
+        },
+      ),
       AnimatedSwitcher(
         duration: Duration(milliseconds: 100),
         transitionBuilder: (child, animation) => ScaleTransition(
@@ -74,7 +95,6 @@ class _ColorDrawerTileState extends State<ColorDrawerTile> {
                   isSelected: isSelected,
                   onPressed: (index) {
                     final prevSelected = [...isSelected];
-                    print(widget.id);
                     setState(() {
                       if (!isSelected[index]) {
                         isSelected[index] = true;
@@ -110,14 +130,10 @@ class _ColorDrawerTileState extends State<ColorDrawerTile> {
       icons.insert(
         0,
         GestureDetector(
-          onTap: (){
-            print("tapping kick");
-            removeUser(
-              userColor: widget.color,
-              salfhID: widget.salfhID
-            );
+          onTap: () {
+            removeUser(userColor: widget.color, salfhID: widget.salfhID);
           },
-                  child: IconButton(
+          child: IconButton(
               icon: Icon(
                 Icons.close,
                 color: Colors.grey[200],

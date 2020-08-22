@@ -1,4 +1,4 @@
-package com.example.solif
+package chat.solif.solif
 
 import io.flutter.embedding.android.FlutterActivity
 

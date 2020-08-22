@@ -6,22 +6,31 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/Services/FirebaseServices.dart';
+import 'package:solif/Services/ValidFirebaseStringConverter.dart';
+import 'package:solif/components/NotificationTile.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/components/TagTile.dart';
 import 'package:solif/constants.dart';
+import 'package:solif/models/Notification.dart';
 import 'package:solif/models/Tag.dart';
 import 'package:solif/models/Salfh.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+
+import 'package:localstorage/localstorage.dart';
 
 class AppData with ChangeNotifier {
   FirebaseUser currentUser;
   List<SalfhTile> usersSalfhTiles;
   List<SalfhTile> publicSalfhTiles;
   List<TagTile> tagsSavedLocally = [];
+  List<NotificationTile> notificationTiles;
   bool isTagslLoaded = false;
+  String _searchTag;
   final Firestore firestore = Firestore.instance;
   final fcm = FirebaseMessaging();
   final auth = FirebaseAuth.instance;
+
+  var messsagesDataBase;
 
   static Query nextPublicTiles;
 
@@ -35,7 +44,24 @@ class AppData with ChangeNotifier {
     return null;
   }
 
+  set searchTag(String tag) {
+    _searchTag = tag;
+    reloadPublicSalfhTiles();
+  }
+
+  get searchTag {
+    return _searchTag;
+  }
+
   AppData() {
+    // print('local storage test');
+
+    // LocalStorage ls = LocalStorage('test.json');
+    // ls.ready.then((value) => ls.setItem('timeStamp', [Timestamp(10,20)]));
+    // var testTimeStamp = ls.getItem('timeStamp');
+    // print(testTimeStamp.runtimeType);
+    // print(testTimeStamp);
+
     // print('here');
     // leaveSalfh(salfhID:
     // "zFX6VZ7czRIdAirTqaZB",userColor: 'green',userID:"LX2Cw01JQlMSxPUroH37");
@@ -91,10 +117,26 @@ class AppData with ChangeNotifier {
 
   init() async {
     // await auth.signOut();
-    prefs = await SharedPreferences.getInstance();
     await loadUser();
+    prefs = await SharedPreferences.getInstance();
+    // await auth.signOut();
+
     listenForNewUserSwalf();
+    listenForNewNotifications();
     loadTiles();
+  }
+
+  void listenForNewNotifications() {
+    firestore
+        .collection('users')
+        .document(currentUserID)
+        .collection('notifications')
+        .snapshots()
+        .listen((snapshot) {
+      notificationTiles = generateNotificationTiles(snapshot.documents);
+      print(notificationTiles);
+      notifyListeners();
+    });
   }
 
   reset() async {
@@ -119,10 +161,12 @@ class AppData with ChangeNotifier {
     //   prefs.setString(key, userID);
     //   currentUserID = userID;
     //   fcm.subscribeToTopic(userID);
+
     // }
     // notifyListeners();
 
     final user = await auth.currentUser();
+
     if (user != null) {
       currentUser = user;
     } else {
@@ -136,7 +180,6 @@ class AppData with ChangeNotifier {
         fcm.subscribeToTopic(currentUserID);
       }
     }
-    print(currentUserID);
     notifyListeners();
   }
 
@@ -153,14 +196,15 @@ class AppData with ChangeNotifier {
     usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
 
     notifyListeners();
-    publicSalfhTiles = await getPublicChatScreenTiles(currentUserID);
+    publicSalfhTiles =
+        await getPublicChatScreenTiles(currentUserID, tag: _searchTag);
     notifyListeners();
   }
 
-  setUsersSalfhTiles(List<SalfhTile> salfhTiles) {
-    usersSalfhTiles = salfhTiles;
-    notifyListeners();
-  }
+  // setUsersSalfhTiles(List<SalfhTile> salfhTiles) {
+  //   usersSalfhTiles = salfhTiles;
+  //   notifyListeners();
+  // }
 
   setPublicSalfhTiles(List<SalfhTile> salfhTiles) {
     publicSalfhTiles = salfhTiles;
@@ -168,12 +212,10 @@ class AppData with ChangeNotifier {
   }
 
   reloadUsersSalfhTiles() async {
+    final newUsersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
     usersSalfhTiles = [];
     notifyListeners();
-    usersSalfhTiles = await getUsersChatScreenTiles(currentUserID);
-    for (var tile in usersSalfhTiles) {
-      print(tile.id);
-    }
+    usersSalfhTiles = newUsersSalfhTiles;
     notifyListeners();
   }
 
@@ -188,9 +230,11 @@ class AppData with ChangeNotifier {
   }
 
   reloadPublicSalfhTiles() async {
-    publicSalfhTiles = [];
-    notifyListeners();
-    publicSalfhTiles = await getPublicChatScreenTiles(currentUserID);
+    final newPublicSalfhTiles =
+        await getPublicChatScreenTiles(currentUserID, tag: _searchTag);
+    // publicSalfhTiles = [];
+    // notifyListeners();
+    publicSalfhTiles = newPublicSalfhTiles;
     notifyListeners();
   }
 
@@ -208,11 +252,12 @@ class AppData with ChangeNotifier {
         if (!isFull)
           newSalfhTiles.add(SalfhTile(
             // color now generated in SalfhTile
+            key: GlobalKey<SalfhTileState>(),
             colorsStatus: salfh['colorsStatus'],
             title: salfh['title'],
             adminID: salfh['adminID'],
-
             id: salfh.documentID,
+            lastMessageSent: salfh['lastMessageSent'],
             tags: salfh['tags'] ?? [], //////// TODO: remove null checking
           ));
       }
@@ -224,6 +269,8 @@ class AppData with ChangeNotifier {
       // next batch starts after the last document
       nextPublicTiles = firestore
           .collection('Swalf')
+          .where('tags', arrayContains: _searchTag)
+          .where('visible', isEqualTo: true)
           .orderBy('timeCreated', descending: true)
           .startAfter([lastVisibleSalfhTime]).limit(kMinimumSalfhTiles);
     }
@@ -253,6 +300,7 @@ class AppData with ChangeNotifier {
         .collection('userTags')
         .document(tag)
         .delete();
+    tag = ValidFireBaseStringConverter.convertString(tag);
     fcm.unsubscribeFromTopic("${tag}TAG");
 
     tagsSavedLocally = tagsSavedLocally.map((e) => e).toList();
@@ -272,6 +320,8 @@ class AppData with ChangeNotifier {
         .collection('userTags')
         .document(tag)
         .setData({'tagName': tag, 'timeAdded': DateTime.now()});
+    tag = ValidFireBaseStringConverter.convertString(tag);
+    print(tag);
     fcm.subscribeToTopic(
         "${tag}TAG"); // without  an ending ID for tag topic, a salfh topic and a tag topic could have the same name. two topics same name = bad.
 

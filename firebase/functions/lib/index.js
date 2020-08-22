@@ -10,6 +10,7 @@ admin.initializeApp();
 const firestore = admin.firestore();
 // const fcm = admin.messaging();
 const FieldValue = admin.firestore.FieldValue;
+const UnauthenticatedException = new https_1.HttpsError('unauthenticated', 'User is not authorized to perform the desired action, check your security rules to ensure they are correct');
 var ColorNames;
 (function (ColorNames) {
     ColorNames["purple"] = "purple";
@@ -18,31 +19,60 @@ var ColorNames;
     ColorNames["blue"] = "blue";
     ColorNames["red"] = "red";
 })(ColorNames || (ColorNames = {}));
+var NotificationType;
+(function (NotificationType) {
+    NotificationType["INVITE"] = "invite";
+})(NotificationType || (NotificationType = {}));
 const kColorNames = [ColorNames.blue, ColorNames.green, ColorNames.purple, ColorNames.red, ColorNames.yellow];
-exports.inviteUSer = functions.https.onCall(async (data, context) => {
+exports.testNotification = functions.https.onCall(async (data, context) => {
+    var _a;
+    const condition = `'${(_a = context.auth) === null || _a === void 0 ? void 0 : _a.uid}' in topics`;
+    const dataPayload = {
+        data: {
+            click_action: 'FLUTTER_NOTIFICATION_CLICK',
+            id: 'DATA_ID',
+            test_field: 'TEST_FIELD_DATA',
+            type: 'test'
+        },
+        condition: condition
+    };
+    const notification = {
+        notification: {
+            title: "Test notification",
+            body: 'Test notification body',
+        },
+        data: {
+            click_action: 'FLUTTER_NOTIFICATION_CLICK',
+            id: "NOTIFICATION_ID"
+        },
+        condition: condition
+    };
+    await admin.messaging().send(dataPayload).then(value => console.log(value)).catch(err => console.log(err));
+    await admin.messaging().send(notification).then(value => console.log(value)).catch(err => console.log(err));
+    return true;
+});
+exports.inviteUser = functions.https.onCall(async (data, context) => {
     /*
-    data keys: [salfhID, invitedID]
+    data keys: [salfhID, userToAddID]
     */
     if (context.auth === undefined)
-        throw new Error("User not authenticated");
+        throw UnauthenticatedException;
     const salfhID = data.salfhID;
-    const invitedID = data.invitedID;
+    const userToAddID = data.userToAddID;
     const functionCallerID = context.auth.uid;
-    const salfhData = await (await firestore.collection('Swalf').doc(salfhID).get()).data();
+    const salfhData = (await firestore.collection('Swalf').doc(salfhID).get()).data();
     if (salfhData === undefined)
         throw new Error("Document not found");
     const adminID = salfhData.adminID;
     if (functionCallerID !== adminID) {
-        throw new functions.https.HttpsError('unauthenticated', 'User is not authorized to perform the desired action, check your security rules to ensure they are correct');
+        throw UnauthenticatedException;
     }
-    // await firestore.collection("Swalf").doc(salfhID).set({  'usersInvited': FieldValue.arrayUnion(invitedID) }, { merge: true })
-    // in case sharedprefrence method doesn't work uncomment. 
-    const condition = `'${invitedID}' in topics`;
-    const payload = {
-        notification: {
-            title: "You are getting invited to this salfh",
-            body: salfhData['title'],
-        },
+    const notificationData = { "value": salfhID, 'type': 'invite' };
+    console.log("userToAddID" + userToAddID);
+    console.log("ourdata" + notificationData);
+    await firestore.collection("users").doc(userToAddID).collection('notifications').doc('notifications').set({ 'usersInvited': FieldValue.arrayUnion(notificationData) }, { merge: true });
+    const condition = `'${userToAddID}' in topics`;
+    const dataPayload = {
         data: {
             click_action: 'FLUTTER_NOTIFICATION_CLICK',
             id: salfhData.id,
@@ -50,31 +80,58 @@ exports.inviteUSer = functions.https.onCall(async (data, context) => {
         },
         condition: condition
     };
-    return admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
+    const notification = {
+        nootification: {
+            title: "You are getting invited to this salfh",
+            body: salfhData['title'],
+        },
+        condition: condition
+    };
+    await admin.messaging().send(dataPayload).then(value => console.log(value)).catch(err => console.log(err));
+    await admin.messaging().send(notification).then(value => console.log(value)).catch(err => console.log(err));
+    return true;
 });
 exports.joinSalfh = functions.https.onCall(async (data, context) => {
     if (!context.auth) {
-        throw new Error("User not authenticated");
+        throw UnauthenticatedException;
     }
-    const salfhID = data.salfhID;
-    const color = data.color;
-    const salfhRef = await firestore.collection('Swalf').doc(salfhID);
-    const userRef = await firestore.collection('users').doc(context.auth.uid);
+    const { salfhID, color, userToAddID } = data;
+    console.log(userToAddID);
+    const callerID = context.auth.uid;
+    let snapshot;
+    const salfhRef = firestore.collection('Swalf').doc(salfhID);
     try {
         return firestore.runTransaction(async function (transaction) {
             var _a, _b, _c;
-            const snapshot = await transaction.get(salfhRef);
-            let updatedData = {};
-            updatedData.colorsStatus = {};
-            if (((_a = snapshot.data()) === null || _a === void 0 ? void 0 : _a.colorsStatus[color]) === null) {
-                updatedData = { colorsStatus: {}, colorsInOrder: FieldValue.arrayUnion(color), 'usersInvited': FieldValue.arrayRemove((_b = context.auth) === null || _b === void 0 ? void 0 : _b.uid) };
-                updatedData.colorsStatus[color] = (_c = context.auth) === null || _c === void 0 ? void 0 : _c.uid;
+            snapshot = await transaction.get(salfhRef);
+            let userRef;
+            if (!userToAddID) {
+                userRef = firestore.collection('users').doc(callerID);
             }
-            transaction.set(salfhRef, updatedData, { merge: true });
+            else if (((_a = snapshot.data()) === null || _a === void 0 ? void 0 : _a.adminID) === callerID) {
+                userRef = firestore.collection('users').doc(userToAddID);
+            }
+            else {
+                throw new https_1.HttpsError('invalid-argument', 'Invalid input');
+            }
+            if (Object.values((_b = snapshot.data()) === null || _b === void 0 ? void 0 : _b.colorsStatus).includes(userRef.id)) {
+                throw new https_1.HttpsError('already-exists', 'User already in salfh');
+            }
+            let updatedData = {};
+            if (((_c = snapshot.data()) === null || _c === void 0 ? void 0 : _c.colorsStatus[color]) === null) {
+                updatedData = { colorsInOrder: FieldValue.arrayUnion(color), 'usersInvited': FieldValue.arrayRemove(userRef.id) };
+                updatedData[`colorsStatus.${color}`] = userRef.id;
+            }
+            transaction.update(salfhRef, updatedData);
             const newUserSwalf = {};
-            newUserSwalf[salfhID] = color;
-            transaction.set(userRef, { userSwalf: newUserSwalf }, { merge: true });
+            newUserSwalf[`userSwalf.${salfhID}`] = color;
+            transaction.update(userRef, newUserSwalf);
             return true;
+        }).then(async (value) => {
+            if (userToAddID !== null) {
+                const id = userToAddID;
+                await sendAndSaveNotification(id, salfhID, snapshot.data());
+            }
         });
     }
     catch (err) {
@@ -88,7 +145,7 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
         ,color}
     */
     if (!context.auth) {
-        throw new https_1.HttpsError('unauthenticated', "You are not logged in");
+        throw UnauthenticatedException;
     }
     const salfhID = data.salfhID;
     const color = data.color;
@@ -112,7 +169,7 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
             if (colorsStatus[color] === (snapshotData === null || snapshotData === void 0 ? void 0 : snapshotData.adminID) && colorsStatus[color] === ((_b = context.auth) === null || _b === void 0 ? void 0 : _b.uid)) {
                 const colorsInOrder = snapshotData.colorsInOrder;
                 if (colorsInOrder.length === 0) {
-                    deleteSalfh(salfhID, colorsStatus[color], transaction); // not tested;  
+                    deleteSalfh(salfhID, colorsStatus[color], transaction);
                 }
                 else {
                     const newAdminColor = colorsInOrder[0];
@@ -292,9 +349,9 @@ function getColorsStatus(adminID) {
     return colorsStatus;
 }
 exports.createSalfh = functions.https.onCall(async (data, context) => {
-    var _a, _b, _c;
+    var _a, _b, _c, _d, _e;
     if (!context.auth) {
-        throw new https_1.HttpsError('unauthenticated', 'You are not logged in');
+        throw UnauthenticatedException;
     }
     const salfhRef = firestore.collection('Swalf').doc();
     const colorsStatus = getColorsStatus(context.auth.uid);
@@ -320,14 +377,15 @@ exports.createSalfh = functions.https.onCall(async (data, context) => {
         chatRoomData.typingStatus[name] = false;
     });
     await firestore.collection("chatRooms").doc(salfhRef.id).set(chatRoomData, { merge: true });
-    const tags = data.tags;
+    const FCM_tags = (_d = data.FCM_tags) !== null && _d !== void 0 ? _d : [];
+    const tags = (_e = data.tags) !== null && _e !== void 0 ? _e : [];
     if (!tags || tags.length === 0)
         return { salfhID: salfhRef.id };
     let condition = "";
-    incrementTags(tags);
-    for (const i in tags) {
-        console.log(tags[i]);
-        condition += `('${tags[i]}TAG' in topics) || `;
+    incrementTags(tags, FCM_tags);
+    for (const i in FCM_tags) {
+        console.log(FCM_tags[i]);
+        condition += `('${FCM_tags[i]}TAG' in topics) || `;
     }
     condition = condition.substring(0, condition.length - 4);
     console.log(condition);
@@ -396,11 +454,12 @@ exports.createSalfh = functions.https.onCall(async (data, context) => {
 //     };
 //     return admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
 // });
-function incrementTags(tags) {
+function incrementTags(tags, FCM_tags) {
     const increment = FieldValue.increment(1);
+    let i = 0;
     tags.forEach((tag) => {
         // tslint:disable-next-line: no-floating-promises
-        firestore.collection('tags').doc(tag).set({
+        firestore.collection('tags').doc(FCM_tags[i++]).set({
             'tagName': tag,
             'tagCounter': increment,
             'searchKeys': stringKeys(tag)
@@ -409,7 +468,7 @@ function incrementTags(tags) {
 }
 function stringKeys(tag) {
     const keys = [];
-    for (let i = 0; i < tag.length; i++) {
+    for (let i = 0; i < tag.length - 2; i++) {
         keys.push(tag.substring(0, i + 1));
     }
     return keys;
@@ -442,5 +501,29 @@ function deleteSalfh(salfhID, userID, transaction) {
             [salfhID]: FieldValue.delete()
         }
     }, { merge: true });
+}
+async function sendAndSaveNotification(userToAddID, salfhID, data) {
+    const notificationData = { "value": { "id": salfhID, "title": data['title'] }, 'type': NotificationType.INVITE, 'time': FieldValue.serverTimestamp() };
+    console.log("userToAddID" + userToAddID);
+    console.log("ourdata" + notificationData);
+    await firestore.collection("users").doc(userToAddID).collection('notifications').doc().set(notificationData);
+    const condition = `'${userToAddID}' in topics`;
+    const dataPayload = {
+        data: {
+            click_action: 'FLUTTER_NOTIFICATION_CLICK',
+            id: salfhID,
+            type: 'inv'
+        },
+        condition: condition
+    };
+    const notification = {
+        notification: {
+            title: "You are getting invited to this salfh",
+            body: data['title'],
+        },
+        condition: condition
+    };
+    await admin.messaging().send(dataPayload).then(value => console.log(value)).catch(err => console.log(err));
+    await admin.messaging().send(notification).then(value => console.log(value)).catch(err => console.log(err));
 }
 //# sourceMappingURL=index.js.map

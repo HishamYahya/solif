@@ -26,8 +26,6 @@ class _ChatScreenDrawerState extends State<ChatScreenDrawer> {
     widget.colorsStatus.forEach((color, id) {
       if (id != Provider.of<AppData>(context, listen: false).currentUserID &&
           id != null) {
-        print(widget.adminID);
-        print(id);
         colorTiles.add(
           ColorDrawerTile(
             color: color,
@@ -117,7 +115,7 @@ class _ChatScreenDrawerState extends State<ChatScreenDrawer> {
             // ),
             Container(
               decoration: BoxDecoration(
-                color: Colors.red[300],
+                color: kCancelRedColor,
                 borderRadius: BorderRadius.only(
                   // topLeft: Radius.circular(40),
                   bottomLeft: Radius.circular(40),

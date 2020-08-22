@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:solif/Services/FirebaseServices.dart';
+import 'package:solif/Services/ValidFirebaseStringConverter.dart';
+import 'package:solif/components/OurErrorWidget.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/User.dart';
 import 'package:solif/models/Tag.dart';
@@ -48,19 +50,30 @@ class Salfh {
   }
 }
 
-Future<bool> createSalfhAndInvite({invitedID,salfhTitle}){
-  // String salfhID = await saveSalfh(salfhTitle);
-  // return await inviteUserToNewSalfh(invitedID: invitedID,salfhID:salfhID); 
-}
+Future<void> addUserToSalfh(
+    {String userID,
+    String salfhID,
+    String colorName,
+    BuildContext context}) async {
+  try {
+    await joinSalfh(userID: userID, salfhID: salfhID, colorName: colorName);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('success'),
+      ),
+    );
+  } catch (error) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: OurErrorWidget(
+          errorMessage: error.toString(),
+        ),
+      ),
+    );
+  }
 
-Future<bool> inviteUserToSalfh({invitedID,salfhID}) async {
-
- final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
-    functionName: 'inviteUSer',
-  );
-
-    HttpsCallableResult resp = await callable
-      .call(<String, dynamic>{'salfhID': salfhID, 'invitedID': invitedID});
 }
 
 Future<bool> joinSalfh(
@@ -68,11 +81,19 @@ Future<bool> joinSalfh(
   final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
     functionName: 'joinSalfh',
   );
-  HttpsCallableResult resp = await callable
-      .call(<String, dynamic>{'salfhID': salfhID, 'color': colorName});
-  print('response');
-  print(resp.data);
-  return resp.data;
+
+  HttpsCallableResult resp = await callable.call(<String, dynamic>{
+    'salfhID': salfhID,
+    'color': colorName,
+    'userToAddID': userID,
+  }).timeout(
+    Duration(seconds: 4),
+    onTimeout: () {
+      throw 'Timeout';
+    },
+  );
+  return true;
+
   // await firestore.runTransaction((transaction) async {
   //   final snapshot = await transaction.get(ref);
 
@@ -121,10 +142,11 @@ Future<Map<String, dynamic>> saveSalfh(
   // }
   // return null;
 
+  List<String> encodedTags = ValidFireBaseStringConverter.convertList(tags);
   final HttpsCallable callable =
       CloudFunctions.instance.getHttpsCallable(functionName: 'createSalfh');
-  final res =
-      await callable.call(<String, dynamic>{'title': title, 'tags': tags});
+  final res = await callable.call(
+      <String, dynamic>{'title': title, 'tags': tags, 'FCM_tags': encodedTags});
   final salfhID = res.data['salfhID'];
   if (salfhID == null) return null;
 
@@ -178,5 +200,4 @@ Future<void> removeUser({String userColor, String salfhID}) async {
   );
   dynamic resp = await callable
       .call(<String, dynamic>{'salfhID': salfhID, 'color': userColor});
-  print(resp.data);
 }

@@ -1,28 +1,45 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
-import '../constants.dart';
+import 'package:localstorage/localstorage.dart';
 
 class Message {
   String content;
-  FieldValue timeSent;
-  String messageColor;
+  FieldValue serverTimeSent;
+  Timestamp timeSent;
+  String color;
   String userID;
 
   Message(
       {@required this.content,
-      @required this.timeSent,
-      @required this.messageColor,
-      @required this.userID});
+      this.serverTimeSent,
+      @required this.color,
+      this.userID,
+      this.timeSent});
 
   Map<String, dynamic> toMap() {
     return {
       'content': content,
-      'timeSent': timeSent,
-      'color': messageColor,
+      'timeSent': serverTimeSent,
+      'color': color,
       'userID': userID
     };
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'content': content,
+      'timeSent': timeSent.toDate().toIso8601String(),
+      'color': color,
+      'userID': userID
+    };
+  }
+}
+
+Message fromJson(Map<String, dynamic> jsonMessage) {
+  return Message(
+      color: jsonMessage['color'],
+      content: jsonMessage['content'],
+      timeSent: Timestamp.fromDate(DateTime.parse(jsonMessage['timeSent'])));
 }
 
 // now returns whether it succeeded or not
@@ -38,10 +55,10 @@ Future<bool> addMessage(
         .collection('messages')
         .add(Message(
                 content: messageContent,
-                timeSent: FieldValue.serverTimestamp(),
-                messageColor: color,
+                serverTimeSent: FieldValue.serverTimestamp(),
+                color: color,
                 userID: userID)
-            .toMap()) 
+            .toMap())
         .then((value) {
           success = true;
         })
@@ -82,3 +99,19 @@ Future<bool> addMessage(
 //   });
 //   salfhDoc.updateData(salfh);
 // }
+
+
+ Future<void> setLocalStorage(List<Map<String,dynamic>> allTheMessages, var futureLastMessageSavedLocallyTime, LocalStorage storage) async {
+  //  print('here');
+  //  print(futureLastMessageSavedLocallyTime); 
+    if (futureLastMessageSavedLocallyTime != null) {
+      await storage.ready;
+      
+      storage.setItem('local_messages', allTheMessages.reversed.toList());
+      print("before saving $futureLastMessageSavedLocallyTime");
+      {
+        storage.setItem('last_message_time',
+            futureLastMessageSavedLocallyTime.toDate().toIso8601String());
+      }
+    }
+  }

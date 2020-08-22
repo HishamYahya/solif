@@ -27,22 +27,24 @@ class SalfhTile extends StatefulWidget {
 
   final Map lastMessageSent;
   final DateTime lastMessageSentTime;
-  SalfhTile(
-      {this.title,
-      this.id,
-      this.colorsStatus,
-      this.lastMessageSent,
-      this.tags,
-      this.adminID})
-      : this.lastMessageSentTime = lastMessageSent.containsKey('timeSent')
+  SalfhTile({
+    this.title,
+    this.id,
+    this.colorsStatus,
+    this.lastMessageSent,
+    this.tags,
+    this.adminID,
+    GlobalKey<SalfhTileState> key,
+  })  : this.lastMessageSentTime = lastMessageSent.containsKey('timeSent')
             ? lastMessageSent['timeSent'].toDate()
-            : DateTime(1999);
+            : DateTime(1999),
+        super(key: key);
 
   @override
-  _SalfhTileState createState() => _SalfhTileState();
+  SalfhTileState createState() => SalfhTileState();
 }
 
-class _SalfhTileState extends State<SalfhTile>
+class SalfhTileState extends State<SalfhTile>
     with SingleTickerProviderStateMixin {
   String colorName;
   Map colorsStatus;
@@ -62,8 +64,6 @@ class _SalfhTileState extends State<SalfhTile>
         Provider.of<AppData>(context, listen: false).prefs;
     if (prefs.containsKey(widget.id)) {
       DateTime lastLeft = DateTime.parse(prefs.getString(widget.id));
-      print(lastLeft);
-      print(widget.lastMessageSentTime);
       if (lastLeft.compareTo(widget.lastMessageSentTime) > 0) {
         notRead = false;
       }
@@ -232,22 +232,25 @@ class _SalfhTileState extends State<SalfhTile>
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(11),
+            borderRadius: BorderRadius.circular(10),
             color: isFull ? Colors.white : kOurColors[colorName],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               ClipRRect(
-                clipBehavior: Clip.antiAliasWithSaveLayer,
+                clipBehavior: Clip.antiAlias,
                 borderRadius: BorderRadius.only(
-                    topRight: Radius.elliptical(10, 50),
-                    bottomRight: Radius.elliptical(10, 50),
-                    topLeft: Radius.circular(10),
-                    bottomLeft: Radius.circular(10)),
+                  topRight: Radius.elliptical(10, 50),
+                  bottomRight: Radius.elliptical(10, 50),
+                  topLeft: Radius.circular(10),
+                  bottomLeft: Radius.circular(10),
+                ),
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.75,
-                  color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                  ),
                   child: Column(
                     children: [
                       IntrinsicHeight(
@@ -266,9 +269,7 @@ class _SalfhTileState extends State<SalfhTile>
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Text(
-                                      (widget.title +
-                                          ' notRead:' +
-                                          notRead.toString()),
+                                      (widget.title),
                                       style: TextStyle(
                                         fontSize: 20,
                                         color: Colors.grey[850],

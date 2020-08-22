@@ -6,11 +6,12 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:solif/Services/FirebaseServices.dart';
-import 'package:solif/components/CustomSliverAppBar.dart';
+import 'package:solif/components/SliverSearchBar.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
+import '../components/TagSearchResultsList.dart';
 
 class PublicChatsScreen extends StatefulWidget {
   final bool disabled;
@@ -22,14 +23,25 @@ class PublicChatsScreen extends StatefulWidget {
 }
 
 class _PublicChatsScreenState extends State<PublicChatsScreen>
-    with AutomaticKeepAliveClientMixin<PublicChatsScreen> {
-  @override
-  // to keep the page from refreshing each time you change back to it
-  // (now only loaded once but always saved which might be a problem)
-  bool get wantKeepAlive => true;
-
+    with SingleTickerProviderStateMixin {
   RefreshController _refreshController =
       RefreshController(initialRefresh: false);
+  FocusNode _searchBarFocusNode = FocusNode();
+  String searchTerm = "";
+  TabController _tabController;
+  final GlobalKey<NestedScrollViewState> _scrollViewKey = GlobalKey();
+  TextEditingController _editingController = TextEditingController();
+  int curTab = 0;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _searchBarFocusNode.addListener(() {
+      _scrollViewKey.currentState.outerController.jumpTo(0);
+    });
+  }
 
   void onRefresh() async {
     await Provider.of<AppData>(context, listen: false).reloadPublicSalfhTiles();
@@ -57,54 +69,93 @@ class _PublicChatsScreenState extends State<PublicChatsScreen>
       _refreshController.loadComplete();
   }
 
+  void changeTabTo(int index) {
+    setState(() {
+      curTab = index;
+    });
+    _tabController.animateTo(index);
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isLoaded = Provider.of<AppData>(context).isPublicTilesLoaded();
-    return SmartRefresher(
-      controller: _refreshController,
-      onRefresh: onRefresh,
-      onLoading: onLoading,
-      enablePullUp: true,
-      enableTwoLevel: true,
-      header: WaterDropMaterialHeader(
-        offset: 55,
-        distance: 40,
-      ),
-      footer: ClassicFooter(
-        height: 80,
-        loadStyle: LoadStyle.ShowAlways,
-      ),
-      child: CustomScrollView(
-        slivers: <Widget>[
-          CustomSliverAppBar(
-            title: Text(
-              "سواليفهم",
-              style: TextStyle(color: Colors.white),
+    return NestedScrollView(
+      key: _scrollViewKey,
+      headerSliverBuilder: (context, innerBoxIsScrolled) => [
+        SliverSearchBar(
+            focusNode: _searchBarFocusNode,
+            onChange: (value) {
+              setState(() {
+                searchTerm = value;
+              });
+            },
+            controller: _editingController,
+            changeTabTo: changeTabTo,
+            curTab: curTab),
+      ],
+      body: TabBarView(
+        physics: NeverScrollableScrollPhysics(),
+        controller: _tabController,
+        children: <Widget>[
+          Tab(
+            child: SmartRefresher(
+              controller: _refreshController,
+              onRefresh: onRefresh,
+              onLoading: onLoading,
+              enablePullUp: true,
+              enableTwoLevel: true,
+              header: MaterialClassicHeader(),
+              footer: ClassicFooter(),
+              child: CustomScrollView(
+                slivers: <Widget>[
+                  // SliverList(
+                  //   delegate: SliverChildListDelegate(
+                  //     [
+                  //       TextField(
+                  //         style: TextStyle(color: Colors.white),
+                  //         decoration: InputDecoration(
+                  //           enabledBorder: OutlineInputBorder(
+                  //               borderSide: BorderSide(color: Colors.white),
+                  //               borderRadius: BorderRadius.all(Radius.circular(30))),
+                  //         ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
+
+                  SliverList(
+                    delegate: SliverChildListDelegate(
+                      isLoaded
+                          ? Provider.of<AppData>(context).publicSalfhTiles
+                          : [LoadingWidget('...نجيب سوالفهم')],
+                    ),
+                  ),
+
+                  // Container(
+                  //   child: SliverStaggeredGrid.countBuilder(
+                  //     itemCount: Provider.of<AppData>(context).publicSalfhTiles.length,
+                  //     crossAxisCount: 2,
+
+                  //     mainAxisSpacing: 4.0,
+                  //     crossAxisSpacing: 4.0,
+                  //     itemBuilder: (context, index) {
+                  //       return Provider.of<AppData>(context).publicSalfhTiles[index];
+                  //     },
+                  //     staggeredTileBuilder: (index) {
+                  //       return StaggeredTile.count(3, 4);
+                  //     },
+                  //   ),
+                  // )
+                ],
+              ),
             ),
           ),
-          SliverList(
-            delegate: SliverChildListDelegate(
-              isLoaded
-                  ? Provider.of<AppData>(context).publicSalfhTiles
-                  : [LoadingWidget('...نجيب سوالفهم')],
-            ),
+          TagSearchResultsList(
+            searchTerm: searchTerm,
+            searchFieldController: _editingController,
+            changeTabTo: changeTabTo,
+            curTab: curTab,
           ),
-
-          // Container(
-          //   child: SliverStaggeredGrid.countBuilder(
-          //     itemCount: Provider.of<AppData>(context).publicSalfhTiles.length,
-          //     crossAxisCount: 2,
-
-          //     mainAxisSpacing: 4.0,
-          //     crossAxisSpacing: 4.0,
-          //     itemBuilder: (context, index) {
-          //       return Provider.of<AppData>(context).publicSalfhTiles[index];
-          //     },
-          //     staggeredTileBuilder: (index) {
-          //       return StaggeredTile.count(3, 4);
-          //     },
-          //   ),
-          // )
         ],
       ),
     );

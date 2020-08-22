@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:solif/screens/AddScreen.dart';
 
@@ -112,19 +113,12 @@ class _BottomBarState extends State<BottomBar>
           onTap: () {
             onPress(index);
           },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Icon(
-                item.icon,
-                color: color,
-              ),
-              Text(
-                item.title,
-                style: TextStyle(color: color),
-              )
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Icon(
+              item.icon,
+              color: color,
+            ),
           ),
         ),
       ),
@@ -139,8 +133,9 @@ class _BottomBarState extends State<BottomBar>
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             SizedBox(height: 26),
-            Text(
+            AutoSizeText(
               widget.centerText ?? '',
+              maxLines: 1,
               style: TextStyle(color: blueToWhiteAnimation.value, fontSize: 18),
             ),
           ],

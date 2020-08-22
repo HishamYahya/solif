@@ -14,8 +14,8 @@ class _TypingWidgetState extends State<TypingWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        height: 30,
-        width: 50,
+        height: 25,
+        constraints: BoxConstraints(minWidth: 30, maxWidth: 50),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15),
             color: kOurColors[widget.colorName]),

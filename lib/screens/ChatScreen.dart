@@ -3,10 +3,10 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:localstorage/localstorage.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/components/ChatInputBox.dart';
-import 'package:solif/components/ChatScreenAppBar.dart';
 import 'package:solif/components/ChatScreenDrawer.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/MessageTile.dart';
@@ -40,12 +40,19 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
-  List<MessageTile> messages = getMessages();
+  LocalStorage storage;
+  List<Map<String, dynamic>> localMessages = [];
+  List<DocumentSnapshot> snapshotMessages = [];
+  List<Map<String, dynamic>> allTheMessages =
+      []; // messages to be written to the storage.
+  DateTime timeofLastMessageSavedLocally = DateTime(2030);
+  var futureLastMessageSavedLocallyTime;
   String inputMessage = "";
   Map colorsStatus;
   Map typingStatus = {};
   Map<String, Timestamp> lastLeftStatus;
   String colorName;
+  int messageCounter = 0;
   bool isInSalfh = false;
   bool joining = false;
   bool sending = false;
@@ -77,15 +84,115 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     setTimeLeftInfinity();
     // check if user is in salfh
     String userID = Provider.of<AppData>(context, listen: false).currentUserID;
+    storage = new LocalStorage(widget.salfhID + '.json'); //  sqlite plan b
+
+    print('testing order');
+
     widget.colorsStatus.forEach((name, id) {
       if (id == userID)
         setState(() {
           isInSalfh = true;
         });
     });
+
+    loadLocalStorageMessages();
+
     listenToChatroomChanges();
     listenToColorStatusChanges();
+
     super.initState();
+  }
+
+  void _init() async {}
+
+  Future<void> loadLocalStorageMessages() async {
+    bool isReady = await storage.ready;
+
+    print('isReady:$isReady');
+
+    List<dynamic> storedMessages = storage.getItem('local_messages') ?? [];
+
+    print("local items length ${storedMessages.length}");
+    storedMessages.forEach((element) {
+      if (element['timeSent'] is String) {
+        element['timeSent'] =
+            Timestamp.fromDate(DateTime.parse(element['timeSent']));
+      }
+
+      localMessages.add(element);
+    });
+
+    // allTheMessages.addAll(storedMessages);
+
+    String stringFormatedTime = storage.getItem('last_message_time') ??
+        DateTime(2010)
+            .toIso8601String(); // default value last messages saved in 2010.
+
+    timeofLastMessageSavedLocally = DateTime.parse(stringFormatedTime);
+
+    // uncomment below to check the consistency of the local data with the server data.
+
+    // final testDocs =await firestore.collection('chatRooms').document(widget.salfhID).collection('messages').orderBy('timeSent').getDocuments();
+    // final testSnapshots = testDocs.documents.toList();
+
+    // int cacheCounter = 0;
+
+    // bool isEqual = true;
+    // print('testsnapshot length ${testSnapshots.length}');
+    // for (int i=0;i<localMessages.length;i++){
+    //   print(i);
+    //   if(testSnapshots[i].metadata.isFromCache){
+    //     cacheCounter++;
+    //   }
+    //   print("${testSnapshots[i]['timeSent']} == ${localMessages[localMessages.length-i-1]['timeSent']} ");
+    //   isEqual &= (localMessages[localMessages.length-i-1]['timeSent'] == testSnapshots[i]['timeSent']);
+    //   // if(!isEqual) break;
+    // }
+    // print('isEqual $isEqual');
+    // print('cache counter:  $cacheCounter');
+  }
+
+  void populateAllMessages(List<DocumentSnapshot> snapshotMessages,
+      List<Map<String, dynamic>> localMessages) {
+    int snapLen = snapshotMessages.length;
+    int localLen = localMessages.length;
+    int allLen = allTheMessages.length;
+
+    String testString = 'snaplen:' +
+        snapLen.toString() +
+        ' localLen:' +
+        localLen.toString() +
+        ' allLen:' +
+        allLen.toString();
+    print(testString);
+
+    Timestamp lastMessageSentTime =
+        Timestamp.fromDate(timeofLastMessageSavedLocally);
+    allTheMessages = [];
+    for (var message in localMessages.reversed) {
+      allTheMessages.add(Message(
+              color: message['color'],
+              content: message['content'],
+              timeSent: message['timeSent'])
+          .toJson());
+    }
+    for (var message in snapshotMessages.reversed) {
+      // if (messageCounter == 0) return;
+      if (message.metadata.hasPendingWrites) {
+        continue;
+      }
+
+      bool isCurrentMessageGreater =
+          lastMessageSentTime.compareTo(message['timeSent']) < 0;
+      if (isCurrentMessageGreater)
+        futureLastMessageSavedLocallyTime = message['timeSent'];
+
+      allTheMessages.add(Message(
+              color: message['color'],
+              content: message['content'],
+              timeSent: message['timeSent'])
+          .toJson());
+    }
   }
 
   // listen to changes in the colorsStatus in the database
@@ -134,7 +241,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         .document(widget.salfhID)
         .snapshots()
         .listen((event) {
-      print("OK");
       Map<String, Timestamp> newLastLeftStatus =
           Map<String, Timestamp>.from(event.data['lastLeftStatus']);
       // print("hereeee${event.data}");
@@ -159,14 +265,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
 
     bool joined = await joinSalfh(
-      userID: Provider.of<AppData>(context, listen: false).currentUserID,
       salfhID: widget.salfhID,
       colorName: colorName,
     );
-
-    setState(() {
-      joining = false;
-    });
+    if (mounted)
+      setState(() {
+        joining = false;
+      });
 
     return joined;
   }
@@ -191,7 +296,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       bool joined;
       print("here?@");
       joined = await _joinSalfh();
-      if (joined) {
+      if (joined && mounted) {
         setState(() {
           isInSalfh = true;
         });
@@ -199,9 +304,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _changeTypingTo(false);
       }
     }
-    setState(() {
-      inputMessage = '';
-    });
+    if (mounted) {
+      setState(() {
+        inputMessage = '';
+      });
+    }
+    ;
   }
 
   void sendMessage() async {
@@ -209,6 +317,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         Provider.of<AppData>(context, listen: false).currentUserID);
     if (success) {
       //TODO: display the message on screen only when it's been written to the database
+      messageCounter++;
 
       messageController.clear();
     }
@@ -228,26 +337,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         colorName: DateTime.now(),
       }
     }, merge: true);
-
-    // // using transactions
-    // final ref = firestore.collection('chatRooms').document(widget.salfhID);
-    // await firestore.runTransaction((transaction) async {
-    //   final snapshot = await transaction.get(ref);
-    //   if (snapshot.exists) {
-    //     if (DateTime.now().compareTo(snapshot.data[colorName]) < 0) {
-    //       transaction.update(ref, {colorName: DateTime.now()});
-    //     }
-    //   }
-    // });
-
-    // changed this so that it rewrites the one field instead of the whole map
-    // await firestore.collection("Swalf").document(widget.salfhID).setData({
-    //   'colorsStatus': {
-    //     colorName: {
-    //       'isInChatRoom': false,
-    //     }
-    //   }
-    // }, merge: true);
   }
 
   setTimeLeftInfinity() async {
@@ -262,51 +351,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         },
       }, merge: true);
     }
-
-    // /// using transactions
-    // final ref = firestore.collection('chatRooms').document(widget.salfhID);
-    // await firestore.runTransaction((transaction) async {
-    //   final snapshot = await transaction.get(ref);
-    //   if (snapshot.exists) {
-    //     if (DateTime.now()
-    //             .add(Duration(days: 3000))
-    //             .compareTo(snapshot.data[colorName]) >
-    //         0) {
-    //       await transaction.update(
-    //           ref, {colorName: DateTime.now().add(Duration(days: 3650))});
-    //     }
-    //   }
-
-    // });
-
-    // Map<String, dynamic> salfh =
-    //     await salfhDoc.get().then((value) => value.data);
-
-    // Map colorStatus = salfh['colorsStatus'];
-    // colorStatus[colorName]['isInChatRoom'] = true;
-    // colorStatus[colorName]['lastMessageReadID'] = salfh['lastMessageSentID'];
-    // if (colorStatus[colorName]['lastMessageReadID'] == null) return;
-
-    // colorStatus[colorName]['isInChatRoom'] = true;
-    // DocumentReference oldCheckPoint = firestore
-    //     .collection("chatRooms")
-    //     .document(widget.id)
-    //     .collection('messages')
-    //     .document(colorStatus[colorName]['lastMessageReadID']);
-    // oldCheckPoint.setData({
-    //   'isCheckPointMessage': {colorName: false}
-    // }, merge: true);
-    // DocumentReference newCheckPoint = firestore
-    //     .collection("chatRooms")
-    //     .document(widget.id)
-    //     .collection('messages')
-    //     .document(salfh['lastMessageSentID']);
-
-    // newCheckPoint.setData({
-    //   'isCheckPointMessage': {colorName: true}
-    // }, merge: true);
-
-    // salfhDoc.updateData(salfh);
   }
 
   void _changeTypingTo(bool isTyping) {
@@ -326,6 +370,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   void _onClose() async {
+    print(storage.toString());
     setUserTimeLeft();
     colorStatusListener.cancel();
     timeLastLeftListener.cancel();
@@ -333,6 +378,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       inputMessage = '';
       _changeTypingTo(false);
     }
+    if (isInSalfh) {
+      populateAllMessages(snapshotMessages, localMessages);
+      print('Saving messages...');
+      await setLocalStorage(
+          allTheMessages, futureLastMessageSavedLocallyTime, storage);
+    }
+    print('Done saving!');
   }
 
   @override
@@ -357,11 +409,40 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    Color backGround = Colors.white;
     Color currentColor = kOurColors[colorName];
     //////////////////// hot reload to add message
-    return SafeArea(
+
+    return WillPopScope(
+      onWillPop: () => isInSalfh
+          ? setLocalStorage(
+              allTheMessages, futureLastMessageSavedLocallyTime, storage)
+          : {},
       child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          automaticallyImplyLeading: false,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+                color: Colors.grey[500],
+              ),
+              Expanded(child: TypingWidgetRow(typingStatus: typingStatus)),
+              isInSalfh
+                  ? Builder(
+                      builder: (context) => IconButton(
+                        icon: Icon(Icons.view_stream),
+                        onPressed: () => Scaffold.of(context).openEndDrawer(),
+                        color: currentColor,
+                      ),
+                    )
+                  : SizedBox(),
+            ],
+          ),
+          actions: <Widget>[Container()],
+        ),
         backgroundColor: Colors.blueAccent[50],
         endDrawer: ChatScreenDrawer(
             title: widget.title,
@@ -373,76 +454,95 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         body: Column(
           children: <Widget>[
             Expanded(
-              child: Stack(
-                children: [
-                  StreamBuilder<QuerySnapshot>(
-                    stream: firestore
-                        .collection("chatRooms")
-                        .document(widget.salfhID)
-                        .collection('messages')
-                        .orderBy('timeSent')
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      //TODO: display the message on sc reen only when it's been written to the database
-                      if (!snapshot.hasData || lastLeftStatus == null) {
-                        return LoadingWidget("");
+              child: StreamBuilder<QuerySnapshot>(
+                stream: firestore
+                    .collection("chatRooms")
+                    .document(widget.salfhID)
+                    .collection('messages')
+                    .orderBy('timeSent')
+                    .startAfter([timeofLastMessageSavedLocally]).snapshots(),
+                builder: (context, snapshot) {
+                  // print("lastMessageTime $lastMessageSavedLocally");
+                  int cacheCounter = 0;
+
+                  //TODO: display the message on sc reen only when it's been written to the database
+                  if (!snapshot.hasData || lastLeftStatus == null) {
+                    return LoadingWidget("");
+                  }
+
+                  final messages = snapshot.data.documents.reversed;
+                  snapshotMessages = messages
+                      .toList(); // this could be expensive in the long run, but easy to use.
+                  // note to self: Use iterator instead if ever preformance issues occur.
+                  Set<String> alreadyRead = Set<String>();
+                  List<MessageTile> messageTiles = [];
+
+                  // populateAllMessages(snapshotMessages, localMessages); //
+
+                  for (int i = 0;
+                      i < snapshotMessages.length + localMessages.length;
+                      i++) {
+                    var message;
+                    bool isSending;
+                    if (i < snapshotMessages.length) {
+                      // snapshot message
+
+                      message = snapshotMessages[i];
+                      cacheCounter++;
+                      isSending = message.metadata.hasPendingWrites;
+                    } else {
+                      // local message
+                      message = localMessages[i - snapshotMessages.length];
+                      isSending = false;
+                    }
+                    // print(colorsStatus);
+
+                    List<String> readColors = [];
+                    lastLeftStatus.forEach((color, lastLeft) {
+                      var estimateTimeSent;
+                      if (message is DocumentSnapshot &&
+                          message.metadata.hasPendingWrites) {
+                        estimateTimeSent = Timestamp.now();
+                      } else {
+                        // print(message.keys);
+
+                        estimateTimeSent = message['timeSent'];
                       }
-
-                      final messages = snapshot.data.documents.reversed;
-                      Set<String> alreadyRead = Set<String>();
-                      List<Widget> messageTiles = [];
-
-                      for (var message in messages) {
-                        List<String> readColors = [];
-                        lastLeftStatus.forEach((color, lastLeft) {
-                          var estimateTimeSent;
-                          if (message.metadata.hasPendingWrites) {
-                            estimateTimeSent = Timestamp.now();
-                          } else {
-                            estimateTimeSent = message['timeSent'];
-                          }
-                          if (message['color'] != color &&
-                              !alreadyRead.contains(color) &&
-                              lastLeft.compareTo(estimateTimeSent) >= 0) {
-                            readColors.add(color);
-                            alreadyRead.add(color);
-                          }
-                        });
-                        print('Stream');
-
-                        messageTiles.add(MessageTile(
-                          color: message['color'],
-                          message: message["content"],
-                          fromUser: message['color'] == colorName,
-                          readColors: readColors,
-                          isSending: message.metadata.hasPendingWrites,
-
-                          //
-                          // add stuff here when you update messageTile
-                          // time: message["time"],
-                          //
-                        ));
+                      if (message['color'] != color &&
+                          !alreadyRead.contains(color) &&
+                          lastLeft.compareTo(estimateTimeSent) >= 0 &&
+                          colorsStatus[color] != null) {
+                        readColors.add(color);
+                        alreadyRead.add(color);
                       }
-                      print('after');
-                      return ListView.builder(
-                        reverse: true,
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 10.0, vertical: 20.0),
-                        itemCount: messageTiles.length,
-                        itemBuilder: (context, index) {
-                          return messageTiles[index];
-                        },
-                      );
+                    });
+                    // print('Stream');
+
+                    messageTiles.add(MessageTile(
+                      color: message['color'],
+                      message: message["content"],
+                      fromUser: message['color'] == colorName,
+                      readColors: readColors,
+                      isSending: isSending,
+
+                      //
+                      // add stuff here when you update messageTile
+                      // time: message["time"],
+                      //
+                    ));
+                  }
+                  //  print('after');
+                  print('messages from cache $cacheCounter');
+                  return ListView.builder(
+                    reverse: true,
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
+                    itemCount: messageTiles.length,
+                    itemBuilder: (context, index) {
+                      return messageTiles[index];
                     },
-                  ),
-                  Positioned(
-                    bottom: 5,
-                    width: MediaQuery.of(context).size.width * 0.5,
-                    child: Center(
-                        child: TypingWidgetRow(typingStatus: typingStatus)),
-                  ),
-                  ChatScreenAppBar(isInSalfh: isInSalfh, color: colorName),
-                ],
+                  );
+                },
               ),
             ),
             Container(
