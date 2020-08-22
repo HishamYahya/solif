@@ -8,6 +8,7 @@ import 'package:solif/components/BottomBar.dart';
 import 'package:solif/components/ColoredDot.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/screens/MyChatsScreen.dart';
+import 'package:solif/screens/NotificationsScreen.dart';
 import 'package:solif/screens/PublicChatsScreen.dart';
 import 'package:solif/Services/FCM.dart';
 import 'package:solif/screens/SettingsScreen.dart';
@@ -26,7 +27,6 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   Animation _rotateAnimation;
   Animation whiteToBlueAnimation;
   Animation blueToWhiteAnimation;
-  TabController _tabController;
 
   final fcm = FirebaseMessaging();
 
@@ -74,16 +74,6 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       onBackgroundMessage: backgroundMessageHandler,
     );
 
-    _tabController = TabController(vsync: this, length: 2);
-
-    _tabController.addListener(() {
-      if (_tabController.index != curPageIndex) {
-        setState(() {
-          curPageIndex = _tabController.index;
-        });
-      }
-    });
-
     _animationController =
         AnimationController(vsync: this, duration: Duration(milliseconds: 200));
 
@@ -104,8 +94,6 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     super.dispose();
 
     _animationController.dispose();
-
-    _tabController.dispose();
   }
 
   @override
@@ -191,7 +179,6 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             if (curPageIndex != value) {
               setState(() {
                 curPageIndex = value;
-                _tabController.animateTo(value);
                 isAdding = false;
                 _animationController.reverse();
               });
@@ -205,12 +192,20 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           },
           items: [
             BottomBarItem(
-              title: "سواليفي",
+              title: "",
               icon: Icons.chat_bubble_outline,
             ),
             BottomBarItem(
-              title: "سواليفهم",
+              title: "",
               icon: Icons.chat_bubble,
+            ),
+            BottomBarItem(
+              title: "",
+              icon: Icons.notifications,
+            ),
+            BottomBarItem(
+              title: "",
+              icon: Icons.account_circle,
             ),
           ],
         ),
@@ -241,7 +236,9 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             ),
             PublicChatsScreen(
               disabled: isAdding,
-            )
+            ),
+            NotificationsScreen(),
+            SettingsScreen(),
           ],
         ),
       ),

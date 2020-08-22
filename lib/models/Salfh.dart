@@ -91,7 +91,7 @@ Future<bool> joinSalfh(
       throw 'Timeout';
     },
   );
-  return resp.data;
+  return true;
 
   // await firestore.runTransaction((transaction) async {
   //   final snapshot = await transaction.get(ref);
