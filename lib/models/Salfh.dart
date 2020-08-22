@@ -73,6 +73,7 @@ Future<void> addUserToSalfh(
       ),
     );
   }
+
 }
 
 Future<bool> joinSalfh(
@@ -181,6 +182,9 @@ Map<String, dynamic> getInitialColorStatus(String adminID, int maxUsers) {
   }
   return res;
 }
+
+
+
 
 Future<String> getColorOfUser({String userID, Map salfh}) async {
   String colorName;

@@ -69,7 +69,9 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         print("onResume $message");
       },
       onMessage: (message) {
-        print("onMessage $message");
+       print("onMessage $message");
+       foregroundMessageHandler(message);
+       
       },
       onBackgroundMessage: backgroundMessageHandler,
     );
