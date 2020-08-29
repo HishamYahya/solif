@@ -80,10 +80,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: 'invite $invitedID',
                     leading: Icon(Icons.airline_seat_individual_suite),
                     onTap: () {
-                      inviteUserToSalfh(
-                        invitedID: invitedID,
-                        salfhID: salfhID,
-                      );
+                      // inviteUserToSalfh(
+                      //   invitedID: invitedID,
+                      //   salfhID: salfhID,
+                      // );
                     }),
                     
                     SettingsTile(
