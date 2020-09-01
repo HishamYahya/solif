@@ -12,6 +12,8 @@ import 'package:solif/components/OurErrorWidget.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:solif/screens/MainPage.dart';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+
 void main() async {
   // lock screen rotation
 
@@ -22,24 +24,12 @@ void main() async {
       .loadInUser(); // only allow the user to use the app if logged in.
 
 
+  Crashlytics.instance.enableInDevMode = true;
 
-  EmailManualHandler emailOptions = EmailManualHandler(
-      ['mohammad-x-@hotmail.com'],
-      enableDeviceParameters: true,
-      enableStackTrace: true,
-      enableCustomParameters: true,
-      enableApplicationParameters: true,
-      sendHtml: true,
-      emailTitle: "Sample Title",
-      emailHeader: "Sample Header",
-      printLogs: true);
-
-        CatcherOptions debugOptions =
-      CatcherOptions(DialogReportMode(), [emailOptions]);
-  CatcherOptions releaseOptions =
-      CatcherOptions(DialogReportMode(), [emailOptions]);
-
-  Catcher(MyApp(), debugConfig: debugOptions, releaseConfig: releaseOptions);
+  // Pass all uncaught errors from the framework to Crashlytics.
+  FlutterError.onError = Crashlytics.instance.recordFlutterError;
+  
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
