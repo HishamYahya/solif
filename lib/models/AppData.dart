@@ -252,7 +252,7 @@ class AppData with ChangeNotifier {
         if (!isFull)
           newSalfhTiles.add(SalfhTile(
             // color now generated in SalfhTile
-            key: GlobalKey<SalfhTileState>(),
+            key: UniqueKey(),
             colorsStatus: salfh['colorsStatus'],
             title: salfh['title'],
             adminID: salfh['adminID'],

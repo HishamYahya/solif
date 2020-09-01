@@ -1,13 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/OurErrorWidget.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/DialogMySwalfTabModel.dart';
 import 'package:solif/models/Salfh.dart';
 
 import '../constants.dart';
 import 'ColoredDot.dart';
+
+final firestore = Firestore.instance;
 
 class DialogMySwalfTab extends StatefulWidget {
   final String userID;
@@ -19,97 +23,32 @@ class DialogMySwalfTab extends StatefulWidget {
 }
 
 class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
-  String selectedSalfhID;
-  String selectedSalfhColorName;
-  bool loading = false;
+  bool adding = false;
+  bool loading = true;
+  List<Widget> items = [];
 
-  List<Widget> getSalfhTiles() {
-    List<SalfhTile> userSwalf = Provider.of<AppData>(context).usersSalfhTiles;
+  Future<void> getSalfhTiles() async {
+    print(widget.key);
     List<Widget> tiles = [];
-    if (userSwalf == null) return [];
-    for (SalfhTile tile in userSwalf) {
-      if (tile.adminID ==
-              Provider.of<AppData>(context, listen: false).currentUserID ||
-          true) {
-        String colorName;
-        GlobalKey<SalfhTileState> key = tile.key;
-        for (var color in key.currentState.colorsStatus.keys) {
-          if (key.currentState.colorsStatus[color] == null) {
-            colorName = color;
-            break;
-          }
-        }
-        print(key.currentState.colorsStatus);
-        tiles.add(
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: Colors.grey[200],
-                ),
-              ),
-            ),
-            child: ListTile(
-              enabled: !key.currentState.isFull,
-              selected: selectedSalfhID == tile.id,
-              trailing: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey[400]),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(2.0),
-                  child: AnimatedSwitcher(
-                    duration: Duration(milliseconds: 150),
-                    switchOutCurve: Curves.easeOutCirc,
-                    switchInCurve: Curves.easeInCirc,
-                    transitionBuilder: (child, animation) {
-                      return ScaleTransition(
-                        scale: animation,
-                        child: child,
-                      );
-                    },
-                    child: selectedSalfhID == tile.id
-                        ? ColoredDot(
-                            kOurColors[colorName],
-                            key: UniqueKey(),
-                          )
-                        : ColoredDot(
-                            Colors.transparent,
-                            key: UniqueKey(),
-                          ),
-                  ),
-                ),
-              ),
-              title: Text(
-                tile.title,
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.grey[850],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              subtitle: Row(
-                children: generateDots(key.currentState.colorsStatus),
-              ),
-              onTap: () {
-                setState(
-                  () {
-                    if (selectedSalfhID == tile.id) {
-                      selectedSalfhColorName = null;
-                      selectedSalfhID = null;
-                    } else {
-                      selectedSalfhColorName = colorName;
-                      selectedSalfhID = tile.id;
-                    }
-                  },
-                );
-              },
-            ),
-          ),
-        );
-      }
+    final QuerySnapshot snapshot = await firestore
+        .collection('Swalf')
+        .where('adminID',
+            isEqualTo:
+                Provider.of<AppData>(context, listen: false).currentUserID)
+        .getDocuments();
+
+    for (DocumentSnapshot doc in snapshot.documents) {
+      tiles.add(SalfhTile(
+        title: doc['title'],
+        id: doc.documentID,
+        colorsStatus: doc['colorsStatus'],
+        lastMessageSent: doc['lastMessageSent'],
+        tags: doc['tags'],
+        adminID: doc['adminID'],
+        isInviteTile: true,
+      ));
     }
+
     if (tiles.isEmpty) {
       return [
         Padding(
@@ -125,49 +64,43 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
         ),
       ];
     }
-    return tiles;
-  }
-
-  List<Widget> generateDots(colorsStatus) {
-    List<Widget> newDots = [];
-    colorsStatus.forEach(
-      (name, id) {
-        // if someone is in the salfh with that color
-        if (id != null) {
-          newDots.add(
-            Padding(
-              padding: const EdgeInsets.all(5.0),
-              child: ColoredDot(kOurColors[name]),
-            ),
-          );
-        }
-      },
-    );
-
-    return newDots;
+    setState(() {
+      loading = false;
+      items = tiles;
+    });
   }
 
   void addToSalfh() async {
+    String id = Provider.of<DialogMySwalfTabModel>(context, listen: false)
+        .selectedSalfhID;
+    String color = Provider.of<DialogMySwalfTabModel>(context, listen: false)
+        .selectedSalfhColor;
     setState(() {
-      loading = true;
+      adding = true;
     });
-    if (selectedSalfhID != null)
+    if (id != null)
       await addUserToSalfh(
         userID: widget.userID,
-        salfhID: selectedSalfhID,
-        colorName: selectedSalfhColorName,
+        salfhID: id,
+        colorName: color,
         context: context,
       );
     if (mounted) {
       setState(() {
-        loading = false;
+        adding = false;
       });
     }
   }
 
   @override
+  void initState() {
+    super.initState();
+    getSalfhTiles();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return loading
+    return adding
         ? LoadingWidget(
             'نضيفهم للسالفة...',
             color: Colors.white,
@@ -191,7 +124,7 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
                 children: [
                   ListView(
                     shrinkWrap: true,
-                    children: getSalfhTiles(),
+                    children: loading ? [LoadingWidget('')] : items,
                   ),
                   Align(
                     alignment: Alignment.bottomCenter,
@@ -203,7 +136,9 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
                           child: child,
                         );
                       },
-                      child: selectedSalfhID == null
+                      child: Provider.of<DialogMySwalfTabModel>(context)
+                                  .selectedSalfhID ==
+                              null
                           ? null
                           : Padding(
                               padding: const EdgeInsets.symmetric(

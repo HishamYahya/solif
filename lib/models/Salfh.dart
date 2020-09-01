@@ -68,7 +68,7 @@ Future<void> addUserToSalfh(
       context: context,
       builder: (context) => AlertDialog(
         title: OurErrorWidget(
-          errorMessage: error.toString(),
+          errorMessage: error.message,
         ),
       ),
     );

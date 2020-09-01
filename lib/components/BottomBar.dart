@@ -83,10 +83,17 @@ class _BottomBarState extends State<BottomBar>
           color: whiteToBlueAnimation.value,
           child: Padding(
             padding: EdgeInsets.only(top: 2.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              mainAxisSize: MainAxisSize.max,
-              children: items,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisSize: MainAxisSize.max,
+                children: items,
+              ),
             ),
           ),
         ),
