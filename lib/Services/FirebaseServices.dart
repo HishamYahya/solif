@@ -23,7 +23,7 @@ Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
           await firestore.collection('Swalf').document(entry.key).get();
 
       salfhTiles.add(SalfhTile(
-        key: GlobalKey<SalfhTileState>(),
+        key: UniqueKey(),
         colorsStatus: currentSalfh['colorsStatus'],
         title: currentSalfh['title'],
         id: currentSalfh.documentID,
@@ -92,7 +92,7 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID,
       if (!isFull)
         salfhTiles.add(SalfhTile(
           // color now generated in SalfhTile
-          key: GlobalKey<SalfhTileState>(),
+          key: UniqueKey(),
           colorsStatus: salfh['colorsStatus'],
           adminID: salfh['adminID'],
           title: salfh['title'],

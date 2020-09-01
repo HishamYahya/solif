@@ -9,7 +9,9 @@ import 'package:flutter_tags/flutter_tags.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/components/ColoredDot.dart';
+import 'package:solif/components/DialogMySwalfTab.dart';
 import 'package:solif/components/DropdownCard.dart';
+import 'package:solif/components/InviteSalfhTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:solif/models/Tag.dart';
@@ -23,18 +25,22 @@ class SalfhTile extends StatefulWidget {
   final Map colorsStatus;
   final List tags;
   final String adminID;
+  final Map lastMessageSent;
   // ['chatID'] == false
 
-  final Map lastMessageSent;
+  /// FOR INVITE TILE
+  final bool isInviteTile;
+
   final DateTime lastMessageSentTime;
   SalfhTile({
-    this.title,
-    this.id,
-    this.colorsStatus,
-    this.lastMessageSent,
-    this.tags,
-    this.adminID,
-    GlobalKey<SalfhTileState> key,
+    @required this.title,
+    @required this.id,
+    @required this.colorsStatus,
+    @required this.lastMessageSent,
+    @required this.tags,
+    @required this.adminID,
+    this.isInviteTile = false,
+    UniqueKey key,
   })  : this.lastMessageSentTime = lastMessageSent.containsKey('timeSent')
             ? lastMessageSent['timeSent'].toDate()
             : DateTime(1999),
@@ -89,6 +95,17 @@ class SalfhTileState extends State<SalfhTile>
         });
       }
     });
+  }
+
+  String getNextColor() {
+    String color;
+    for (String item in colorsStatus.keys) {
+      if (colorsStatus[item] == null) {
+        color = item;
+        break;
+      }
+    }
+    return color;
   }
 
   //gets color of tile
@@ -206,142 +223,154 @@ class SalfhTileState extends State<SalfhTile>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        if (!isFull) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChatScreen(
-                title: this.widget.title,
-                color: colorName,
-                salfhID: this.widget.id,
-                colorsStatus: colorsStatus,
-                adminID: widget.adminID,
-              ),
-            ),
-          ).then((value) {
-            setState(() {
-              notRead = false;
-            });
-          });
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: isFull ? Colors.white : kOurColors[colorName],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              ClipRRect(
-                clipBehavior: Clip.antiAlias,
-                borderRadius: BorderRadius.only(
-                  topRight: Radius.elliptical(10, 50),
-                  bottomRight: Radius.elliptical(10, 50),
-                  topLeft: Radius.circular(10),
-                  bottomLeft: Radius.circular(10),
-                ),
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.75,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
+    return !widget.isInviteTile
+        ? GestureDetector(
+            onTap: () async {
+              if (!isFull) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChatScreen(
+                      title: this.widget.title,
+                      color: colorName,
+                      salfhID: this.widget.id,
+                      colorsStatus: colorsStatus,
+                      adminID: widget.adminID,
+                    ),
                   ),
-                  child: Column(
-                    children: [
-                      IntrinsicHeight(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                ).then((value) {
+                  setState(() {
+                    notRead = false;
+                  });
+                });
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: isFull ? Colors.white : kOurColors[colorName],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    ClipRRect(
+                      clipBehavior: Clip.antiAlias,
+                      borderRadius: BorderRadius.only(
+                        topRight: Radius.elliptical(10, 50),
+                        bottomRight: Radius.elliptical(10, 50),
+                        topLeft: Radius.circular(10),
+                        bottomLeft: Radius.circular(10),
+                      ),
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.75,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                        ),
+                        child: Column(
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Container(
-                                  constraints: BoxConstraints(
-                                    maxWidth:
-                                        MediaQuery.of(context).size.width * 0.4,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      (widget.title),
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        color: Colors.grey[850],
-                                        fontWeight: FontWeight.w500,
+                            IntrinsicHeight(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Container(
+                                        constraints: BoxConstraints(
+                                          maxWidth: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.4,
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            (widget.title),
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              color: Colors.grey[850],
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                            bottom: 4.0, left: 2),
+                                        child: StreamBuilder(
+                                            stream: firestore
+                                                .collection('Swalf')
+                                                .document(widget.id)
+                                                .snapshots(),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.hasData) {
+                                                colorsStatus = snapshot
+                                                    .data['colorsStatus'];
+                                                return Row(
+                                                  children: generateDots(
+                                                      snapshot.data),
+                                                );
+                                              }
+                                              return Padding(
+                                                  padding: EdgeInsets.all(5));
+                                            }),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      bottom: 4.0, left: 2),
-                                  child: StreamBuilder(
-                                      stream: firestore
-                                          .collection('Swalf')
-                                          .document(widget.id)
-                                          .snapshots(),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.hasData) {
-                                          colorsStatus =
-                                              snapshot.data['colorsStatus'];
-                                          return Row(
-                                            children:
-                                                generateDots(snapshot.data),
-                                          );
-                                        }
-                                        return Padding(
-                                            padding: EdgeInsets.all(5));
-                                      }),
-                                ),
-                              ],
+                                  lastMessageSent.isNotEmpty
+                                      ? MostRecentMessageBox(
+                                          lastMessageSent: lastMessageSent,
+                                        )
+                                      : SizedBox()
+                                ],
+                              ),
                             ),
-                            lastMessageSent.isNotEmpty
-                                ? MostRecentMessageBox(
-                                    lastMessageSent: lastMessageSent,
-                                  )
-                                : SizedBox()
+                            DropdownCard(
+                                isOpen: isDetailsOpen,
+                                tags: widget.tags,
+                                colorName: colorName),
                           ],
                         ),
                       ),
-                      DropdownCard(
-                          isOpen: isDetailsOpen,
-                          tags: widget.tags,
-                          colorName: colorName),
-                    ],
-                  ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: isFull
+                          ? Row(
+                              children: <Widget>[
+                                Text(
+                                  "فل",
+                                  style: TextStyle(fontSize: 20),
+                                ),
+                                Icon(
+                                  Icons.close,
+                                  color: Colors.black,
+                                )
+                              ],
+                            )
+                          : Icon(
+                              Icons.arrow_forward_ios,
+                              color: Colors.white,
+                            ),
+                    ),
+                  ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: isFull
-                    ? Row(
-                        children: <Widget>[
-                          Text(
-                            "فل",
-                            style: TextStyle(fontSize: 20),
-                          ),
-                          Icon(
-                            Icons.close,
-                            color: Colors.black,
-                          )
-                        ],
-                      )
-                    : Icon(
-                        Icons.arrow_forward_ios,
-                        color: Colors.white,
-                      ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+            ),
+          )
+        : InviteSalfhTile(
+            isFull: isFull,
+            color: getNextColor(),
+            title: widget.title,
+            colorsStatus: colorsStatus,
+            id: widget.id,
+          );
   }
 }
 

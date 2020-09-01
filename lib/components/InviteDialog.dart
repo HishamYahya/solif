@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:solif/components/ColoredDot.dart';
 import 'package:solif/components/DialogMySwalfTab.dart';
 import 'package:solif/components/DialogNewSalfhTab.dart';
+import 'package:solif/models/DialogMySwalfTabModel.dart';
 
 import '../constants.dart';
 
@@ -149,8 +151,11 @@ class _InviteDialogState extends State<InviteDialog> {
                     ? DialogNewSalfhTab(
                         userID: widget.userID,
                       )
-                    : DialogMySwalfTab(
-                        userID: widget.userID,
+                    : ChangeNotifierProvider<DialogMySwalfTabModel>(
+                        create: (context) => DialogMySwalfTabModel(),
+                        child: DialogMySwalfTab(
+                          userID: widget.userID,
+                        ),
                       ),
               ),
             ],

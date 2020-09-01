@@ -17,24 +17,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String themeName = 'صباحي';
   @override
   Widget build(BuildContext context) {
-    String invitedID = "2AryTgBqu7TDS3QkVxSUH5JJuyz1";
-    String salfhID = "XD";
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Settings'),
-      ),
-      body: Directionality(
-        textDirection: TextDirection.rtl,
-        child: SettingsList(
-          sections: [
-            SettingsSection(
-              title: 'شخصي',
-              tiles: [
-                SettingsTile(
-                  title: 'اهتمامتي',
 
-                  //subtitle: 'English',
-                  leading: Icon(Icons.scatter_plot),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: SettingsList(
+        sections: [
+          SettingsSection(
+            title: 'شخصي',
+            tiles: [
+              SettingsTile(
+                title: 'اهتمامتي',
+
+
+                //subtitle: 'English',
+                leading: Icon(Icons.scatter_plot),
+
 
                   onTap: () {
                       showDialog(
@@ -118,22 +115,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SettingsTile.switchTile(
                   title: themeName,
 
-                  //subtitle: 'English',
-                  leading: Icon(Icons.satellite),
-                  switchValue: !isLightTheme,
 
-                  onToggle: (value) {
-                    setState(() {
-                      isLightTheme = !value;
-                      isLightTheme ? themeName = 'صباحي' : themeName = 'مسائي';
-                      print(value);
-                    });
-                  },
-                ),
-              ],
-            )
-          ],
-        ),
+                //subtitle: 'English',
+                leading: Icon(Icons.satellite),
+                switchValue: !isLightTheme,
+
+                onToggle: (value) {
+                  setState(() {
+                    isLightTheme = !value;
+                    isLightTheme ? themeName = 'صباحي' : themeName = 'مسائي';
+                    print(value);
+                  });
+                },
+              ),
+            ],
+          )
+        ],
       ),
     );
   }
