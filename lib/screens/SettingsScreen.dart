@@ -17,7 +17,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String themeName = 'صباحي';
   @override
   Widget build(BuildContext context) {
-
     return Directionality(
       textDirection: TextDirection.rtl,
       child: SettingsList(
@@ -28,93 +27,78 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SettingsTile(
                 title: 'اهتمامتي',
 
-
                 //subtitle: 'English',
                 leading: Icon(Icons.scatter_plot),
 
+                onTap: () {
+                  showDialog(
+                      context: context,
+                      builder: (_) {
+                        return Dialog(child: UserInterestScreen());
+                      });
+                  // Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  //   return  UserInterestScreen();
+                  // }));
+                },
+              ),
+              SettingsTile(
+                title: 'نقاطي',
+                leading:
+                    Icon(Icons.signal_cellular_connected_no_internet_4_bar),
+                onTap: () {
+                  print('tapped');
+                  print(Provider.of<AppData>(context, listen: false)
+                      .currentUserID);
+                },
+              ),
+              SettingsTile(
+                title: 'new user',
+                leading:
+                    Icon(Icons.signal_cellular_connected_no_internet_4_bar),
+                onTap: Provider.of<AppData>(context).reset,
+              ),
+              SettingsTile(
+                title: 'invite self',
+                leading:
+                    Icon(Icons.signal_cellular_connected_no_internet_4_bar),
+                onTap: () {
+                  HttpsCallable callable = CloudFunctions.instance
+                      .getHttpsCallable(functionName: 'testNotification');
+                  Future.delayed(Duration(seconds: 4))
+                      .then((value) => callable.call());
+                },
+              ),
 
+              SettingsTile(
+                  title: 'print my invites',
+                  leading: Icon(Icons.airline_seat_individual_suite),
+                  onTap: () async {
+                    print('waiting for prefs');
+                    var prefs = await SharedPreferences.getInstance();
+                    List<String> listOfInvites =
+                        prefs.getStringList('invited') ?? [];
+                    print("list: $listOfInvites");
+                  }),
+
+              // SettingsTile.switchTile(
+              //   title: 'Use fingerprint',
+              //   leading: Icon(Icons.fingerprint),
+              //   isLightTheme: value,
+              //   onToggle: (bool value) {},
+              // ),
+              SettingsTile(
+                  title: 'Generate Error',
+                  leading: Icon(Icons.error),
                   onTap: () {
-                      showDialog(
-                          context: context,
-                          builder: (_) {
-                            return Dialog(child: UserInterestScreen());
-                          });
-                      // Navigator.push(context, MaterialPageRoute(builder: (context) {
-                      //   return  UserInterestScreen(); 
-                      // }));
-
-                  },
-                ),
-                SettingsTile(
-                  title: 'نقاطي',
-                  leading:
-                      Icon(Icons.signal_cellular_connected_no_internet_4_bar),
-                  onTap: () {
-                    print('tapped');
-                    print(Provider.of<AppData>(context, listen: false)
-                        .currentUserID);
-                  },
-                ),
-                SettingsTile(
-                  title: 'new user',
-                  leading:
-                      Icon(Icons.signal_cellular_connected_no_internet_4_bar),
-                  onTap: Provider.of<AppData>(context).reset,
-                ),
-                SettingsTile(
-                  title: 'invite self',
-                  leading:
-                      Icon(Icons.signal_cellular_connected_no_internet_4_bar),
-                  onTap: () {
-                    HttpsCallable callable = CloudFunctions.instance
-                        .getHttpsCallable(functionName: 'testNotification');
-                    Future.delayed(Duration(seconds: 4))
-                        .then((value) => callable.call());
-                  },
-                ),
-
-                SettingsTile(
-                    title: 'invite $invitedID',
-                    leading: Icon(Icons.airline_seat_individual_suite),
-                    onTap: () {
-                      // inviteUserToSalfh(
-                      //   invitedID: invitedID,
-                      //   salfhID: salfhID,
-                      // );
-                    }),
-                    
-                    SettingsTile(
-                    title: 'print my invites',
-                    leading: Icon(Icons.airline_seat_individual_suite),
-                    onTap: () async {
-
-                      print('waiting for prefs'); 
-                      var prefs = await SharedPreferences.getInstance();
-                      List<String> listOfInvites = prefs.getStringList('invited') ?? [];
-                      print("list: $listOfInvites");  
-                      
-                    }),
-
-                // SettingsTile.switchTile(
-                //   title: 'Use fingerprint',
-                //   leading: Icon(Icons.fingerprint),
-                //   isLightTheme: value,
-                //   onToggle: (bool value) {},
-                // ),
-                SettingsTile(
-                    title: 'Generate Error',
-                    leading: Icon(Icons.error),
-                    onTap: () {
-                      throw ("generated error 1");
-                    }),
-              ],
-            ),
-            SettingsSection(
-              title: 'المظهر',
-              tiles: [
-                SettingsTile.switchTile(
-                  title: themeName,
-
+                    throw ("generated error 1");
+                  }),
+            ],
+          ),
+          SettingsSection(
+            title: 'المظهر',
+            tiles: [
+              SettingsTile.switchTile(
+                title: themeName,
 
                 //subtitle: 'English',
                 leading: Icon(Icons.satellite),
