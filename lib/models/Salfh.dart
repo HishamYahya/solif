@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/Services/ValidFirebaseStringConverter.dart';
 import 'package:solif/components/OurErrorWidget.dart';
@@ -64,11 +65,14 @@ Future<void> addUserToSalfh(
       ),
     );
   } catch (error) {
+    print('ERROR');
+
+    print(error.details);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: OurErrorWidget(
-          errorMessage: error.message,
+          errorMessage: error.details['message'] ?? error.message,
         ),
       ),
     );
