@@ -493,7 +493,7 @@ exports.createSalfh = functions.https.onCall(async (data: {
     if (!tags || tags.length === 0) return { salfhID: salfhRef.id };
 
     let condition = "";
-    incrementTags(tags);
+    incrementTags(tags,FCM_tags);
     for (const i in FCM_tags) {
         console.log(FCM_tags[i]);
         condition += `('${FCM_tags[i]}TAG' in topics) || `
@@ -584,12 +584,14 @@ exports.createSalfh = functions.https.onCall(async (data: {
 
 
 
-function incrementTags(tags: Array<string>) {
+function incrementTags(tags: Array<string>, FCM_tags: Array<string>) {
     const increment = FieldValue.increment(1);
+
+    let i: number =0; 
 
     tags.forEach((tag: string) => {
         // tslint:disable-next-line: no-floating-promises
-        firestore.collection('tags').doc().set({
+        firestore.collection('tags').doc(FCM_tags[i++]).set({
             'tagName': tag,
             'tagCounter': increment,
             'searchKeys': stringKeys(tag)
