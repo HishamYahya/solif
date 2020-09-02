@@ -32,8 +32,17 @@ class MessageTile extends StatelessWidget {
     return dots;
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
+    Color finalColor;
+    if(color == 'server'){
+      finalColor = Colors.grey;
+    }
+    else{
+      finalColor =  kOurColors[color];
+    }
     return Column(
       crossAxisAlignment:
           fromUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -50,7 +59,7 @@ class MessageTile extends StatelessWidget {
             decoration: BoxDecoration(
               color: isSending
                   ? kOurColors[color].withAlpha(200)
-                  : kOurColors[color],
+                  : finalColor,
               borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(40),
                   topRight: Radius.circular(40),

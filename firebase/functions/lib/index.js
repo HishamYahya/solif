@@ -99,6 +99,10 @@ exports.joinSalfh = functions.https.onCall(async (data, context) => {
     console.log(userToAddID);
     const callerID = context.auth.uid;
     let snapshot;
+    let serverMessage = {};
+    serverMessage['color'] = 'server';
+    serverMessage['userID'] = 'server';
+    serverMessage['timeSent'] = FieldValue.serverTimestamp();
     const salfhRef = firestore.collection('Swalf').doc(salfhID);
     try {
         return firestore.runTransaction(async function (transaction) {
@@ -130,8 +134,16 @@ exports.joinSalfh = functions.https.onCall(async (data, context) => {
         }).then(async (value) => {
             if (userToAddID !== null) {
                 const id = userToAddID;
+                serverMessage['content'] = `${color} joined by an invite`;
+                serverMessage['type'] = 'invite';
                 await sendAndSaveNotification(id, salfhID, snapshot.data());
             }
+            else {
+                serverMessage['content'] = `${color} joined`;
+                serverMessage['type'] = 'join';
+            }
+            console.log(serverMessage);
+            await firestore.collection('chatRooms').doc(salfhID).collection('messages').add(serverMessage);
         });
     }
     catch (err) {
@@ -154,6 +166,11 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
     console.log(color);
     const salfhRef = firestore.collection('Swalf').doc(salfhID);
     const userRef = firestore.collection('users').doc(context.auth.uid);
+    let isGoingToBeDeleted = false;
+    let serverMessage = {};
+    serverMessage['color'] = 'server';
+    serverMessage['userID'] = 'server';
+    serverMessage['timeSent'] = FieldValue.serverTimestamp();
     try {
         return firestore.runTransaction(async function (transaction) {
             var _a, _b, _c, _d;
@@ -169,6 +186,7 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
             if (colorsStatus[color] === (snapshotData === null || snapshotData === void 0 ? void 0 : snapshotData.adminID) && colorsStatus[color] === ((_b = context.auth) === null || _b === void 0 ? void 0 : _b.uid)) {
                 const colorsInOrder = snapshotData.colorsInOrder;
                 if (colorsInOrder.length === 0) {
+                    isGoingToBeDeleted = true;
                     deleteSalfh(salfhID, colorsStatus[color], transaction);
                 }
                 else {
@@ -181,10 +199,14 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
             else if (colorsStatus[color] === ((_c = context.auth) === null || _c === void 0 ? void 0 : _c.uid)) {
                 updatedData['colorsStatus'][color] = null;
                 updatedData['colorsInOrder'] = FieldValue.arrayRemove(color);
+                serverMessage['content'] = `${color} left the salfh`;
+                serverMessage['type'] = 'leave';
             }
             else if (snapshotData['adminID'] === ((_d = context.auth) === null || _d === void 0 ? void 0 : _d.uid)) {
                 updatedData['colorsStatus'][color] = null;
                 updatedData['colorsInOrder'] = FieldValue.arrayRemove(color);
+                serverMessage['content'] = `${color} kicked from the salfh`;
+                serverMessage['type'] = 'kick';
             }
             else {
                 throw new Error("3rd else, Permission Denied");
@@ -194,6 +216,10 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
             deletedSalfh[`userSwalf.${salfhID}`] = FieldValue.delete();
             transaction.update(userRef, deletedSalfh);
             return true;
+        }).then(async (value) => {
+            if (!isGoingToBeDeleted) {
+                await firestore.collection('chatRooms').doc(salfhID).collection('messages').add(serverMessage);
+            }
         });
     }
     catch (e) {
