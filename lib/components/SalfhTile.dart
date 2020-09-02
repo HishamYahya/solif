@@ -323,7 +323,8 @@ class SalfhTileState extends State<SalfhTile>
                                       ),
                                     ],
                                   ),
-                                  lastMessageSent.isNotEmpty
+                                  lastMessageSent.isNotEmpty &&
+                                          lastMessageSent['fromServer'] == null
                                       ? MostRecentMessageBox(
                                           lastMessageSent: lastMessageSent,
                                         )

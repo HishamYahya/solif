@@ -10,6 +10,7 @@ import 'package:solif/components/ChatInputBox.dart';
 import 'package:solif/components/ChatScreenDrawer.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/MessageTile.dart';
+import 'package:solif/components/ServerMessage.dart';
 import 'package:solif/components/TypingWidgetRow.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
@@ -170,11 +171,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         Timestamp.fromDate(timeofLastMessageSavedLocally);
     allTheMessages = [];
     for (var message in localMessages.reversed) {
-      allTheMessages.add(Message(
-              color: message['color'],
-              content: message['content'],
-              timeSent: message['timeSent'])
-          .toJson());
+      allTheMessages.add({
+        ...message,
+        'timeSent': message['timeSent'].toDate().toIso8601String(),
+      });
     }
     for (var message in snapshotMessages.reversed) {
       // if (messageCounter == 0) return;
@@ -187,11 +187,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (isCurrentMessageGreater)
         futureLastMessageSavedLocallyTime = message['timeSent'];
 
-      allTheMessages.add(Message(
-              color: message['color'],
-              content: message['content'],
-              timeSent: message['timeSent'])
-          .toJson());
+      allTheMessages.add({
+        ...message.data,
+        'timeSent': message.data['timeSent'].toDate().toIso8601String(),
+      });
     }
   }
 
@@ -475,7 +474,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       .toList(); // this could be expensive in the long run, but easy to use.
                   // note to self: Use iterator instead if ever preformance issues occur.
                   Set<String> alreadyRead = Set<String>();
-                  List<MessageTile> messageTiles = [];
+                  List<Widget> messageTiles = [];
 
                   // populateAllMessages(snapshotMessages, localMessages); //
 
@@ -511,25 +510,32 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       if (message['color'] != color &&
                           !alreadyRead.contains(color) &&
                           lastLeft.compareTo(estimateTimeSent) >= 0 &&
-                          colorsStatus[color] != null) {
+                          colorsStatus[color] != null &&
+                          message['fromServer'] == null) {
                         readColors.add(color);
                         alreadyRead.add(color);
                       }
                     });
                     // print('Stream');
+                    if (message['fromServer'] != null) {
+                      messageTiles.add(ServerMessage(
+                        type: message['type'],
+                        color: message['color'],
+                      ));
+                    } else {
+                      messageTiles.add(MessageTile(
+                        color: message['color'],
+                        message: message["content"],
+                        fromUser: message['color'] == colorName,
+                        readColors: readColors,
+                        isSending: isSending,
 
-                    messageTiles.add(MessageTile(
-                      color: message['color'],
-                      message: message["content"],
-                      fromUser: message['color'] == colorName,
-                      readColors: readColors,
-                      isSending: isSending,
-
-                      //
-                      // add stuff here when you update messageTile
-                      // time: message["time"],
-                      //
-                    ));
+                        //
+                        // add stuff here when you update messageTile
+                        // time: message["time"],
+                        //
+                      ));
+                    }
                   }
                   //  print('after');
                   print('messages from cache $cacheCounter');

@@ -141,7 +141,7 @@ exports.joinSalfh = functions.https.onCall(async (data, context) => {
                 serverMessage = {
                     color,
                     type: ServerMessageType.INVITE,
-                    userID: 'server',
+                    fromServer: true,
                     timeSent: FieldValue.serverTimestamp()
                 };
                 await sendAndSaveNotification(id, salfhID, snapshot.data());
@@ -150,7 +150,7 @@ exports.joinSalfh = functions.https.onCall(async (data, context) => {
                 serverMessage = {
                     color,
                     type: ServerMessageType.JOIN,
-                    userID: 'server',
+                    fromServer: true,
                     timeSent: FieldValue.serverTimestamp()
                 };
             }
@@ -211,7 +211,7 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
                 serverMessage = {
                     color,
                     type: ServerMessageType.LEAVE,
-                    userID: 'server',
+                    fromServer: true,
                     timeSent: FieldValue.serverTimestamp()
                 };
             }
@@ -221,7 +221,7 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
                 serverMessage = {
                     color,
                     type: ServerMessageType.KICK,
-                    userID: 'server',
+                    fromServer: true,
                     timeSent: FieldValue.serverTimestamp()
                 };
             }
