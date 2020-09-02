@@ -32,6 +32,8 @@ enum NotificationType {
 
 }
 
+
+
 const kColorNames: Array<Color> = [ColorNames.blue, ColorNames.green, ColorNames.purple, ColorNames.red, ColorNames.yellow];
 
 exports.testNotification = functions.https.onCall(async (data, context) => {
@@ -89,13 +91,13 @@ exports.inviteUser = functions.https.onCall(async (data, context) => {
         throw UnauthenticatedException;
     }
 
-    const notificationData = {"value": salfhID, 'type': 'invite'}; 
+    const notificationData = { "value": salfhID, 'type': 'invite' };
     console.log("userToAddID" + userToAddID);
     console.log("ourdata" + notificationData);
-    
-    await firestore.collection("users").doc(userToAddID).collection('notifications').doc('notifications').set({'usersInvited': FieldValue.arrayUnion(notificationData) }, { merge: true });
 
-    
+    await firestore.collection("users").doc(userToAddID).collection('notifications').doc('notifications').set({ 'usersInvited': FieldValue.arrayUnion(notificationData) }, { merge: true });
+
+
     const condition: string = `'${userToAddID}' in topics`;
 
     const dataPayload = {
@@ -122,6 +124,20 @@ exports.inviteUser = functions.https.onCall(async (data, context) => {
 
 })
 
+enum ServerMessageType {
+    INVITE = 'invite',
+    JOIN = 'join',
+    LEAVE = 'leave',
+    KICK = 'kick'
+}
+
+interface ServerMessage {
+    color: string,
+    userID: 'server',
+    type: ServerMessageType,
+    timeSent: admin.firestore.FieldValue
+}
+
 exports.joinSalfh = functions.https.onCall(async (data: {
     salfhID: string,
     color: string,
@@ -133,11 +149,8 @@ exports.joinSalfh = functions.https.onCall(async (data: {
     const { salfhID, color, userToAddID } = data;
     console.log(userToAddID);
     const callerID: string = context.auth.uid;
-    let snapshot: any; 
-    let serverMessage = {} as any;
-    serverMessage['color'] = 'server';
-    serverMessage['userID'] = 'server';
-    serverMessage['timeSent'] =  FieldValue.serverTimestamp();
+    let snapshot: any;
+    let serverMessage: ServerMessage;
 
     const salfhRef = firestore.collection('Swalf').doc(salfhID);
     try {
@@ -146,7 +159,7 @@ exports.joinSalfh = functions.https.onCall(async (data: {
             snapshot = await transaction.get(salfhRef);
             let userRef;
             if (!userToAddID) {
-                userRef = firestore.collection('users').doc(callerID);  
+                userRef = firestore.collection('users').doc(callerID);
             }
             else if (snapshot.data()?.adminID === callerID) {
                 userRef = firestore.collection('users').doc(userToAddID);
@@ -163,7 +176,7 @@ exports.joinSalfh = functions.https.onCall(async (data: {
             let updatedData = {} as any;
             if (snapshot.data()?.colorsStatus[color] === null) {
                 updatedData = { colorsInOrder: FieldValue.arrayUnion(color), 'usersInvited': FieldValue.arrayRemove(userRef.id) }
-                updatedData[`colorsStatus.${color}`] = userRef.id;  
+                updatedData[`colorsStatus.${color}`] = userRef.id;
             }
             transaction.update(salfhRef, updatedData);
 
@@ -175,18 +188,26 @@ exports.joinSalfh = functions.https.onCall(async (data: {
             return true;
 
         }).then(async (value) => {
-            if(userToAddID !== null){
-                 const id = userToAddID as string; 
-                 serverMessage['content']= `${color} joined by an invite`;
-                 serverMessage['type'] = 'invite'; 
-                 await sendAndSaveNotification(id,salfhID,snapshot.data()); 
+            if (userToAddID !== null) {
+                const id = userToAddID as string;
+                serverMessage = {
+                    color,
+                    type: ServerMessageType.INVITE,
+                    userID: 'server',
+                    timeSent: FieldValue.serverTimestamp()
+                }
+                await sendAndSaveNotification(id, salfhID, snapshot.data());
             }
-            else{
-                serverMessage['content']= `${color} joined`;
-                serverMessage['type'] = 'join'; 
+            else {
+                serverMessage = {
+                    color,
+                    type: ServerMessageType.JOIN,
+                    userID: 'server',
+                    timeSent: FieldValue.serverTimestamp()
+                }
 
             }
-            console.log(serverMessage); 
+            console.log(serverMessage);
             await firestore.collection('chatRooms').doc(salfhID).collection('messages').add(serverMessage);
         });
     } catch (err) {
@@ -214,12 +235,9 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
     const salfhRef = firestore.collection('Swalf').doc(salfhID);
     const userRef = firestore.collection('users').doc(context.auth.uid);
 
-    let isGoingToBeDeleted  = false; 
+    let isGoingToBeDeleted = false;
 
-    let serverMessage = {} as any;
-    serverMessage['color'] = 'server';
-    serverMessage['userID'] = 'server';
-    serverMessage['timeSent'] = FieldValue.serverTimestamp();
+    let serverMessage: ServerMessage;
 
     try {
 
@@ -245,7 +263,7 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
             if (colorsStatus[color] === snapshotData?.adminID && colorsStatus[color] === context.auth?.uid) {
                 const colorsInOrder = snapshotData.colorsInOrder;
                 if (colorsInOrder.length === 0) {
-                    isGoingToBeDeleted = true; 
+                    isGoingToBeDeleted = true;
                     deleteSalfh(salfhID, colorsStatus[color], transaction);
                 }
                 else {
@@ -259,16 +277,24 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
             else if (colorsStatus[color] === context.auth?.uid) {
                 updatedData['colorsStatus'][color] = null;
                 updatedData['colorsInOrder'] = FieldValue.arrayRemove(color);
-                serverMessage['content'] = `${color} left the salfh`
-                serverMessage['type'] = 'leave';
+                serverMessage = {
+                    color,
+                    type: ServerMessageType.LEAVE,
+                    userID: 'server',
+                    timeSent: FieldValue.serverTimestamp()
+                }
 
 
             }
             else if (snapshotData['adminID'] === context.auth?.uid) {
                 updatedData['colorsStatus'][color] = null;
                 updatedData['colorsInOrder'] = FieldValue.arrayRemove(color);
-                serverMessage['content'] = `${color} kicked from the salfh`
-                serverMessage['type'] = 'kick'; 
+                serverMessage = {
+                    color,
+                    type: ServerMessageType.KICK,
+                    userID: 'server',
+                    timeSent: FieldValue.serverTimestamp()
+                }
             }
             else {
                 throw new Error("3rd else, Permission Denied");
@@ -280,8 +306,8 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
             deletedSalfh[`userSwalf.${salfhID}`] = FieldValue.delete();
             transaction.update(userRef, deletedSalfh);
             return true;
-        }).then( async (value) => {
-            if(!isGoingToBeDeleted){
+        }).then(async (value) => {
+            if (!isGoingToBeDeleted) {
                 await firestore.collection('chatRooms').doc(salfhID).collection('messages').add(serverMessage);
             }
         });
@@ -522,7 +548,7 @@ exports.createSalfh = functions.https.onCall(async (data: {
     if (!tags || tags.length === 0) return { salfhID: salfhRef.id };
 
     let condition = "";
-    incrementTags(tags,FCM_tags);
+    incrementTags(tags, FCM_tags);
     for (const i in FCM_tags) {
         console.log(FCM_tags[i]);
         condition += `('${FCM_tags[i]}TAG' in topics) || `
@@ -616,7 +642,7 @@ exports.createSalfh = functions.https.onCall(async (data: {
 function incrementTags(tags: Array<string>, FCM_tags: Array<string>) {
     const increment = FieldValue.increment(1);
 
-    let i: number =0; 
+    let i: number = 0;
 
     tags.forEach((tag: string) => {
         // tslint:disable-next-line: no-floating-promises
@@ -671,13 +697,13 @@ function deleteSalfh(salfhID: string, userID: string, transaction: FirebaseFires
     }, { merge: true });
 
 }
-async function sendAndSaveNotification(userToAddID: string,salfhID: string,data: any){
-    const notificationData = {"value": {"id": salfhID,"title": data['title']}, 'type': NotificationType.INVITE,'time': FieldValue.serverTimestamp()}; 
+async function sendAndSaveNotification(userToAddID: string, salfhID: string, data: any) {
+    const notificationData = { "value": { "id": salfhID, "title": data['title'] }, 'type': NotificationType.INVITE, 'time': FieldValue.serverTimestamp() };
     console.log("userToAddID" + userToAddID);
     console.log("ourdata" + notificationData);
-    
+
     await firestore.collection("users").doc(userToAddID).collection('notifications').doc().set(notificationData);
-    
+
     const condition: string = `'${userToAddID}' in topics`;
 
     const dataPayload = {
