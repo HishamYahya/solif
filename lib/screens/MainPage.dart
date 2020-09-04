@@ -69,9 +69,8 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         print("onResume $message");
       },
       onMessage: (message) {
-       print("onMessage $message");
-      //  foregroundMessageHandler(message);
-       
+        print("onMessage $message");
+        //  foregroundMessageHandler(message);
       },
       onBackgroundMessage: backgroundMessageHandler,
     );
@@ -98,41 +97,58 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     _animationController.dispose();
   }
 
+  String _getAppBarTitle() {
+    switch (curPageIndex) {
+      case 0:
+        return 'سواليفي';
+      case 1:
+        return 'سواليفهم';
+      case 2:
+        return 'التنبيهات';
+      case 3:
+        return 'شخصي';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-              color: Colors.grey[500],
-              icon: Icon(Icons.settings),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SettingsScreen(),
-                ),
+        title: Text(
+          _getAppBarTitle(),
+          style: TextStyle(
+            color: Colors.grey[500],
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        actions: [
+          Tooltip(
+            message: 'نقاطك',
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      '1750',
+                      style: TextStyle(color: Colors.grey[500], fontSize: 16),
+                    ),
+                  ),
+                  Image.asset(
+                    'images/dots.png',
+                    height: 24,
+                  ),
+                ],
               ),
             ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    '1750',
-                    style: TextStyle(color: Colors.grey[500]),
-                  ),
-                ),
-                Image.asset(
-                  'images/dots.png',
-                  height: 24,
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+        ],
+        leading: curPageIndex == 2
+            ? Icon(Icons.notifications, color: Colors.grey[500])
+            : null,
         centerTitle: true,
       ),
       backgroundColor: Colors.grey[100],
