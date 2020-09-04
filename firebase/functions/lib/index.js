@@ -91,6 +91,13 @@ exports.inviteUser = functions.https.onCall(async (data, context) => {
     await admin.messaging().send(notification).then(value => console.log(value)).catch(err => console.log(err));
     return true;
 });
+var ServerMessageType;
+(function (ServerMessageType) {
+    ServerMessageType["INVITE"] = "invite";
+    ServerMessageType["JOIN"] = "join";
+    ServerMessageType["LEAVE"] = "leave";
+    ServerMessageType["KICK"] = "kick";
+})(ServerMessageType || (ServerMessageType = {}));
 exports.joinSalfh = functions.https.onCall(async (data, context) => {
     if (!context.auth) {
         throw UnauthenticatedException;
@@ -99,10 +106,7 @@ exports.joinSalfh = functions.https.onCall(async (data, context) => {
     console.log(userToAddID);
     const callerID = context.auth.uid;
     let snapshot;
-    let serverMessage = {};
-    serverMessage['color'] = 'server';
-    serverMessage['userID'] = 'server';
-    serverMessage['timeSent'] = FieldValue.serverTimestamp();
+    let serverMessage;
     const salfhRef = firestore.collection('Swalf').doc(salfhID);
     try {
         return firestore.runTransaction(async function (transaction) {
@@ -134,13 +138,21 @@ exports.joinSalfh = functions.https.onCall(async (data, context) => {
         }).then(async (value) => {
             if (userToAddID !== null) {
                 const id = userToAddID;
-                serverMessage['content'] = `${color} joined by an invite`;
-                serverMessage['type'] = 'invite';
+                serverMessage = {
+                    color,
+                    type: ServerMessageType.INVITE,
+                    fromServer: true,
+                    timeSent: FieldValue.serverTimestamp()
+                };
                 await sendAndSaveNotification(id, salfhID, snapshot.data());
             }
             else {
-                serverMessage['content'] = `${color} joined`;
-                serverMessage['type'] = 'join';
+                serverMessage = {
+                    color,
+                    type: ServerMessageType.JOIN,
+                    fromServer: true,
+                    timeSent: FieldValue.serverTimestamp()
+                };
             }
             console.log(serverMessage);
             await firestore.collection('chatRooms').doc(salfhID).collection('messages').add(serverMessage);
@@ -167,10 +179,7 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
     const salfhRef = firestore.collection('Swalf').doc(salfhID);
     const userRef = firestore.collection('users').doc(context.auth.uid);
     let isGoingToBeDeleted = false;
-    let serverMessage = {};
-    serverMessage['color'] = 'server';
-    serverMessage['userID'] = 'server';
-    serverMessage['timeSent'] = FieldValue.serverTimestamp();
+    let serverMessage;
     try {
         return firestore.runTransaction(async function (transaction) {
             var _a, _b, _c, _d;
@@ -199,14 +208,22 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
             else if (colorsStatus[color] === ((_c = context.auth) === null || _c === void 0 ? void 0 : _c.uid)) {
                 updatedData['colorsStatus'][color] = null;
                 updatedData['colorsInOrder'] = FieldValue.arrayRemove(color);
-                serverMessage['content'] = `${color} left the salfh`;
-                serverMessage['type'] = 'leave';
+                serverMessage = {
+                    color,
+                    type: ServerMessageType.LEAVE,
+                    fromServer: true,
+                    timeSent: FieldValue.serverTimestamp()
+                };
             }
             else if (snapshotData['adminID'] === ((_d = context.auth) === null || _d === void 0 ? void 0 : _d.uid)) {
                 updatedData['colorsStatus'][color] = null;
                 updatedData['colorsInOrder'] = FieldValue.arrayRemove(color);
-                serverMessage['content'] = `${color} kicked from the salfh`;
-                serverMessage['type'] = 'kick';
+                serverMessage = {
+                    color,
+                    type: ServerMessageType.KICK,
+                    fromServer: true,
+                    timeSent: FieldValue.serverTimestamp()
+                };
             }
             else {
                 throw new Error("3rd else, Permission Denied");
