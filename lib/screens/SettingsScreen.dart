@@ -23,6 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         brightness: darkMode ? Brightness.dark : Brightness.light,
         accentColor: kDarkModeTextColor87,
         primaryColor: kMainColor,
+        toggleableActiveColor: kMainColor,
       ),
       child: Directionality(
         textDirection: TextDirection.rtl,
