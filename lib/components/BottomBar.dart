@@ -1,5 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:solif/models/Preferences.dart';
 import 'package:solif/screens/AddScreen.dart';
 
 import '../constants.dart';
@@ -40,6 +42,7 @@ class _BottomBarState extends State<BottomBar>
   @override
   void initState() {
     super.initState();
+
     controller = AnimationController(
       vsync: this,
       value: 0,
@@ -52,6 +55,21 @@ class _BottomBarState extends State<BottomBar>
           });
     blueToWhiteAnimation =
         ColorTween(begin: kMainColor, end: Colors.white).animate(controller);
+
+    Provider.of<Preferences>(context, listen: false).addListener(() {
+      bool darkMode = Provider.of<Preferences>(context, listen: false).darkMode;
+      whiteToBlueAnimation = ColorTween(
+              begin: darkMode ? Color(0XFF121212) : Colors.white,
+              end: kMainColor)
+          .animate(controller)
+            ..addListener(() {
+              setState(() {});
+            });
+      blueToWhiteAnimation = ColorTween(
+        begin: kMainColor,
+        end: darkMode ? Color(0XFF121212) : Colors.white,
+      ).animate(controller);
+    });
   }
 
   @override

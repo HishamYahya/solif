@@ -37,3 +37,10 @@ final kMinimumSalfhTiles = 10;
 final kDarkTextColor = Colors.grey[800];
 
 final kCancelRedColor = Colors.red[300];
+
+final kDarkModeTextColor87 = Colors.white.withOpacity(0.87);
+final kDarkModeTextColor60 = Colors.white.withOpacity(0.60);
+final kDarkModeTextColor38 = Colors.white.withOpacity(0.38);
+
+// final kDarkModeDarkGrey = Color(0XFF121212);
+final kDarkModeDarkGrey = Color(0XFF1F1F1F);

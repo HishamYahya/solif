@@ -2,11 +2,13 @@ import 'dart:math';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/BottomBar.dart';
 import 'package:solif/components/ColoredDot.dart';
 import 'package:solif/components/SalfhTile.dart';
+import 'package:solif/models/Preferences.dart';
 import 'package:solif/screens/MyChatsScreen.dart';
 import 'package:solif/screens/NotificationsScreen.dart';
 import 'package:solif/screens/PublicChatsScreen.dart';
@@ -87,6 +89,19 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
     blueToWhiteAnimation = ColorTween(begin: kMainColor, end: Colors.white)
         .animate(_animationController);
+
+    Provider.of<Preferences>(context, listen: false).addListener(() {
+      bool darkMode = Provider.of<Preferences>(context, listen: false).darkMode;
+      whiteToBlueAnimation = ColorTween(
+              begin: darkMode ? Color(0XFF121212) : Colors.white,
+              end: kMainColor)
+          .animate(_animationController);
+
+      blueToWhiteAnimation = ColorTween(
+        begin: kMainColor,
+        end: darkMode ? Color(0XFF121212) : Colors.white,
+      ).animate(_animationController);
+    });
   }
 
   @override
@@ -112,13 +127,15 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    bool darkMode = Provider.of<Preferences>(context).darkMode;
+    print(darkMode);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: darkMode ? Color(0XFF121212) : Colors.white,
         title: Text(
           _getAppBarTitle(),
           style: TextStyle(
-            color: Colors.grey[500],
+            color: darkMode ? kDarkModeTextColor87 : Colors.grey[500],
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -151,40 +168,41 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             : null,
         centerTitle: true,
       ),
-      backgroundColor: Colors.grey[100],
-      floatingActionButton:
-          MediaQuery.of(context).viewInsets.bottom == 0 || isAdding
-              ? AnimatedBuilder(
-                  animation: _animationController,
-                  builder: (context, child) {
-                    // rotate the button 45 degrees
-                    return Transform.rotate(
-                      angle: _rotateAnimation.value,
-                      child: FloatingActionButton(
-                        backgroundColor: blueToWhiteAnimation.value,
-                        elevation: 2.0,
-                        onPressed: () {
-                          setState(() {
-                            isAdding = !isAdding;
-                          });
+      backgroundColor: darkMode ? Colors.black : Colors.grey[100],
+      floatingActionButton: MediaQuery.of(context).viewInsets.bottom == 0 ||
+              isAdding
+          ? AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                // rotate the button 45 degrees
+                return Transform.rotate(
+                  angle: _rotateAnimation.value,
+                  child: FloatingActionButton(
+                    backgroundColor: blueToWhiteAnimation.value,
+                    elevation: 2.0,
+                    onPressed: () {
+                      setState(() {
+                        isAdding = !isAdding;
+                      });
 
-                          // alternate icon between x and +
-                          if (isAdding) {
-                            _animationController.forward();
-                          } else {
-                            _animationController.reverse();
-                          }
-                        },
-                        child: Icon(
-                          Icons.add,
-                          color: whiteToBlueAnimation.value,
-                        ),
-                      ),
-                    );
-                  },
-                  child: null,
-                )
-              : null,
+                      // alternate icon between x and +
+                      if (isAdding) {
+                        _animationController.forward();
+                      } else {
+                        _animationController.reverse();
+                      }
+                    },
+                    child: Icon(
+                      Icons.add,
+                      color:
+                          darkMode ? Colors.white : whiteToBlueAnimation.value,
+                    ),
+                  ),
+                );
+              },
+              child: null,
+            )
+          : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
       // custom widget

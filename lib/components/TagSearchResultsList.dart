@@ -5,6 +5,7 @@ import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/SliverSearchBar.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/Preferences.dart';
 
 final Firestore firestore = Firestore.instance;
 
@@ -59,10 +60,11 @@ class _TagSearchResultsListState extends State<TagSearchResultsList> {
 
   @override
   Widget build(BuildContext context) {
+    bool darkMode = Provider.of<Preferences>(context).darkMode;
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Container(
-        color: Colors.white,
+        color: darkMode ? Colors.black : Colors.white,
         child: FutureBuilder(
           future: tagSearchFuture,
           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -96,16 +98,45 @@ class _TagSearchResultsListState extends State<TagSearchResultsList> {
                     itemCount: snapshot.data.documents.length,
                     itemBuilder: (context, index) {
                       final doc = docs[index].data;
-                      return ListTile(
-                        title: Text(doc['tagName']),
-                        subtitle: Text(doc['tagCounter'].toString() + ' سالفة'),
-                        onTap: () {
-                          Provider.of<AppData>(context, listen: false)
-                              .searchTag = doc['tagName'];
-                          widget.searchFieldController.text = doc['tagName'];
-                          widget.changeTabTo(0);
-                          FocusScope.of(context).unfocus();
-                        },
+                      return Container(
+                        decoration: darkMode
+                            ? BoxDecoration(
+                                border: Border(
+                                  top: BorderSide(
+                                    color: kDarkModeTextColor38,
+                                    width: 0.7,
+                                  ),
+                                ),
+                              )
+                            : null,
+                        child: ListTile(
+                          title: Text(
+                            doc['tagName'],
+                            style: TextStyle(
+                              color: darkMode
+                                  ? kDarkModeTextColor87
+                                  : Colors.grey[850],
+                            ),
+                          ),
+                          subtitle: Text(
+                            doc['tagCounter'].toString() + ' سالفة',
+                            style: TextStyle(
+                              color: darkMode
+                                  ? kDarkModeTextColor60
+                                  : Colors.grey[800],
+                            ),
+                          ),
+                          onTap: () {
+                            Provider.of<AppData>(context, listen: false)
+                                .searchTag = doc['tagName'];
+                            widget.searchFieldController.text = doc['tagName'];
+                            widget.changeTabTo(0);
+                            FocusScope.of(context).unfocus();
+                          },
+                          shape: BeveledRectangleBorder(
+                            side: BorderSide(color: Colors.white, width: 2),
+                          ),
+                        ),
                       );
                     },
                   );

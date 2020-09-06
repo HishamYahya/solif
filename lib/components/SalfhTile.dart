@@ -14,6 +14,7 @@ import 'package:solif/components/DropdownCard.dart';
 import 'package:solif/components/InviteSalfhTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/Preferences.dart';
 import 'package:solif/models/Tag.dart';
 import 'package:solif/screens/ChatScreen.dart';
 
@@ -152,9 +153,10 @@ class SalfhTileState extends State<SalfhTile>
       },
       child: Padding(
         padding: const EdgeInsets.all(5.0),
-        child: Icon(!isDetailsOpen
-            ? Icons.keyboard_arrow_down
-            : Icons.keyboard_arrow_up),
+        child: Icon(
+          !isDetailsOpen ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
+          color: Colors.white.withOpacity(0.87),
+        ),
       ),
     ));
     return newDots;
@@ -223,6 +225,7 @@ class SalfhTileState extends State<SalfhTile>
 
   @override
   Widget build(BuildContext context) {
+    bool darkMode = Provider.of<Preferences>(context).darkMode;
     return !widget.isInviteTile
         ? GestureDetector(
             onTap: () async {
@@ -257,7 +260,7 @@ class SalfhTileState extends State<SalfhTile>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     ClipRRect(
-                      clipBehavior: Clip.antiAlias,
+                      clipBehavior: Clip.antiAliasWithSaveLayer,
                       borderRadius: BorderRadius.only(
                         topRight: Radius.elliptical(10, 50),
                         bottomRight: Radius.elliptical(10, 50),
@@ -267,7 +270,7 @@ class SalfhTileState extends State<SalfhTile>
                       child: Container(
                         width: MediaQuery.of(context).size.width * 0.75,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: darkMode ? kDarkModeDarkGrey : Colors.white,
                         ),
                         child: Column(
                           children: [
@@ -294,7 +297,9 @@ class SalfhTileState extends State<SalfhTile>
                                             (widget.title),
                                             style: TextStyle(
                                               fontSize: 20,
-                                              color: Colors.grey[850],
+                                              color: darkMode
+                                                  ? kDarkModeTextColor87
+                                                  : Colors.grey[850],
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
