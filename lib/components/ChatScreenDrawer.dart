@@ -4,6 +4,7 @@ import 'package:solif/components/ColorDrawerTile.dart';
 import 'package:solif/components/OurErrorWidget.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/Preferences.dart';
 import 'package:solif/models/Salfh.dart';
 
 class ChatScreenDrawer extends StatefulWidget {
@@ -44,6 +45,7 @@ class _ChatScreenDrawerState extends State<ChatScreenDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    bool darkMode = Provider.of<Preferences>(context).darkMode;
     return Container(
       width: MediaQuery.of(context).size.width * 0.7,
       height: MediaQuery.of(context).size.height,
@@ -61,7 +63,8 @@ class _ChatScreenDrawerState extends State<ChatScreenDrawer> {
           children: <Widget>[
             Container(
               decoration: BoxDecoration(
-                color: kOurColors[widget.color],
+                color: Provider.of<Preferences>(context)
+                    .currentColors[widget.color],
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(40),
                 ),
@@ -101,9 +104,12 @@ class _ChatScreenDrawerState extends State<ChatScreenDrawer> {
             //   ),
             // ),
             Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: generateColorTiles(),
+              child: Container(
+                color: darkMode ? kDarkModeDarkGrey : Colors.white,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: generateColorTiles(),
+                ),
               ),
             ),
             // Padding(

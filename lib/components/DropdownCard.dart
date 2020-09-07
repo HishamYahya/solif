@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tags/flutter_tags.dart';
+import 'package:provider/provider.dart';
+import 'package:solif/models/Preferences.dart';
 
 import '../constants.dart';
 
@@ -32,7 +34,8 @@ class _DropdownCardState extends State<DropdownCard>
       duration: Duration(milliseconds: 150),
       child: Container(
         decoration: BoxDecoration(
-            color: kOurColors[widget.colorName],
+            color: Provider.of<Preferences>(context)
+                .currentColors[widget.colorName],
             borderRadius: BorderRadius.only(topLeft: Radius.circular(10))),
         constraints: widget.isOpen
             ? BoxConstraints(maxHeight: double.maxFinite)

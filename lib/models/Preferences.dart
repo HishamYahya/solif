@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:solif/constants.dart';
 
 class Preferences with ChangeNotifier {
-  bool _isDarkMode = true;
+  bool _isDarkMode = false;
   String _language = 'ar';
   SharedPreferences sharedPreferences;
+  Map<String, Color> currentColors = kOurColorsLight;
 
   Preferences() {
     init();
@@ -13,12 +15,12 @@ class Preferences with ChangeNotifier {
   init() async {
     sharedPreferences = await SharedPreferences.getInstance();
     if (sharedPreferences.containsKey('darkMode')) {
-      _isDarkMode = sharedPreferences.get('darkMode');
+      darkMode = sharedPreferences.get('darkMode');
     } else {
       sharedPreferences.setBool('darkMode', true);
     }
     if (sharedPreferences.containsKey('language')) {
-      _language = sharedPreferences.get('language');
+      language = sharedPreferences.get('language');
     } else {
       sharedPreferences.setString('language', 'ar');
     }
@@ -39,6 +41,7 @@ class Preferences with ChangeNotifier {
 
   set darkMode(bool isDarkMode) {
     _isDarkMode = isDarkMode;
+    currentColors = isDarkMode ? kOurColorsDark : kOurColorsLight;
     sharedPreferences.setBool('darkMode', isDarkMode);
     notifyListeners();
   }

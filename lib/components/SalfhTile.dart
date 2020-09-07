@@ -136,12 +136,14 @@ class SalfhTileState extends State<SalfhTile>
 
   List<Widget> generateDots(data) {
     List<Widget> newDots = [];
+
     data['colorsStatus'].forEach((name, id) {
       // if someone is in the salfh with that color
       if (id != null) {
         newDots.add(Padding(
           padding: const EdgeInsets.all(5.0),
-          child: ColoredDot(kOurColors[name]),
+          child: ColoredDot(Provider.of<Preferences>(context, listen: false)
+              .currentColors[name]),
         ));
       }
     });
@@ -226,6 +228,8 @@ class SalfhTileState extends State<SalfhTile>
   @override
   Widget build(BuildContext context) {
     bool darkMode = Provider.of<Preferences>(context).darkMode;
+    Map<String, Color> currentColors =
+        Provider.of<Preferences>(context).currentColors;
     return !widget.isInviteTile
         ? GestureDetector(
             onTap: () async {
@@ -254,7 +258,7 @@ class SalfhTileState extends State<SalfhTile>
                 width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: isFull ? Colors.white : kOurColors[colorName],
+                  color: isFull ? Colors.white : currentColors[colorName],
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -398,7 +402,8 @@ class MostRecentMessageBox extends StatelessWidget {
               maxWidth: MediaQuery.of(context).size.width * 0.7,
               minWidth: MediaQuery.of(context).size.width * 0.25),
           decoration: BoxDecoration(
-            color: kOurColors[lastMessageSent['color']],
+            color: Provider.of<Preferences>(context)
+                .currentColors[lastMessageSent['color']],
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(50),
             ),

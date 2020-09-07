@@ -15,6 +15,7 @@ import 'package:solif/components/TypingWidgetRow.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:solif/models/Message.dart';
+import 'package:solif/models/Preferences.dart';
 import 'package:solif/models/Salfh.dart';
 
 final firestore = Firestore.instance;
@@ -408,7 +409,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    Color currentColor = kOurColors[colorName];
+    Color currentColor =
+        Provider.of<Preferences>(context).currentColors[colorName];
+    bool darkMode = Provider.of<Preferences>(context).darkMode;
     //////////////////// hot reload to add message
 
     return WillPopScope(
@@ -418,7 +421,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           : {},
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: darkMode ? Color(0XFF121212) : Colors.white,
           automaticallyImplyLeading: false,
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -442,7 +445,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ),
           actions: <Widget>[Container()],
         ),
-        backgroundColor: Colors.blueAccent[50],
+        backgroundColor: darkMode ? kDarkModeDarkGrey : Colors.grey[200],
         endDrawer: ChatScreenDrawer(
             title: widget.title,
             adminID: widget.adminID,
@@ -552,19 +555,20 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ),
             ),
             Container(
-              color: Colors.grey[200],
+              color: darkMode ? kDarkModeDarkGrey : Colors.grey[200],
               child: Padding(
-                padding: const EdgeInsets.all(10.0),
+                padding: const EdgeInsets.only(
+                    bottom: 10.0, left: 10.0, right: 10.0),
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
                       width: 0,
-                      color: Colors.grey[200],
+                      color: darkMode ? Colors.transparent : Colors.grey[200],
                     ),
                     borderRadius: BorderRadius.all(
                       Radius.circular(150),
                     ),
-                    color: Colors.white,
+                    color: darkMode ? kDarkModeLightGrey : Colors.white,
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 0),
@@ -589,12 +593,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         SizedBox(width: 10),
                         FloatingActionButton(
                           backgroundColor: currentColor,
+                          heroTag: 'chat',
                           child: sending
                               ? CircularProgressIndicator(
                                   backgroundColor: Colors.white,
                                 )
                               : Icon(Icons.send),
                           onPressed: _onSubmit,
+                          mini: true,
                         )
                       ],
                     ),

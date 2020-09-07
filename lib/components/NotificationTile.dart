@@ -30,7 +30,8 @@ class _NotificationTileState extends State<NotificationTile> {
         return [
           Icon(
             Icons.chat_bubble_outline,
-            color: kOurColors['red'],
+            color: Provider.of<Preferences>(context, listen: false)
+                .currentColors['red'],
           ),
           Column(
             children: [
