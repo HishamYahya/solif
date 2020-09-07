@@ -28,7 +28,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Directionality(
         textDirection: TextDirection.rtl,
         child: SettingsList(
-          backgroundColor: kDarkModeDarkGrey,
+          backgroundColor: Color(0XFF121212),
           sections: [
             SettingsSection(
               title: 'شخصي',
