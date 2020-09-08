@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:solif/models/Likes.dart';
+import 'package:solif/models/Preferences.dart';
 import 'package:solif/models/Salfh.dart';
 
 import '../constants.dart';
@@ -83,7 +84,8 @@ class _ColorDrawerTileState extends State<ColorDrawerTile> {
                   borderRadius: BorderRadius.all(
                     Radius.circular(50),
                   ),
-                  borderColor: kOurColors[widget.color],
+                  borderColor: Provider.of<Preferences>(context)
+                      .currentColors[widget.color],
                   selectedColor: isSelected[1] ? Colors.red : Colors.green,
                   fillColor: isSelected[1]
                       ? Colors.red.withAlpha(30)
@@ -146,19 +148,25 @@ class _ColorDrawerTileState extends State<ColorDrawerTile> {
 
   @override
   Widget build(BuildContext context) {
-    final isCurrentUser =
+    bool darkMode = Provider.of<Preferences>(context).darkMode;
+    bool isCurrentUser =
         Provider.of<AppData>(context).currentUserID == widget.id;
     return ListTile(
       subtitle: widget.isCreator
           ? Text(
               'راعي السالفة',
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(
+                fontSize: 16,
+                color: darkMode ? kDarkModeTextColor60 : Colors.grey[500],
+              ),
             )
           : null,
       contentPadding: EdgeInsets.only(left: 20),
       title: Container(
         decoration: BoxDecoration(
-          color: kOurColors[widget.color].withAlpha(240),
+          color: Provider.of<Preferences>(context)
+              .currentColors[widget.color]
+              .withAlpha(240),
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(40),
             bottomLeft: Radius.circular(40),

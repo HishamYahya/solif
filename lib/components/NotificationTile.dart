@@ -5,6 +5,7 @@ import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/OurErrorWidget.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/Preferences.dart';
 import 'package:solif/screens/ChatScreen.dart';
 
 final firestore = Firestore.instance;
@@ -23,23 +24,27 @@ class _NotificationTileState extends State<NotificationTile> {
   Function onTap;
 
   List<Widget> buildWidgets() {
+    bool darkMode = Provider.of<Preferences>(context, listen: false).darkMode;
     switch (widget.type) {
       case 'invite':
         return [
           Icon(
             Icons.chat_bubble_outline,
-            color: kOurColors['red'],
+            color: Provider.of<Preferences>(context, listen: false)
+                .currentColors['red'],
           ),
           Column(
             children: [
               Text(
                 ':احد ضافك لسالفة بعنوان ',
+                style: TextStyle(
+                    color: darkMode ? kDarkModeTextColor60 : Colors.grey[800]),
               ),
               Text(
                 widget.payload['title'],
                 style: TextStyle(
                   fontSize: 20,
-                  color: Colors.grey[850],
+                  color: darkMode ? kDarkModeTextColor87 : Colors.grey[850],
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -53,6 +58,8 @@ class _NotificationTileState extends State<NotificationTile> {
 
   @override
   void initState() {
+    bool darkMode = Provider.of<Preferences>(context, listen: false).darkMode;
+
     switch (widget.type) {
       case 'invite':
         onTap = () async {
@@ -118,6 +125,8 @@ class _NotificationTileState extends State<NotificationTile> {
 
   @override
   Widget build(BuildContext context) {
+    bool darkMode = Provider.of<Preferences>(context).darkMode;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8),
       child: GestureDetector(
@@ -126,7 +135,7 @@ class _NotificationTileState extends State<NotificationTile> {
           width: double.infinity,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(10)),
-            color: Colors.white,
+            color: darkMode ? kDarkModeDarkGrey : Colors.white,
           ),
           child: Padding(
             padding: const EdgeInsets.all(8.0),

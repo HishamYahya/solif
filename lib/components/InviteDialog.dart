@@ -4,6 +4,7 @@ import 'package:solif/components/ColoredDot.dart';
 import 'package:solif/components/DialogMySwalfTab.dart';
 import 'package:solif/components/DialogNewSalfhTab.dart';
 import 'package:solif/models/DialogMySwalfTabModel.dart';
+import 'package:solif/models/Preferences.dart';
 
 import '../constants.dart';
 
@@ -62,7 +63,7 @@ class _InviteDialogState extends State<InviteDialog> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0),
                 child: ColoredDot(
-                  kOurColors[widget.color],
+                  Provider.of<Preferences>(context).currentColors[widget.color],
                 ),
               ),
             ],

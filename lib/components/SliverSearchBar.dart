@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/Preferences.dart';
 
 import '../constants.dart';
 
@@ -66,6 +67,7 @@ class _SliverSearchBarState extends State<SliverSearchBar>
 
   @override
   Widget build(BuildContext context) {
+    bool darkMode = Provider.of<Preferences>(context).darkMode;
     return SliverPadding(
       padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       sliver: SliverAppBar(
@@ -73,7 +75,7 @@ class _SliverSearchBarState extends State<SliverSearchBar>
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(15)),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: darkMode ? Color(0XFF121212) : Colors.white,
         centerTitle: true,
         stretch: false,
         floating: true,
@@ -90,7 +92,7 @@ class _SliverSearchBarState extends State<SliverSearchBar>
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: darkMode ? Color(0XFF292929) : Colors.grey[300],
                       borderRadius: BorderRadius.all(
                         Radius.circular(15),
                       ),
@@ -120,9 +122,12 @@ class _SliverSearchBarState extends State<SliverSearchBar>
                               cursorColor: Colors.black,
                               textAlignVertical: TextAlignVertical.center,
                               style: TextStyle(
-                                  color: Colors.grey[800],
-                                  textBaseline: TextBaseline.alphabetic,
-                                  fontSize: 18),
+                                color: darkMode
+                                    ? kDarkModeTextColor87
+                                    : Colors.grey[800],
+                                textBaseline: TextBaseline.alphabetic,
+                                fontSize: 18,
+                              ),
                               decoration: InputDecoration(
                                 border: OutlineInputBorder(
                                   borderSide: BorderSide(
@@ -143,11 +148,23 @@ class _SliverSearchBarState extends State<SliverSearchBar>
                                     Radius.circular(15),
                                   ),
                                 ),
-                                prefixIcon: Icon(Icons.search),
+                                prefixIcon: Icon(
+                                  Icons.search,
+                                  color: darkMode
+                                      ? kDarkModeTextColor60
+                                      : Colors.grey[800],
+                                ),
                                 floatingLabelBehavior:
                                     FloatingLabelBehavior.never,
                                 labelText: "ابحث عن الموضوع اللي تبي تسولف عنه",
                                 counterText: "",
+                                labelStyle: TextStyle(
+                                  color: darkMode
+                                      ? kDarkModeTextColor38
+                                      : Colors.grey[800],
+                                  textBaseline: TextBaseline.alphabetic,
+                                  fontSize: 18,
+                                ),
                               ),
                             ),
                           ),

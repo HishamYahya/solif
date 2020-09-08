@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:solif/Services/UserAuthentication.dart';
 import 'package:solif/components/OurErrorWidget.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/Preferences.dart';
 import 'package:solif/screens/MainPage.dart';
 
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -23,12 +24,11 @@ void main() async {
   await UserAuthentication
       .loadInUser(); // only allow the user to use the app if logged in.
 
-
   Crashlytics.instance.enableInDevMode = true;
 
   // Pass all uncaught errors from the framework to Crashlytics.
   FlutterError.onError = Crashlytics.instance.recordFlutterError;
-  
+
   runApp(MyApp());
 }
 
@@ -37,8 +37,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<AppData>(
-      create: (context) => AppData(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AppData>(
+          create: (context) => AppData(),
+        ),
+        ChangeNotifierProvider<Preferences>(
+          create: (context) => Preferences(),
+        )
+      ],
       child: MaterialApp(
         navigatorKey: Catcher.navigatorKey,
         home: MainPage(),

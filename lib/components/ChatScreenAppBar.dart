@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:solif/constants.dart';
+import 'package:solif/models/Preferences.dart';
 
 class ChatScreenAppBar extends StatelessWidget {
   final Function onLeave;
@@ -30,7 +32,8 @@ class ChatScreenAppBar extends StatelessWidget {
           isInSalfh
               ? ClipOval(
                   child: Container(
-                    color: kOurColors[color],
+                    color:
+                        Provider.of<Preferences>(context).currentColors[color],
                     child: IconButton(
                       icon: Icon(Icons.view_stream),
                       onPressed: () => Scaffold.of(context).openEndDrawer(),

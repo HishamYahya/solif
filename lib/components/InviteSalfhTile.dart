@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:solif/components/DialogMySwalfTab.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/DialogMySwalfTabModel.dart';
+import 'package:solif/models/Preferences.dart';
 
 import '../constants.dart';
 import 'ColoredDot.dart';
@@ -41,7 +42,8 @@ class _InviteSalfhTileState extends State<InviteSalfhTile> {
           newDots.add(
             Padding(
               padding: const EdgeInsets.all(5.0),
-              child: ColoredDot(kOurColors[name]),
+              child: ColoredDot(
+                  Provider.of<Preferences>(context).currentColors[name]),
             ),
           );
         }
@@ -86,7 +88,8 @@ class _InviteSalfhTileState extends State<InviteSalfhTile> {
                   Provider.of<DialogMySwalfTabModel>(context).selectedSalfhID ==
                           widget.id
                       ? ColoredDot(
-                          kOurColors[widget.color],
+                          Provider.of<Preferences>(context)
+                              .currentColors[widget.color],
                           key: UniqueKey(),
                         )
                       : ColoredDot(

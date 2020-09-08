@@ -14,6 +14,7 @@ import 'package:solif/components/DropdownCard.dart';
 import 'package:solif/components/InviteSalfhTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/Preferences.dart';
 import 'package:solif/models/Tag.dart';
 import 'package:solif/screens/ChatScreen.dart';
 
@@ -135,12 +136,14 @@ class SalfhTileState extends State<SalfhTile>
 
   List<Widget> generateDots(data) {
     List<Widget> newDots = [];
+
     data['colorsStatus'].forEach((name, id) {
       // if someone is in the salfh with that color
       if (id != null) {
         newDots.add(Padding(
           padding: const EdgeInsets.all(5.0),
-          child: ColoredDot(kOurColors[name]),
+          child: ColoredDot(Provider.of<Preferences>(context, listen: false)
+              .currentColors[name]),
         ));
       }
     });
@@ -152,9 +155,10 @@ class SalfhTileState extends State<SalfhTile>
       },
       child: Padding(
         padding: const EdgeInsets.all(5.0),
-        child: Icon(!isDetailsOpen
-            ? Icons.keyboard_arrow_down
-            : Icons.keyboard_arrow_up),
+        child: Icon(
+          !isDetailsOpen ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
+          color: Colors.white.withOpacity(0.87),
+        ),
       ),
     ));
     return newDots;
@@ -223,6 +227,9 @@ class SalfhTileState extends State<SalfhTile>
 
   @override
   Widget build(BuildContext context) {
+    bool darkMode = Provider.of<Preferences>(context).darkMode;
+    Map<String, Color> currentColors =
+        Provider.of<Preferences>(context).currentColors;
     return !widget.isInviteTile
         ? GestureDetector(
             onTap: () async {
@@ -251,13 +258,13 @@ class SalfhTileState extends State<SalfhTile>
                 width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: isFull ? Colors.white : kOurColors[colorName],
+                  color: isFull ? Colors.white : currentColors[colorName],
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     ClipRRect(
-                      clipBehavior: Clip.antiAlias,
+                      clipBehavior: Clip.antiAliasWithSaveLayer,
                       borderRadius: BorderRadius.only(
                         topRight: Radius.elliptical(10, 50),
                         bottomRight: Radius.elliptical(10, 50),
@@ -267,7 +274,7 @@ class SalfhTileState extends State<SalfhTile>
                       child: Container(
                         width: MediaQuery.of(context).size.width * 0.75,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: darkMode ? kDarkModeDarkGrey : Colors.white,
                         ),
                         child: Column(
                           children: [
@@ -294,7 +301,9 @@ class SalfhTileState extends State<SalfhTile>
                                             (widget.title),
                                             style: TextStyle(
                                               fontSize: 20,
-                                              color: Colors.grey[850],
+                                              color: darkMode
+                                                  ? kDarkModeTextColor87
+                                                  : Colors.grey[850],
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
@@ -393,7 +402,8 @@ class MostRecentMessageBox extends StatelessWidget {
               maxWidth: MediaQuery.of(context).size.width * 0.7,
               minWidth: MediaQuery.of(context).size.width * 0.25),
           decoration: BoxDecoration(
-            color: kOurColors[lastMessageSent['color']],
+            color: Provider.of<Preferences>(context)
+                .currentColors[lastMessageSent['color']],
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(50),
             ),
