@@ -18,6 +18,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     bool darkMode = Provider.of<Preferences>(context).darkMode;
+    bool isEnglish = Provider.of<Preferences>(context).isEnglish;
     return Theme(
       data: ThemeData(
         brightness: darkMode ? Brightness.dark : Brightness.light,
@@ -26,7 +27,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         toggleableActiveColor: kMainColor,
       ),
       child: Directionality(
-        textDirection: TextDirection.rtl,
+        textDirection: isEnglish ? TextDirection.ltr : TextDirection.rtl,
         child: SettingsList(
           backgroundColor: Color(0XFF121212),
           sections: [
@@ -105,6 +106,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onToggle: (value) {
                     Provider.of<Preferences>(context, listen: false).darkMode =
                         value;
+                  },
+                ),
+                SettingsTile.switchTile(
+                  title: 'English',
+
+                  //subtitle: 'English',
+                  leading: Icon(Icons.satellite),
+                  switchValue: isEnglish,
+
+                  onToggle: (value) {
+                    Provider.of<Preferences>(context, listen: false).language =
+                        isEnglish ? 'ar' : 'en';
                   },
                 ),
               ],

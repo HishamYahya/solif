@@ -151,6 +151,7 @@ class _BottomBarState extends State<BottomBar>
   }
 
   Widget buildMiddleItem() {
+    bool darkMode = Provider.of<Preferences>(context).darkMode;
     return Expanded(
       child: SizedBox(
         child: Column(
@@ -161,7 +162,12 @@ class _BottomBarState extends State<BottomBar>
             AutoSizeText(
               widget.centerText ?? '',
               maxLines: 1,
-              style: TextStyle(color: blueToWhiteAnimation.value, fontSize: 18),
+              style: TextStyle(
+                color: darkMode
+                    ? kDarkModeTextColor87
+                    : blueToWhiteAnimation.value,
+                fontSize: 18,
+              ),
             ),
           ],
         ),

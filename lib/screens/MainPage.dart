@@ -113,21 +113,35 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   }
 
   String _getAppBarTitle() {
-    switch (curPageIndex) {
-      case 0:
-        return 'سواليفي';
-      case 1:
-        return 'سواليفهم';
-      case 2:
-        return 'التنبيهات';
-      case 3:
-        return 'شخصي';
+    if (Provider.of<Preferences>(context).isArabic) {
+      switch (curPageIndex) {
+        case 0:
+          return 'سواليفي';
+        case 1:
+          return 'سواليفهم';
+        case 2:
+          return 'التنبيهات';
+        case 3:
+          return 'شخصي';
+      }
+    } else {
+      switch (curPageIndex) {
+        case 0:
+          return 'My Chats';
+        case 1:
+          return 'Public Chats';
+        case 2:
+          return 'Notifications';
+        case 3:
+          return 'Profile';
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     bool darkMode = Provider.of<Preferences>(context).darkMode;
+    bool isArabic = Provider.of<Preferences>(context).isArabic;
     print(darkMode);
     return Scaffold(
       appBar: AppBar(
@@ -208,7 +222,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       // custom widget
       bottomNavigationBar: SingleChildScrollView(
         child: BottomBar(
-          centerText: "افتح سالفة",
+          centerText: isArabic ? "افتح سالفة" : 'New Chat',
           isAdding: isAdding,
           selectedIndex: curPageIndex,
           onTap: (value) {
