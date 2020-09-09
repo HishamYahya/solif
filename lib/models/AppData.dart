@@ -9,7 +9,7 @@ import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/Services/ValidFirebaseStringConverter.dart';
 import 'package:solif/components/NotificationTile.dart';
 import 'package:solif/components/SalfhTile.dart';
-import 'package:solif/components/TagTile.dart';
+import 'package:solif/components/TagChip.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/Notification.dart';
 import 'package:solif/models/Tag.dart';
@@ -22,7 +22,7 @@ class AppData with ChangeNotifier {
   FirebaseUser currentUser;
   List<SalfhTile> usersSalfhTiles;
   List<SalfhTile> publicSalfhTiles;
-  List<TagTile> tagsSavedLocally = [];
+  List<TagChip> tagsSavedLocally = [];
   List<NotificationTile> notificationTiles;
   bool isTagslLoaded = false;
   String _searchTag;
@@ -310,7 +310,7 @@ class AppData with ChangeNotifier {
 
   void addTag(String tag) {
     if (tag == null || tag == '') return;
-    tagsSavedLocally.add(TagTile(
+    tagsSavedLocally.add(TagChip(
       tagName: tag,
       // onCancelPressed: deleteTag,)
     ));

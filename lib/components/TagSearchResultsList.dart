@@ -33,6 +33,23 @@ class _TagSearchResultsListState extends State<TagSearchResultsList> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    if (widget.searchTerm != '') {
+      tagSearchFuture = Firestore.instance
+          .collection('tags')
+          .where('searchKeys', arrayContains: widget.searchTerm)
+          .orderBy('tagCounter', descending: true)
+          .limit(10)
+
+          // .orderBy('tagName', descending: true)
+          // .where('tagName', isGreaterThanOrEqualTo: searchkey)
+          // .where('tagName', isLessThan: searchkey + 'z')
+
+          // .startAt([searchkey])
+          // .endAt([searchkey + '\uf8ff'])
+          .getDocuments();
+    } else {
+      tagSearchFuture = null;
+    }
   }
 
   @override
