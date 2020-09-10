@@ -42,33 +42,62 @@ class _DropdownCardState extends State<DropdownCard>
             : BoxConstraints(maxHeight: 0),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Tags(
-                columns: 2,
-                itemCount: widget.tags.length,
-                itemBuilder: (index) {
-                  final item = widget.tags[index];
-
-                  return ItemTags(
-                    // Each ItemTags must contain a Key. Keys allow Flutter to
-                    // uniquely identify widgets.
-                    key: Key(index.toString()),
-                    index: index, // required
-                    title: item,
-                    activeColor: Colors.white,
-                    color: Colors.white,
-
-                    textStyle: TextStyle(
-                      fontSize: 18,
+              Padding(
+                padding:
+                    EdgeInsets.only(bottom: widget.tags.isEmpty ? 0 : 16.0),
+                child: Wrap(
+                  spacing: 16,
+                  runSpacing: 8,
+                  children: [
+                    GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTap: () {},
+                      child: Icon(
+                        Icons.report,
+                        color: Colors.white,
+                      ),
                     ),
-                    textActiveColor: Colors.grey[800],
-                    textColor: Colors.grey[800],
-                    splashColor: Colors.transparent,
-                  );
-                },
+                    Icon(
+                      Icons.notifications_active,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
               ),
+              widget.tags.isNotEmpty
+                  ? Align(
+                      alignment: Alignment.centerLeft,
+                      child: Tags(
+                        columns: 2,
+                        itemCount: widget.tags.length,
+                        itemBuilder: (index) {
+                          final item = widget.tags[index];
+
+                          return ItemTags(
+                            // Each ItemTags must contain a Key. Keys allow Flutter to
+                            // uniquely identify widgets.
+                            key: Key(index.toString()),
+                            index: index, // required
+                            title: item,
+                            activeColor: Colors.white,
+                            color: Colors.white,
+
+                            textStyle: TextStyle(
+                              fontSize: 18,
+                            ),
+                            textActiveColor: Colors.grey[800],
+                            textColor: Colors.grey[800],
+                            splashColor: Colors.transparent,
+                          );
+                        },
+                      ),
+                    )
+                  : SizedBox(),
             ],
           ),
         ),

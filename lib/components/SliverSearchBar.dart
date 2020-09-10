@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:solif/models/AppData.dart';
@@ -68,6 +69,7 @@ class _SliverSearchBarState extends State<SliverSearchBar>
   @override
   Widget build(BuildContext context) {
     bool darkMode = Provider.of<Preferences>(context).darkMode;
+    bool isArabic = Provider.of<Preferences>(context).isArabic;
     return SliverPadding(
       padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       sliver: SliverAppBar(
@@ -84,92 +86,100 @@ class _SliverSearchBarState extends State<SliverSearchBar>
           centerTitle: true,
           titlePadding: EdgeInsets.only(bottom: 0, right: 0, left: 0),
           title: Directionality(
-            textDirection: TextDirection.rtl,
+            textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               // mainAxisSize: MainAxisSize.max,
               children: <Widget>[
                 Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: darkMode ? Color(0XFF292929) : Colors.grey[300],
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(15),
+                  child: GestureDetector(
+                    onTap: () {
+                      FocusScope.of(context).requestFocus(widget.focusNode);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: darkMode ? Color(0XFF292929) : Colors.grey[300],
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(15),
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.8,
-                          child: IntrinsicWidth(
-                            child: TextField(
-                              controller: widget.controller,
-                              focusNode: widget.focusNode,
-                              onSubmitted: (value) {
-                                widget.focusNode.requestFocus();
-                              },
-                              onChanged: (value) {
-                                timer.cancel();
-                                timer = Timer(Duration(milliseconds: 300), () {
-                                  widget.onChange(value);
-                                });
-                              },
-                              onTap: () {},
-                              maxLength: 30,
-                              cursorRadius: Radius.circular(500),
-                              cursorColor: Colors.black,
-                              textAlignVertical: TextAlignVertical.center,
-                              style: TextStyle(
-                                color: darkMode
-                                    ? kDarkModeTextColor87
-                                    : Colors.grey[800],
-                                textBaseline: TextBaseline.alphabetic,
-                                fontSize: 18,
-                              ),
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Colors.transparent, width: 0),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Colors.transparent, width: 0),
-                                ),
-                                disabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Colors.transparent, width: 0),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Colors.transparent, width: 0.3),
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(15),
-                                  ),
-                                ),
-                                prefixIcon: Icon(
-                                  Icons.search,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.7,
+                            child: IntrinsicWidth(
+                              child: TextField(
+                                controller: widget.controller,
+                                focusNode: widget.focusNode,
+                                onSubmitted: (value) {
+                                  widget.focusNode.requestFocus();
+                                },
+                                onChanged: (value) {
+                                  timer.cancel();
+                                  timer =
+                                      Timer(Duration(milliseconds: 300), () {
+                                    widget.onChange(value);
+                                  });
+                                },
+                                onTap: () {},
+                                maxLength: 30,
+                                cursorRadius: Radius.circular(500),
+                                cursorColor: Colors.black,
+                                textAlignVertical: TextAlignVertical.center,
+                                style: TextStyle(
                                   color: darkMode
-                                      ? kDarkModeTextColor60
-                                      : Colors.grey[800],
-                                ),
-                                floatingLabelBehavior:
-                                    FloatingLabelBehavior.never,
-                                labelText: "ابحث عن الموضوع اللي تبي تسولف عنه",
-                                counterText: "",
-                                labelStyle: TextStyle(
-                                  color: darkMode
-                                      ? kDarkModeTextColor38
+                                      ? kDarkModeTextColor87
                                       : Colors.grey[800],
                                   textBaseline: TextBaseline.alphabetic,
                                   fontSize: 18,
                                 ),
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.transparent, width: 0),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.transparent, width: 0),
+                                  ),
+                                  disabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.transparent, width: 0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.transparent, width: 0.3),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(15),
+                                    ),
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.search,
+                                    color: darkMode
+                                        ? kDarkModeTextColor60
+                                        : Colors.grey[800],
+                                  ),
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.never,
+                                  labelText: isArabic
+                                      ? "ابحث عن الموضوع اللي تبي تسولف عنه"
+                                      : 'Search for topics',
+                                  counterText: "",
+                                  labelStyle: TextStyle(
+                                    color: darkMode
+                                        ? kDarkModeTextColor38
+                                        : Colors.grey[800],
+                                    textBaseline: TextBaseline.alphabetic,
+                                    fontSize: 18,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -188,10 +198,11 @@ class _SliverSearchBarState extends State<SliverSearchBar>
                             widget.focusNode.unfocus();
                             widget.changeTabTo(0);
                           },
-                          splashColor: Colors.grey[100],
+                          splashColor:
+                              darkMode ? kDarkModeLightGrey : Colors.grey[100],
                           splashFactory: InkRipple.splashFactory,
-                          child: Text(
-                            "كنسل",
+                          child: AutoSizeText(
+                            isArabic ? "كنسل" : 'Cancel',
                             style: TextStyle(
                               color: Colors.grey[500],
                             ),

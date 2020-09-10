@@ -55,11 +55,12 @@ class _InviteSalfhTileState extends State<InviteSalfhTile> {
 
   @override
   Widget build(BuildContext context) {
+    bool darkMode = Provider.of<Preferences>(context).darkMode;
     return Container(
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: Colors.grey[200],
+            color: darkMode ? kDarkModeLightGrey : Colors.grey[200],
           ),
         ),
       ),
@@ -103,7 +104,7 @@ class _InviteSalfhTileState extends State<InviteSalfhTile> {
           widget.title,
           style: TextStyle(
             fontSize: 20,
-            color: Colors.grey[850],
+            color: darkMode ? kDarkModeTextColor87 : Colors.grey[850],
             fontWeight: FontWeight.w500,
           ),
         ),

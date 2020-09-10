@@ -192,6 +192,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                 return Transform.rotate(
                   angle: _rotateAnimation.value,
                   child: FloatingActionButton(
+                    heroTag: 'main',
                     backgroundColor: blueToWhiteAnimation.value,
                     elevation: 2.0,
                     onPressed: () {

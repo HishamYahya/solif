@@ -6,6 +6,7 @@ import 'package:solif/components/OurErrorWidget.dart';
 import 'package:solif/components/SalfhTile.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:solif/models/DialogMySwalfTabModel.dart';
+import 'package:solif/models/Preferences.dart';
 import 'package:solif/models/Salfh.dart';
 
 import '../constants.dart';
@@ -28,6 +29,7 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
   List<Widget> items = [];
 
   Future<void> getSalfhTiles() async {
+    bool isArabic = Provider.of<Preferences>(context, listen: false).isArabic;
     print(widget.key);
     List<Widget> tiles = [];
     final QuerySnapshot snapshot = await firestore
@@ -54,7 +56,9 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16),
           child: Text(
-            "ما عندك سواليف مفتوحة",
+            isArabic
+                ? "ما عندك سواليف مفتوحة"
+                : "You don't have any open chats",
             style: kHeadingTextStyle.copyWith(
               fontSize: 20,
               color: Colors.grey[300],
@@ -100,9 +104,11 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
 
   @override
   Widget build(BuildContext context) {
+    bool darkMode = Provider.of<Preferences>(context).darkMode;
+    bool isArabic = Provider.of<Preferences>(context).isArabic;
     return adding
         ? LoadingWidget(
-            'نضيفهم للسالفة...',
+            isArabic ? 'نضيفهم للسالفة...' : 'Adding them to the chat...',
             color: Colors.white,
           )
         : ClipRRect(
@@ -111,7 +117,7 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: darkMode ? kDarkModeDarkGrey : Colors.white,
                 borderRadius: BorderRadius.all(
                   Radius.circular(20),
                 ),
@@ -147,12 +153,12 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
                                 onPressed: addToSalfh,
                                 color: kMainColor,
                                 shape: StadiumBorder(
-                                  side: BorderSide(color: Colors.white),
+                                  side: BorderSide(color: Colors.white70),
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
-                                    "اضافة",
+                                    isArabic ? "اضافة" : 'Add',
                                     style: TextStyle(
                                         color: Colors.white, fontSize: 20),
                                   ),

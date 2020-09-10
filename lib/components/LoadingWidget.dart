@@ -13,7 +13,7 @@ class LoadingWidget extends StatelessWidget {
     return Container(
       // height: MediaQuery.of(context).size.height * 0.6,
       child: Column(
-        // mainAxisSize: MainAxisSize.max,
+        mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(
@@ -26,7 +26,7 @@ class LoadingWidget extends StatelessWidget {
           Text(
             text,
             style: kHeadingTextStyle.copyWith(color: color ?? kMainColor),
-            textAlign: TextAlign.end,
+            textAlign: TextAlign.center,
           ),
         ],
       ),

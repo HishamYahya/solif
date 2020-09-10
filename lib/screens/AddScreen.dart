@@ -74,20 +74,24 @@ class _AddScreenState extends State<AddScreen> {
   }
 
   Widget getLoadingWidget() {
-    return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      CircularProgressIndicator(
-        backgroundColor: Colors.white,
-        strokeWidth: 5,
-      ),
-      SizedBox(
-        height: 20,
-      ),
-      Text(
-        "...نفتح سالفتك",
-        style: kHeadingTextStyle,
-        textAlign: TextAlign.end,
-      ),
-    ]);
+    final isArabic = Provider.of<Preferences>(context, listen: false).isArabic;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        CircularProgressIndicator(
+          backgroundColor: Colors.white,
+          strokeWidth: 5,
+        ),
+        SizedBox(
+          height: 20,
+        ),
+        Text(
+          isArabic ? "...نفتح سالفتك" : "Creating your chat...",
+          style: kHeadingTextStyle,
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
   }
 
   List<TagChip> getTagChips() {
@@ -269,85 +273,97 @@ class _AddScreenState extends State<AddScreen> {
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 8.0),
-                                      child: Wrap(
-                                        alignment: WrapAlignment.center,
-                                        clipBehavior: Clip.none,
-                                        spacing: 2,
-                                        runSpacing: 8,
-                                        children: [
-                                          ...getTagChips(),
-                                          GestureDetector(
-                                            onTap: () => showDialog(
-                                              context: context,
-                                              child: TagSearchSelectDialog(
-                                                tags: salfhTags,
-                                                onAdd: (String tagName) {
-                                                  setState(() {
-                                                    salfhTags.add(tagName);
-                                                  });
-                                                },
-                                                onRemove: (String tagName) {
-                                                  setState(() {
-                                                    salfhTags.remove(tagName);
-                                                  });
-                                                },
-                                              ),
-                                            ),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 4.0),
-                                              child: Container(
-                                                constraints: BoxConstraints(
-                                                  maxWidth: 200,
+                                      child: Directionality(
+                                        textDirection: isArabic
+                                            ? TextDirection.rtl
+                                            : TextDirection.ltr,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0),
+                                          child: Wrap(
+                                            alignment: WrapAlignment.center,
+                                            clipBehavior: Clip.none,
+                                            spacing: 2,
+                                            runSpacing: 8,
+                                            children: [
+                                              ...getTagChips(),
+                                              GestureDetector(
+                                                onTap: () => showDialog(
+                                                  context: context,
+                                                  child: TagSearchSelectDialog(
+                                                    tags: salfhTags,
+                                                    onAdd: (String tagName) {
+                                                      setState(() {
+                                                        salfhTags.add(tagName);
+                                                      });
+                                                    },
+                                                    onRemove: (String tagName) {
+                                                      setState(() {
+                                                        salfhTags
+                                                            .remove(tagName);
+                                                      });
+                                                    },
+                                                  ),
                                                 ),
-                                                decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                      Radius.circular(500),
-                                                    ),
-                                                    color: Colors.white,
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: Colors.black12,
-                                                        spreadRadius: 2,
-                                                        blurRadius: 1,
-                                                        offset: Offset(-2,
-                                                            0), // changes position of shadow
-                                                      ),
-                                                    ]),
                                                 child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8),
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceAround,
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Icon(
-                                                        Icons.add,
-                                                        size: 18,
-                                                        color: kMainColor,
-                                                      ),
-                                                      SizedBox(width: 5),
-                                                      Text(
-                                                        isArabic
-                                                            ? 'اضافة مواضيع'
-                                                            : 'Add topics',
-                                                        style: TextStyle(
-                                                          color: kMainColor,
-                                                          fontSize: 16,
+                                                  padding: const EdgeInsets
+                                                          .symmetric(
+                                                      horizontal: 4.0),
+                                                  child: Container(
+                                                    constraints: BoxConstraints(
+                                                      maxWidth: 200,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                          Radius.circular(500),
                                                         ),
+                                                        color: Colors.white,
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color:
+                                                                Colors.black12,
+                                                            spreadRadius: 2,
+                                                            blurRadius: 1,
+                                                            offset: Offset(-2,
+                                                                0), // changes position of shadow
+                                                          ),
+                                                        ]),
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8),
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceAround,
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          Icon(
+                                                            Icons.add,
+                                                            size: 18,
+                                                            color: kMainColor,
+                                                          ),
+                                                          SizedBox(width: 5),
+                                                          Text(
+                                                            isArabic
+                                                                ? 'اضافة مواضيع'
+                                                                : 'Add topics',
+                                                            style: TextStyle(
+                                                              color: kMainColor,
+                                                              fontSize: 16,
+                                                            ),
+                                                          ),
+                                                        ],
                                                       ),
-                                                    ],
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
                                       ),
                                     ),
                                   ),

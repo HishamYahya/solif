@@ -20,6 +20,7 @@ class _ServerMessageState extends State<ServerMessage> {
   void initState() {
     String color = widget.color;
     bool darkMode = Provider.of<Preferences>(context, listen: false).darkMode;
+    bool isArabic = Provider.of<Preferences>(context, listen: false).isArabic;
     Map<String, Color> currentColors =
         Provider.of<Preferences>(context, listen: false).currentColors;
 
@@ -27,9 +28,9 @@ class _ServerMessageState extends State<ServerMessage> {
       case 'invite':
         _children = [
           Text(
-            'راعي السالفة ضاف ',
+            isArabic ? 'راعي السالفة ضاف ' : 'Admin added ',
             style: TextStyle(
-                color: darkMode ? kDarkModeTextColor87 : Colors.grey[800],
+                color: darkMode ? kDarkModeTextColor87 : Colors.grey[600],
                 fontSize: 16),
           ),
           ColoredDot(
@@ -43,9 +44,9 @@ class _ServerMessageState extends State<ServerMessage> {
             currentColors[color],
           ),
           Text(
-            ' خش السالفة',
+            isArabic ? ' خش السالفة' : ' joined',
             style: TextStyle(
-                color: darkMode ? kDarkModeTextColor87 : Colors.grey[800],
+                color: darkMode ? kDarkModeTextColor87 : Colors.grey[600],
                 fontSize: 16),
           ),
         ];
@@ -53,9 +54,9 @@ class _ServerMessageState extends State<ServerMessage> {
       case 'kick':
         _children = [
           Text(
-            'راعي السالفة طرد ',
+            isArabic ? 'راعي السالفة طرد ' : 'Admin kicked ',
             style: TextStyle(
-                color: darkMode ? kDarkModeTextColor87 : Colors.grey[800],
+                color: darkMode ? kDarkModeTextColor87 : Colors.grey[600],
                 fontSize: 16),
           ),
           ColoredDot(
@@ -69,9 +70,9 @@ class _ServerMessageState extends State<ServerMessage> {
             currentColors[color],
           ),
           Text(
-            ' طلع من السالفة',
+            isArabic ? ' طلع من السالفة' : 'left',
             style: TextStyle(
-                color: darkMode ? kDarkModeTextColor87 : Colors.grey[800],
+                color: darkMode ? kDarkModeTextColor87 : Colors.grey[600],
                 fontSize: 16),
           ),
         ];
@@ -81,11 +82,13 @@ class _ServerMessageState extends State<ServerMessage> {
 
   @override
   Widget build(BuildContext context) {
+    bool isArabic = Provider.of<Preferences>(context).isArabic;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: _children,

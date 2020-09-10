@@ -149,18 +149,43 @@ class _ColorDrawerTileState extends State<ColorDrawerTile> {
   @override
   Widget build(BuildContext context) {
     bool darkMode = Provider.of<Preferences>(context).darkMode;
+    bool isArabic = Provider.of<Preferences>(context).isArabic;
     bool isCurrentUser =
         Provider.of<AppData>(context).currentUserID == widget.id;
     return ListTile(
-      subtitle: widget.isCreator
-          ? Text(
-              'راعي السالفة',
-              style: TextStyle(
-                fontSize: 16,
-                color: darkMode ? kDarkModeTextColor60 : Colors.grey[500],
-              ),
-            )
-          : null,
+      subtitle: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Image.asset(
+                  'images/dots.png',
+                  height: 16,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: Text(
+                    '1750',
+                    style: TextStyle(color: Colors.grey[500], fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+            widget.isCreator
+                ? Text(
+                    isArabic ? 'راعي السالفة' : 'Admin',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: darkMode ? kDarkModeTextColor60 : Colors.grey[500],
+                    ),
+                  )
+                : SizedBox(),
+          ],
+        ),
+      ),
       contentPadding: EdgeInsets.only(left: 20),
       title: Container(
         decoration: BoxDecoration(

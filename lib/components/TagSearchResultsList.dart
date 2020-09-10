@@ -78,8 +78,9 @@ class _TagSearchResultsListState extends State<TagSearchResultsList> {
   @override
   Widget build(BuildContext context) {
     bool darkMode = Provider.of<Preferences>(context).darkMode;
+    bool isArabic = Provider.of<Preferences>(context).isArabic;
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: Container(
         color: darkMode ? Colors.black : Colors.white,
         child: FutureBuilder(
@@ -88,7 +89,9 @@ class _TagSearchResultsListState extends State<TagSearchResultsList> {
             if (snapshot.hasError) {
               return Center(
                 child: Text(
-                  "صار شي غلط :( تأكد من نتك",
+                  isArabic
+                      ? "صار شي غلط :( تأكد من نتك"
+                      : "Something went wrong",
                   style: kHeadingTextStyle,
                 ),
               );
@@ -98,9 +101,12 @@ class _TagSearchResultsListState extends State<TagSearchResultsList> {
                 return Center(
                   child: Container(
                     child: Text(
-                      "ابحث عن شي",
-                      style:
-                          kHeadingTextStyle.copyWith(color: Colors.grey[300]),
+                      isArabic ? "ابحث عن شي" : 'Search for a topic',
+                      style: TextStyle(
+                        color:
+                            darkMode ? kDarkModeTextColor38 : Colors.grey[300],
+                        fontSize: 22,
+                      ),
                     ),
                   ),
                 );
@@ -136,7 +142,8 @@ class _TagSearchResultsListState extends State<TagSearchResultsList> {
                             ),
                           ),
                           subtitle: Text(
-                            doc['tagCounter'].toString() + ' سالفة',
+                            doc['tagCounter'].toString() +
+                                (isArabic ? ' سالفة' : ' chats'),
                             style: TextStyle(
                               color: darkMode
                                   ? kDarkModeTextColor60
@@ -163,7 +170,11 @@ class _TagSearchResultsListState extends State<TagSearchResultsList> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Text(
-                          'محد قد فتح سالفة عن ' + widget.searchTerm,
+                          (isArabic
+                                  ? 'محد قد فتح سالفة عن '
+                                  : 'No one chatted about ') +
+                              widget.searchTerm +
+                              (!isArabic ? ' yet' : ''),
                           style: TextStyle(
                             fontSize: 18,
                             color: Colors.grey[400],
@@ -190,7 +201,7 @@ class _TagSearchResultsListState extends State<TagSearchResultsList> {
                               padding: const EdgeInsets.symmetric(
                                   vertical: 8.0, horizontal: 16),
                               child: Text(
-                                "صر اول واحد!",
+                                isArabic ? "صر اول واحد!" : "Be the first!",
                                 style: TextStyle(
                                   fontSize: 18,
                                   color: Colors.white,
