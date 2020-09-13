@@ -136,6 +136,7 @@ class SalfhTileState extends State<SalfhTile>
 
   List<Widget> generateDots(data) {
     List<Widget> newDots = [];
+    bool darkMode = Provider.of<Preferences>(context).darkMode;
 
     data['colorsStatus'].forEach((name, id) {
       // if someone is in the salfh with that color
@@ -148,6 +149,7 @@ class SalfhTileState extends State<SalfhTile>
       }
     });
     newDots.add(GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTap: () {
         setState(() {
           isDetailsOpen = !isDetailsOpen;
@@ -157,7 +159,7 @@ class SalfhTileState extends State<SalfhTile>
         padding: const EdgeInsets.all(5.0),
         child: Icon(
           !isDetailsOpen ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
-          color: Colors.white.withOpacity(0.87),
+          color: darkMode ? kDarkModeTextColor87 : Colors.grey[500],
         ),
       ),
     ));

@@ -27,8 +27,10 @@ class _InviteDialogState extends State<InviteDialog> {
 
   @override
   Widget build(BuildContext context) {
+    bool isArabic = Provider.of<Preferences>(context).isArabic;
+    bool darkMode = Provider.of<Preferences>(context).darkMode;
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: AlertDialog(
         elevation: 0,
         backgroundColor: kMainColor,
@@ -45,7 +47,7 @@ class _InviteDialogState extends State<InviteDialog> {
         title: Container(
           padding: EdgeInsets.all(8),
           decoration: BoxDecoration(
-              color: Colors.white,
+              color: darkMode ? kDarkModeDarkGrey : Colors.white,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
@@ -54,10 +56,10 @@ class _InviteDialogState extends State<InviteDialog> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                "سولف مع",
+                isArabic ? "سولف مع" : 'Chat with',
                 style: kHeadingTextStyle.copyWith(
                     fontSize: 26,
-                    color: Colors.grey[700],
+                    color: darkMode ? kDarkModeTextColor87 : Colors.grey[700],
                     fontWeight: FontWeight.w500),
               ),
               Padding(
@@ -83,6 +85,7 @@ class _InviteDialogState extends State<InviteDialog> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12.0),
                 child: Row(
+                  textDirection: TextDirection.rtl,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     GestureDetector(
@@ -105,7 +108,7 @@ class _InviteDialogState extends State<InviteDialog> {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 5.0),
                           child: Text(
-                            "سالفة جديدة",
+                            isArabic ? "سالفة جديدة" : 'New Chat',
                             style: TextStyle(
                               color:
                                   creatingNewSalfh ? kMainColor : Colors.white,
@@ -134,7 +137,7 @@ class _InviteDialogState extends State<InviteDialog> {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 5.0),
                           child: Text(
-                            "سالفة قديمة",
+                            isArabic ? "سالفة قديمة" : 'Old Chat',
                             style: TextStyle(
                                 color: creatingNewSalfh
                                     ? Colors.white

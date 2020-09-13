@@ -77,6 +77,12 @@ class _PublicChatsScreenState extends State<PublicChatsScreen>
   }
 
   @override
+  void dispose() {
+    _searchBarFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     bool isLoaded = Provider.of<AppData>(context).isPublicTilesLoaded();
     return NestedScrollView(

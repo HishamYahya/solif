@@ -13,7 +13,7 @@ const kTextFieldBorder = UnderlineInputBorder(
 );
 
 final kHintTextStyle = TextStyle(
-  fontSize: 30,
+  fontSize: 18,
   color: Colors.white54,
 );
 

@@ -4,8 +4,12 @@ import 'package:flutter_tags/flutter_tags.dart';
 import 'package:provider/provider.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/ChatInputBox.dart';
+import 'package:solif/components/TagChip.dart';
+import 'package:solif/components/TagSearchResultsList.dart';
+import 'package:solif/components/TagSearchSelectDialog.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/Preferences.dart';
 import 'package:solif/models/Salfh.dart';
 import 'package:solif/screens/ChatScreen.dart';
 
@@ -25,7 +29,6 @@ final disabledColor = Colors.grey[400];
 class _AddScreenState extends State<AddScreen> {
   String salfhName;
   String currentTag;
-  int groupSize = 1;
   bool loading = false;
   TextEditingController editor = TextEditingController();
   List<String> salfhTags = ['abc'];
@@ -71,20 +74,41 @@ class _AddScreenState extends State<AddScreen> {
   }
 
   Widget getLoadingWidget() {
-    return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      CircularProgressIndicator(
-        backgroundColor: Colors.white,
-        strokeWidth: 5,
-      ),
-      SizedBox(
-        height: 20,
-      ),
-      Text(
-        "...نفتح سالفتك",
-        style: kHeadingTextStyle,
-        textAlign: TextAlign.end,
-      ),
-    ]);
+    final isArabic = Provider.of<Preferences>(context, listen: false).isArabic;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        CircularProgressIndicator(
+          backgroundColor: Colors.white,
+          strokeWidth: 5,
+        ),
+        SizedBox(
+          height: 20,
+        ),
+        Text(
+          isArabic ? "...نفتح سالفتك" : "Creating your chat...",
+          style: kHeadingTextStyle,
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  List<TagChip> getTagChips() {
+    List<TagChip> chips = [];
+    for (var tagName in salfhTags.reversed) {
+      chips.add(
+        TagChip(
+          tagName: tagName,
+          onRemove: () {
+            setState(() {
+              salfhTags.remove(tagName);
+            });
+          },
+        ),
+      );
+    }
+    return chips;
   }
 
   Future<List<DocumentSnapshot>> getSuggestion(String searchkey) {
@@ -121,11 +145,12 @@ class _AddScreenState extends State<AddScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isArabic = Provider.of<Preferences>(context).isArabic;
     return AnimatedContainer(
       duration: Duration(milliseconds: 300),
       color: kMainColor,
       width: double.infinity,
-      height: widget.isAdding ? MediaQuery.of(context).size.height * 0.7 : 0,
+      height: widget.isAdding ? 400 : 0,
       curve: Curves.decelerate,
       child: Scaffold(
         resizeToAvoidBottomInset: true,
@@ -134,7 +159,7 @@ class _AddScreenState extends State<AddScreen> {
           children: [
             SingleChildScrollView(
               child: Container(
-                height: MediaQuery.of(context).size.height * 0.7,
+                height: 400,
                 color: kMainColor,
                 child: Form(
                   key: _formKey,
@@ -147,47 +172,50 @@ class _AddScreenState extends State<AddScreen> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      top: 8.0, left: 16.0, right: 16.0),
-                                  child: Text(
-                                    "سالفتك؟",
-                                    style: kHeadingTextStyle,
-                                    textAlign: TextAlign.end,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0),
-                                  child: Container(
-                                    child: Directionality(
-                                      textDirection: TextDirection.rtl,
-                                      child: TextFormField(
-                                        autofocus: true,
-                                        onChanged: (value) {
-                                          salfhName = value;
-                                        },
-                                        validator: (value) {
-                                          if (value == "") return "enter title";
-                                          return null;
-                                        },
-                                        maxLength: 30,
-                                        style: kHintTextStyle.copyWith(
-                                            color: Colors.white),
-                                        decoration: InputDecoration(
-                                            enabledBorder: kTextFieldBorder,
-                                            focusedBorder: kTextFieldBorder,
-                                            errorBorder: kTextFieldBorder,
-                                            fillColor: Colors.white,
-                                            hintText: 'وش تبي تسولف عنه؟',
-                                            hintStyle: kHintTextStyle,
-                                            contentPadding: EdgeInsets.only(
-                                                bottom: 40,
-                                                left: 10,
-                                                right: 10),
-                                            counterStyle: TextStyle(
-                                                fontSize: 15,
-                                                color: Colors.white)),
+                                Flexible(
+                                  flex: 2,
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                      vertical: 16,
+                                    ),
+                                    child: Container(
+                                      child: Directionality(
+                                        textDirection: isArabic
+                                            ? TextDirection.rtl
+                                            : TextDirection.ltr,
+                                        child: TextFormField(
+                                          autofocus: false,
+                                          onChanged: (value) {
+                                            salfhName = value;
+                                          },
+                                          validator: (value) {
+                                            if (value == "")
+                                              return isArabic
+                                                  ? 'ادخل عنوان'
+                                                  : "Enter title";
+                                            return null;
+                                          },
+                                          maxLength: 30,
+                                          style: kHintTextStyle.copyWith(
+                                              color: Colors.white),
+                                          decoration: InputDecoration(
+                                              enabledBorder: kTextFieldBorder,
+                                              focusedBorder: kTextFieldBorder,
+                                              errorBorder: kTextFieldBorder,
+                                              fillColor: Colors.white,
+                                              hintText: isArabic
+                                                  ? 'وش تبي تسولف عنه؟'
+                                                  : 'What do you want to talk about?',
+                                              hintStyle: kHintTextStyle,
+                                              contentPadding: EdgeInsets.only(
+                                                  bottom: 60,
+                                                  left: 10,
+                                                  right: 10),
+                                              counterStyle: TextStyle(
+                                                  fontSize: 15,
+                                                  color: Colors.white)),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -238,160 +266,134 @@ class _AddScreenState extends State<AddScreen> {
                                 //     ),
                                 //   ),
                                 // ),
-
-                                Center(
+                                Flexible(
+                                  flex: 1,
+                                  fit: FlexFit.tight,
+                                  child: Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8.0),
+                                      child: Directionality(
+                                        textDirection: isArabic
+                                            ? TextDirection.rtl
+                                            : TextDirection.ltr,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0),
+                                          child: Wrap(
+                                            alignment: WrapAlignment.center,
+                                            clipBehavior: Clip.none,
+                                            spacing: 2,
+                                            runSpacing: 8,
+                                            children: [
+                                              ...getTagChips(),
+                                              GestureDetector(
+                                                onTap: () => showDialog(
+                                                  context: context,
+                                                  child: TagSearchSelectDialog(
+                                                    tags: salfhTags,
+                                                    onAdd: (String tagName) {
+                                                      setState(() {
+                                                        salfhTags.add(tagName);
+                                                      });
+                                                    },
+                                                    onRemove: (String tagName) {
+                                                      setState(() {
+                                                        salfhTags
+                                                            .remove(tagName);
+                                                      });
+                                                    },
+                                                  ),
+                                                ),
+                                                child: Padding(
+                                                  padding: const EdgeInsets
+                                                          .symmetric(
+                                                      horizontal: 4.0),
+                                                  child: Container(
+                                                    constraints: BoxConstraints(
+                                                      maxWidth: 200,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                          Radius.circular(500),
+                                                        ),
+                                                        color: Colors.white,
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color:
+                                                                Colors.black12,
+                                                            spreadRadius: 2,
+                                                            blurRadius: 1,
+                                                            offset: Offset(-2,
+                                                                0), // changes position of shadow
+                                                          ),
+                                                        ]),
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8),
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceAround,
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          Icon(
+                                                            Icons.add,
+                                                            size: 18,
+                                                            color: kMainColor,
+                                                          ),
+                                                          SizedBox(width: 5),
+                                                          Text(
+                                                            isArabic
+                                                                ? 'اضافة مواضيع'
+                                                                : 'Add topics',
+                                                            style: TextStyle(
+                                                              color: kMainColor,
+                                                              fontSize: 16,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Spacer(),
+                                Flexible(
+                                  flex: 1,
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        vertical: 8.0),
-                                    child: Tags(
-                                      textField: TagsTextField(
-                                        textStyle: TextStyle(
-                                          fontSize: 18,
-                                          color: Colors.white,
-                                        ),
-                                        autofocus: false,
-                                        hintText: 'مين تبي نعلم؟',
-                                        hintTextColor: Colors.white54,
-                                        suggestionTextColor: Colors.white54,
-                                        constraintSuggestion: false,
-                                        suggestions: suggestions,
-                                        onChanged: (searchkey) {
-                                          getSuggestion(searchkey);
-                                        },
-                                        inputDecoration: InputDecoration(
-                                          enabledBorder: kTextFieldBorder,
-                                          focusedBorder: kTextFieldBorder,
-                                          errorBorder: kTextFieldBorder,
-                                          fillColor: Colors.white,
-                                          hintStyle: kHintTextStyle,
-                                          contentPadding: EdgeInsets.only(
-                                              bottom: 10, left: 10, right: 10),
-                                          counterStyle: TextStyle(
-                                              fontSize: 15,
-                                              color: Colors.white),
-                                        ),
-                                        onSubmitted: (String str) {
-                                          // Add item to the data source.
-                                          setState(() {
-                                            // required
-                                            salfhTags.add(str);
-                                          });
-                                        },
-                                      ),
-                                      horizontalScroll: true,
-                                      textDirection: TextDirection.rtl,
-                                      itemCount: salfhTags.length,
-                                      itemBuilder: (index) {
-                                        final item = salfhTags[index];
-                                        return ItemTags(
-                                          // Each ItemTags must contain a Key. Keys allow Flutter to
-                                          // uniquely identify widgets.
-                                          key: Key(index.toString()),
-                                          index: index, // required
-                                          title: item,
-                                          activeColor: kMainColor,
-                                          color: kMainColor,
-
-                                          textStyle: TextStyle(
-                                            fontSize: 18,
-                                          ),
-                                          textActiveColor: Colors.white,
-                                          textColor: Colors.white,
-                                          splashColor: Colors.transparent,
-
-                                          // OR null,
-                                          removeButton: ItemTagsRemoveButton(
-                                            backgroundColor: Colors.blue,
-                                            onRemoved: () {
-                                              // Remove the item from the data source.
-                                              setState(() {
-                                                // required
-                                                salfhTags.removeAt(index);
-                                              });
-                                              //required
-                                              return true;
-                                            },
-                                          ), // OR null,
-                                          onPressed: (item) => print(item),
-                                          onLongPressed: (item) => print(item),
-                                        );
+                                        vertical: 8.0, horizontal: 16.0),
+                                    child: FlatButton(
+                                      onPressed: () {
+                                        if (_formKey.currentState.validate()) {
+                                          createSalfh();
+                                          salfhTags = [];
+                                        }
                                       },
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0),
-                                  child: Text(
-                                    'مع كم واحد؟',
-                                    style: kHeadingTextStyle,
-                                    textAlign: TextAlign.end,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: <Widget>[
-                                      GestureDetector(
-                                        onTap: () {
-                                          if (groupSize > 1) {
-                                            setState(() {
-                                              groupSize--;
-                                            });
-                                          }
-                                        },
-                                        child: Icon(
-                                          Icons.remove_circle_outline,
-                                          size: 50,
-                                          color: groupSize > 1
-                                              ? Colors.white
-                                              : disabledColor,
+                                      color: Colors.white,
+                                      shape: StadiumBorder(
+                                        side: BorderSide(color: Colors.white),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          isArabic
+                                              ? "افتح السالفة"
+                                              : "Open Chat",
+                                          style: TextStyle(
+                                              color: kMainColor, fontSize: 20),
                                         ),
-                                      ),
-                                      Text(
-                                        '$groupSize',
-                                        style: kHeadingTextStyle,
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          if (groupSize < maxNumOfUsers) {
-                                            setState(() {
-                                              groupSize++;
-                                            });
-                                          }
-                                        },
-                                        child: Icon(
-                                          Icons.add_circle_outline,
-                                          size: 50,
-                                          color: groupSize < maxNumOfUsers
-                                              ? Colors.white
-                                              : disabledColor,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 8.0, horizontal: 16.0),
-                                  child: FlatButton(
-                                    onPressed: () {
-                                      if (_formKey.currentState.validate()) {
-                                        createSalfh();
-                                        salfhTags = [];
-                                      }
-                                    },
-                                    color: Colors.white,
-                                    shape: StadiumBorder(
-                                      side: BorderSide(color: Colors.white),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        "افتح السالفة",
-                                        style: TextStyle(
-                                            color: kMainColor, fontSize: 20),
                                       ),
                                     ),
                                   ),

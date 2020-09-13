@@ -46,6 +46,8 @@ class _ChatScreenDrawerState extends State<ChatScreenDrawer> {
   @override
   Widget build(BuildContext context) {
     bool darkMode = Provider.of<Preferences>(context).darkMode;
+    bool isArabic = Provider.of<Preferences>(context).isArabic;
+
     return Container(
       width: MediaQuery.of(context).size.width * 0.7,
       height: MediaQuery.of(context).size.height,
@@ -143,7 +145,7 @@ class _ChatScreenDrawerState extends State<ChatScreenDrawer> {
                   child: ListTile(
                     trailing: Icon(Icons.exit_to_app, color: Colors.white),
                     title: Text(
-                      'اطلع من السالفة',
+                      isArabic ? 'اطلع من السالفة' : 'Leave Chat',
                       style: TextStyle(
                           fontSize: 30,
                           fontWeight: FontWeight.normal,

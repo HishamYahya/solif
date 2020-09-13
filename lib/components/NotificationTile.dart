@@ -25,6 +25,7 @@ class _NotificationTileState extends State<NotificationTile> {
 
   List<Widget> buildWidgets() {
     bool darkMode = Provider.of<Preferences>(context, listen: false).darkMode;
+    bool isArabic = Provider.of<Preferences>(context, listen: false).isArabic;
     switch (widget.type) {
       case 'invite':
         return [
@@ -33,22 +34,36 @@ class _NotificationTileState extends State<NotificationTile> {
             color: Provider.of<Preferences>(context, listen: false)
                 .currentColors['red'],
           ),
-          Column(
-            children: [
-              Text(
-                ':احد ضافك لسالفة بعنوان ',
-                style: TextStyle(
-                    color: darkMode ? kDarkModeTextColor60 : Colors.grey[800]),
-              ),
-              Text(
-                widget.payload['title'],
-                style: TextStyle(
-                  fontSize: 20,
-                  color: darkMode ? kDarkModeTextColor87 : Colors.grey[850],
-                  fontWeight: FontWeight.w500,
+          Directionality(
+            textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isArabic
+                      ? 'احد ضافك لسالفة بعنوان: '
+                      : 'Someone added you to a chat: ',
+                  style: TextStyle(
+                      color:
+                          darkMode ? kDarkModeTextColor60 : Colors.grey[800]),
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                    vertical: 4.0,
+                  ),
+                  child: Text(
+                    widget.payload['title'],
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: darkMode ? kDarkModeTextColor87 : Colors.grey[850],
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+              ],
+            ),
           ),
         ];
       default:
@@ -58,8 +73,6 @@ class _NotificationTileState extends State<NotificationTile> {
 
   @override
   void initState() {
-    bool darkMode = Provider.of<Preferences>(context, listen: false).darkMode;
-
     switch (widget.type) {
       case 'invite':
         onTap = () async {
@@ -126,6 +139,7 @@ class _NotificationTileState extends State<NotificationTile> {
   @override
   Widget build(BuildContext context) {
     bool darkMode = Provider.of<Preferences>(context).darkMode;
+    bool isArabic = Provider.of<Preferences>(context).isArabic;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8),
@@ -140,6 +154,7 @@ class _NotificationTileState extends State<NotificationTile> {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
+              textDirection: isArabic ? TextDirection.ltr : TextDirection.rtl,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: buildWidgets(),
             ),

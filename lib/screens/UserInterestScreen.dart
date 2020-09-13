@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:solif/components/OurErrorWidget.dart';
 import 'package:solif/components/SliverSearchBar.dart';
 import 'package:solif/components/LoadingWidget.dart';
-import 'package:solif/components/TagTile.dart';
+import 'package:solif/components/TagChip.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:flutter_tags/flutter_tags.dart';
 import 'package:solif/models/AppData.dart';
@@ -21,7 +21,7 @@ class UserInterestScreen extends StatefulWidget {
 
 class _UserInterestScreenState extends State<UserInterestScreen> {
   final _fcm = FirebaseMessaging();
-  Future<List<TagTile>> _userTags;
+  Future<List<TagChip>> _userTags;
 
   initState() {
     if (!isTagsLoadedLocally()) {
@@ -46,10 +46,10 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
     Provider.of<AppData>(context, listen: false).addTag(tag);
   }
 
-  Future<List<TagTile>> getInterests() async {
+  Future<List<TagChip>> getInterests() async {
     final firestore = Firestore.instance;
     String userID = Provider.of<AppData>(context, listen: false).currentUserID;
-    List<TagTile> tags = [];
+    List<TagChip> tags = [];
     int ind = 0;
     print("?XD");
     await firestore
@@ -59,16 +59,16 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
         .orderBy('timeAdded')
         .getDocuments()
         .then((value) {
-      for (var doc in value.documents.reversed) {
-        tags.add(TagTile(
-            tagName: doc['tagName'], key: Key(ind.toString()), index: ind++));
-      }
+      // for (var doc in value.documents.reversed) {
+      //   tags.add(TagTile(
+      //       tagName: doc['tagName'], key: Key(ind.toString()), index: ind++));
+      // }
     });
     return tags;
   }
 
   Widget renderLocalTags() {
-    List<TagTile> _tags =
+    List<TagChip> _tags =
         Provider.of<AppData>(context, listen: true).tagsSavedLocally;
     return Center(
       child: Tags(
@@ -86,7 +86,7 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
         textField: TagsTextField(),
 
         itemBuilder: (index) {
-          _tags[index].index = index;
+          // _tags[index].index = index;
           return _tags[_tags.length - 1 - index];
         },
       ),

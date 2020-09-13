@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/Preferences.dart';
 import 'package:solif/models/Salfh.dart';
 
 import '../constants.dart';
@@ -24,8 +25,9 @@ class _DialogNewSalfhTabState extends State<DialogNewSalfhTab> {
   final _formKey = GlobalKey<FormState>();
 
   void createSalfh() async {
+    bool isArabic = Provider.of<Preferences>(context, listen: false).isArabic;
     setState(() {
-      loadingMessage = 'نفتح سالفتكم...';
+      loadingMessage = isArabic ? 'نفتح سالفتكم...' : 'Creating chat...';
     });
     final newSalfh = await saveSalfh(
       adminID: Provider.of<AppData>(context, listen: false).currentUserID,
@@ -35,7 +37,7 @@ class _DialogNewSalfhTabState extends State<DialogNewSalfhTab> {
     if (newSalfh != null) {
       if (mounted)
         setState(() {
-          loadingMessage = 'نضيفكم لها...';
+          loadingMessage = isArabic ? 'نضيفكم لها...' : 'Adding you to it...';
         });
       final Map<String, dynamic> colorsStatus = newSalfh['colorsStatus'];
       String colorName;
@@ -62,6 +64,8 @@ class _DialogNewSalfhTabState extends State<DialogNewSalfhTab> {
 
   @override
   Widget build(BuildContext context) {
+    bool isArabic = Provider.of<Preferences>(context).isArabic;
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: loadingMessage == null
@@ -72,30 +76,36 @@ class _DialogNewSalfhTabState extends State<DialogNewSalfhTab> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      width: double.infinity,
-                      child: TextFormField(
-                        validator: (value) {
-                          if (value.isEmpty) {
-                            return "لازم موضوع";
-                          }
-                          return null;
-                        },
-                        onChanged: (value) {
-                          salfhTitle = value;
-                        },
-                        maxLength: 30,
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.white,
+                    child: Directionality(
+                      textDirection:
+                          isArabic ? TextDirection.rtl : TextDirection.ltr,
+                      child: Container(
+                        width: double.infinity,
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value.isEmpty) {
+                              return "";
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            salfhTitle = value;
+                          },
+                          maxLength: 30,
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.white,
+                          ),
+                          decoration: InputDecoration(
+                              enabledBorder: kTextFieldBorder,
+                              disabledBorder: kTextFieldBorder,
+                              focusedBorder: kTextFieldBorder,
+                              hintText: isArabic
+                                  ? "موضوع سالفتكم"
+                                  : "Give your chat a title",
+                              hintStyle: kHintTextStyle.copyWith(fontSize: 20),
+                              counterStyle: TextStyle(color: Colors.white54)),
                         ),
-                        decoration: InputDecoration(
-                            enabledBorder: kTextFieldBorder,
-                            disabledBorder: kTextFieldBorder,
-                            focusedBorder: kTextFieldBorder,
-                            hintText: "موضوع سالفتكم",
-                            hintStyle: kHintTextStyle.copyWith(fontSize: 24),
-                            counterStyle: TextStyle(color: Colors.white54)),
                       ),
                     ),
                   ),
@@ -118,7 +128,7 @@ class _DialogNewSalfhTabState extends State<DialogNewSalfhTab> {
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                            "افتح السالفة",
+                            isArabic ? "افتح السالفة" : 'Open Chat',
                             style: TextStyle(color: kMainColor, fontSize: 20),
                           ),
                         ),
