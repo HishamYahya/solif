@@ -2,8 +2,8 @@ class ValidFireBaseStringConverter {
   static final RegExp arabicRegExp = RegExp(r'[ء-ي]');
 
 // any string not of this form shouldn't be accepted
-// can only be: english letters, arabic letters, numbers, spaces.
-  static final RegExp generalValidStrings = RegExp(r'^[a-zA-Z0-9ء-ي_ ]+$');
+// can only be: english letters, arabic letters, numbers, and the underscore.
+  static final RegExp generalValidStrings = RegExp(r'^[a-zA-Z0-9ء-ي_]+$');
 
   static String convertString(String str) {
     if (arabicRegExp.hasMatch(str)) {

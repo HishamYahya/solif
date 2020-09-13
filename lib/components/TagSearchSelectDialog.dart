@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_tags/flutter_tags.dart';
 import 'package:provider/provider.dart';
+import 'package:solif/Services/ValidFirebaseStringConverter.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/TagChip.dart';
 import 'package:solif/models/Preferences.dart';
@@ -29,6 +31,8 @@ class _TagSearchSelectDialogState extends State<TagSearchSelectDialog> {
   String searchTerm = '';
   FocusNode _textfieldFocusNode;
   Timer timer = Timer(Duration(milliseconds: 0), () => {});
+  TextEditingController _editingController = TextEditingController();
+  bool isValidString = true;
 
   final ScrollController _scrollController = ScrollController();
 
@@ -85,7 +89,10 @@ class _TagSearchSelectDialogState extends State<TagSearchSelectDialog> {
   }
 
   void addTag(String tagName) {
-    if (tags.length < 5) {
+    if (isValidString &&
+        tagName.isNotEmpty &&
+        tags.length < 5 &&
+        !tags.contains(tagName)) {
       setState(() {
         widget.onAdd(tagName);
       });
@@ -134,20 +141,28 @@ class _TagSearchSelectDialogState extends State<TagSearchSelectDialog> {
                       ),
                       child: TextField(
                         focusNode: _textfieldFocusNode,
+                        controller: _editingController,
                         maxLength: 30,
                         cursorRadius: Radius.circular(500),
                         cursorColor: Colors.black,
                         textAlignVertical: TextAlignVertical.center,
                         onChanged: (value) {
-                          searchTerm = value;
-                          timer.cancel();
-                          timer = Timer(Duration(milliseconds: 300), () {
-                            search();
+                          setState(() {
+                            isValidString = ValidFireBaseStringConverter
+                                .generalValidStrings
+                                .hasMatch(value);
+                            searchTerm = value;
                           });
+                          timer.cancel();
+                          if (isValidString || searchTerm.isEmpty)
+                            timer = Timer(Duration(milliseconds: 300), () {
+                              search();
+                            });
                         },
                         onSubmitted: (value) {
                           FocusScope.of(context)
                               .requestFocus(_textfieldFocusNode);
+                          _editingController.clear();
                           addTag(value);
                         },
                         style: TextStyle(
@@ -177,6 +192,24 @@ class _TagSearchSelectDialogState extends State<TagSearchSelectDialog> {
                               Radius.circular(15),
                             ),
                           ),
+                          errorBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: kCancelRedColor,
+                              width: 0.3,
+                            ),
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(15),
+                            ),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: kCancelRedColor,
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(15),
+                            ),
+                          ),
                           prefixIcon: Icon(
                             Icons.search,
                             color: darkMode
@@ -195,6 +228,13 @@ class _TagSearchSelectDialogState extends State<TagSearchSelectDialog> {
                             textBaseline: TextBaseline.alphabetic,
                             fontSize: 14,
                           ),
+                          errorText: isValidString || searchTerm.isEmpty
+                              ? null
+                              : isArabic
+                                  ? 'المواضيع لازم مكونة من حروف, أرقام, أو _'
+                                  : 'Topics can only contain letters, numbers, and the _ character',
+                          errorStyle: TextStyle(color: kCancelRedColor),
+                          errorMaxLines: 2,
                         ),
                       ),
                     ),
@@ -306,7 +346,7 @@ class _TagSearchSelectDialogState extends State<TagSearchSelectDialog> {
                                   );
                                 },
                               );
-                            } else {
+                            } else if (isValidString) {
                               return Container(
                                 decoration: darkMode
                                     ? BoxDecoration(
@@ -354,6 +394,8 @@ class _TagSearchSelectDialogState extends State<TagSearchSelectDialog> {
                                   ),
                                 ),
                               );
+                            } else {
+                              return Container();
                             }
                             break;
 

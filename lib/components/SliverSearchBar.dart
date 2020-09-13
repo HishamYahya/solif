@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:solif/Services/ValidFirebaseStringConverter.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:solif/models/Preferences.dart';
 
@@ -123,7 +125,11 @@ class _SliverSearchBarState extends State<SliverSearchBar>
                                     widget.onChange(value);
                                   });
                                 },
-                                onTap: () {},
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      ValidFireBaseStringConverter
+                                          .generalValidStrings)
+                                ],
                                 maxLength: 30,
                                 cursorRadius: Radius.circular(500),
                                 cursorColor: Colors.black,
