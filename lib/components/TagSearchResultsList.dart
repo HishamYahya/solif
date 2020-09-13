@@ -1,6 +1,8 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:solif/Services/ValidFirebaseStringConverter.dart';
 import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/SliverSearchBar.dart';
 import 'package:solif/constants.dart';
@@ -79,6 +81,8 @@ class _TagSearchResultsListState extends State<TagSearchResultsList> {
   Widget build(BuildContext context) {
     bool darkMode = Provider.of<Preferences>(context).darkMode;
     bool isArabic = Provider.of<Preferences>(context).isArabic;
+    bool isValidString = ValidFireBaseStringConverter.generalValidStrings
+        .hasMatch(widget.searchTerm);
     return Directionality(
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: Container(
@@ -164,7 +168,7 @@ class _TagSearchResultsListState extends State<TagSearchResultsList> {
                       );
                     },
                   );
-                } else {
+                } else if (isValidString) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -211,6 +215,20 @@ class _TagSearchResultsListState extends State<TagSearchResultsList> {
                           ),
                         )
                       ],
+                    ),
+                  );
+                } else {
+                  return Center(
+                    child: AutoSizeText(
+                      isValidString || widget.searchTerm.isEmpty
+                          ? null
+                          : isArabic
+                              ? 'المواضيع لازم مكونة من حروف, أرقام, أو _'
+                              : 'Topics can only contain letters, numbers, and the _ character',
+                      style: TextStyle(
+                        color: kCancelRedColor,
+                      ),
+                      maxLines: 2,
                     ),
                   );
                 }

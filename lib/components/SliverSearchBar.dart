@@ -115,6 +115,7 @@ class _SliverSearchBarState extends State<SliverSearchBar>
                               child: TextField(
                                 controller: widget.controller,
                                 focusNode: widget.focusNode,
+                                autofocus: false,
                                 onSubmitted: (value) {
                                   widget.focusNode.requestFocus();
                                 },
@@ -125,11 +126,6 @@ class _SliverSearchBarState extends State<SliverSearchBar>
                                     widget.onChange(value);
                                   });
                                 },
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.allow(
-                                      ValidFireBaseStringConverter
-                                          .generalValidStrings)
-                                ],
                                 maxLength: 30,
                                 cursorRadius: Radius.circular(500),
                                 cursorColor: Colors.black,
@@ -170,7 +166,7 @@ class _SliverSearchBarState extends State<SliverSearchBar>
                                   floatingLabelBehavior:
                                       FloatingLabelBehavior.never,
                                   labelText: isArabic
-                                      ? "ابحث عن الموضوع اللي تبي تسولف عنه"
+                                      ? "ابحث عن موضوع"
                                       : 'Search for topics',
                                   counterText: "",
                                   labelStyle: TextStyle(
@@ -178,7 +174,7 @@ class _SliverSearchBarState extends State<SliverSearchBar>
                                         ? kDarkModeTextColor38
                                         : Colors.grey[800],
                                     textBaseline: TextBaseline.alphabetic,
-                                    fontSize: 18,
+                                    fontSize: 16,
                                   ),
                                 ),
                               ),
