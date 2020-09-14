@@ -228,6 +228,7 @@ class _TagSearchResultsListState extends State<TagSearchResultsList> {
                       style: TextStyle(
                         color: kCancelRedColor,
                       ),
+                      textAlign: TextAlign.center,
                       maxLines: 2,
                     ),
                   );

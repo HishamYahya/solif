@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:solif/Services/UserAuthentication.dart';
 import 'package:solif/components/OurErrorWidget.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/CurrentOpenChat.dart';
 import 'package:solif/models/Preferences.dart';
 import 'package:solif/screens/MainPage.dart';
 
@@ -44,6 +45,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<Preferences>(
           create: (context) => Preferences(),
+        ),
+        ChangeNotifierProvider<CurrentOpenChat>(
+          create: (context) => CurrentOpenChat(),
         )
       ],
       child: MaterialApp(
