@@ -1,8 +1,10 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:solif/components/MessageNotification.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
 import 'package:solif/models/Preferences.dart';
@@ -59,14 +61,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     print('tapped');
                     print(Provider.of<AppData>(context, listen: false)
                         .currentUserID);
+                    showOverlayNotification(
+                      (context) => MessageNotification(
+                        title: 'sdifojsdf',
+                        subtitle: 'dsiufhsd fiusdhf siudfh',
+                        color: 'red',
+                      ),
+                    );
                   },
                 ),
-                SettingsTile(
-                  title: 'new user',
-                  leading:
-                      Icon(Icons.signal_cellular_connected_no_internet_4_bar),
-                  onTap: Provider.of<AppData>(context).reset,
-                ),
+                // SettingsTile(
+                //   title: 'new user',
+                //   leading:
+                //       Icon(Icons.signal_cellular_connected_no_internet_4_bar),
+                //   onTap: Provider.of<AppData>(context).reset,
+                // ),
                 SettingsTile(
                   title: 'invite self',
                   leading:

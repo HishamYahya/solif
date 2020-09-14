@@ -6,6 +6,7 @@ import 'package:catcher/model/catcher_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import 'package:solif/Services/UserAuthentication.dart';
 import 'package:solif/components/OurErrorWidget.dart';
@@ -50,9 +51,11 @@ class MyApp extends StatelessWidget {
           create: (context) => CurrentOpenChat(),
         )
       ],
-      child: MaterialApp(
-        navigatorKey: Catcher.navigatorKey,
-        home: MainPage(),
+      child: OverlaySupport(
+        child: MaterialApp(
+          navigatorKey: Catcher.navigatorKey,
+          home: MainPage(),
+        ),
       ),
     );
   }
