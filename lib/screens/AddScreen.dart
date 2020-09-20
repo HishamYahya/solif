@@ -117,7 +117,7 @@ class _AddScreenState extends State<AddScreen> {
     }
     print(searchkey);
 
-    Firestore.instance
+    FirebaseFirestore.instance
         .collection('tags')
         .where('searchKeys', arrayContains: searchkey)
         .orderBy('tagCounter', descending: true)
@@ -129,12 +129,12 @@ class _AddScreenState extends State<AddScreen> {
 
         // .startAt([searchkey])
         // .endAt([searchkey + '\uf8ff'])
-        .getDocuments()
+        .get()
         .then((snapshot) {
       List<String> newSuggestions = [];
 
-      for (var doc in snapshot.documents) {
-        newSuggestions.add(doc.data.values.elementAt(1));
+      for (var doc in snapshot.docs) {
+        newSuggestions.add(doc.data().values.elementAt(1));
       }
       setState(() {
         suggestions = newSuggestions;

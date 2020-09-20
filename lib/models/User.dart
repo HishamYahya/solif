@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:solif/screens/ChatScreen.dart';
+
 final firestore = Firestore.instance;
 
 class User {
@@ -9,16 +10,10 @@ class User {
 }
 
 addSalfhToUser(String userID, String salfhID, String userColor) async {
-
-
-  await firestore
-      .collection('users')
-      .document(userID)
-      .setData(<String, dynamic>{
+  await firestore.collection('users').doc(userID).set(<String, dynamic>{
     'userSwalf': {salfhID: userColor}
-  }, merge: true);
+  }, SetOptions(merge: true));
 }
-
 
 // deleteSalfhFromUser(String salfhID,String userID) async {
 //   return firestore.collection('users').document(userID).setData({

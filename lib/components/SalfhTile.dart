@@ -81,18 +81,18 @@ class SalfhTileState extends State<SalfhTile>
     updateTileColor();
     listener = firestore
         .collection('Swalf')
-        .document(widget.id)
+        .doc(widget.id)
         .snapshots()
         .listen((snapshot) {
-      if (!mapEquals(colorsStatus, snapshot.data['colorsStatus'])) {
+      if (!mapEquals(colorsStatus, snapshot.data()['colorsStatus'])) {
         //update local colorsStatus state
-        colorsStatus = snapshot.data['colorsStatus'];
+        colorsStatus = snapshot.data()['colorsStatus'];
         updateTileColor();
       }
       // new last message sent
-      if (!mapEquals(lastMessageSent, snapshot.data['lastMessageSent'])) {
+      if (!mapEquals(lastMessageSent, snapshot.data()['lastMessageSent'])) {
         setState(() {
-          lastMessageSent = snapshot.data['lastMessageSent'];
+          lastMessageSent = snapshot.data()['lastMessageSent'];
           notRead = true;
         });
       }
@@ -168,14 +168,14 @@ class SalfhTileState extends State<SalfhTile>
   }
 
   setUserLastLeft() async {
-    final firestore = Firestore.instance;
-    await firestore.collection("chatRooms").document(widget.id).setData({
+    final firestore = FirebaseFirestore.instance;
+    await firestore.collection("chatRooms").doc(widget.id).set({
       'lastLeftStatus': {
         colorName: DateTime.now().add(Duration(
             days:
                 3650)) // when the user is in, set the time he last left to infinity.
       }
-    }, merge: true);
+    }, SetOptions(merge: true));
 
     ///// using transactions
     // final ref = firestore.collection('chatRooms').document(widget.id);
@@ -323,12 +323,12 @@ class SalfhTileState extends State<SalfhTile>
                                         child: StreamBuilder(
                                             stream: firestore
                                                 .collection('Swalf')
-                                                .document(widget.id)
+                                                .doc(widget.id)
                                                 .snapshots(),
                                             builder: (context, snapshot) {
                                               if (snapshot.hasData) {
                                                 colorsStatus = snapshot
-                                                    .data['colorsStatus'];
+                                                    .data()['colorsStatus'];
                                                 return Row(
                                                   children: generateDots(
                                                       snapshot.data),

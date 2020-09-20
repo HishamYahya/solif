@@ -45,7 +45,7 @@ class _TagSearchSelectDialogState extends State<TagSearchSelectDialog> {
         .collection('tags')
         .orderBy('tagCounter', descending: true)
         .limit(10)
-        .getDocuments();
+        .get();
   }
 
   List<TagChip> getTagChips() {
@@ -296,7 +296,7 @@ class _TagSearchSelectDialogState extends State<TagSearchSelectDialog> {
                               return ListView.builder(
                                 itemCount: snapshot.data.documents.length,
                                 itemBuilder: (context, index) {
-                                  final doc = docs[index].data;
+                                  final doc = docs[index].data();
                                   return Container(
                                     decoration: darkMode
                                         ? BoxDecoration(

@@ -3,19 +3,15 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'FirebaseServices.dart';
 
-class UserAuthentication{
+class UserAuthentication {
+  static String currentUserID;
+  static User currentUser;
 
-  static String currentUserID; 
-  static FirebaseUser currentUser;
-
-  
   static Future<void> loadInUser() async {
-
     final auth = FirebaseAuth.instance;
-    final user = await auth.currentUser();
-    final fcm = FirebaseMessaging();    
-    
-    
+    final user = auth.currentUser;
+    final fcm = FirebaseMessaging();
+
     if (user != null) {
       currentUser = user;
       currentUserID = currentUser.uid;
@@ -26,11 +22,10 @@ class UserAuthentication{
         currentUserID = currentUser.uid;
         await firestore
             .collection('users')
-            .document(currentUserID)
-            .setData({'userSwalf': {}, 'id': currentUserID});
+            .doc(currentUserID)
+            .set({'userSwalf': {}, 'id': currentUserID});
         fcm.subscribeToTopic(currentUserID);
       }
     }
   }
-
 }

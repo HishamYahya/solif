@@ -49,12 +49,11 @@ class _MessageNotificationState extends State<MessageNotification> {
         content: LoadingWidget(''),
       ),
     );
-    final salfh =
-        await firestore.collection('Swalf').document(widget.salfhID).get();
+    final salfh = await firestore.collection('Swalf').doc(widget.salfhID).get();
     if (salfh != null) {
       Navigator.of(context).popUntil((route) => route.isFirst);
       String color;
-      salfh['colorsStatus'].forEach((colorName, id) {
+      salfh.data()['colorsStatus'].forEach((colorName, id) {
         if (id == Provider.of<AppData>(context, listen: false).currentUserID) {
           color = colorName;
         }
@@ -65,11 +64,11 @@ class _MessageNotificationState extends State<MessageNotification> {
         context,
         MaterialPageRoute(
           builder: (context) => ChatScreen(
-            title: salfh['title'],
+            title: salfh.data()['title'],
             color: color,
-            colorsStatus: salfh['colorsStatus'],
+            colorsStatus: salfh.data()['colorsStatus'],
             salfhID: widget.salfhID,
-            adminID: salfh['adminID'],
+            adminID: salfh.data()['adminID'],
           ),
         ),
       ).then((value) =>
