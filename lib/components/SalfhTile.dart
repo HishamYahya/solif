@@ -331,7 +331,7 @@ class SalfhTileState extends State<SalfhTile>
                                                     .data()['colorsStatus'];
                                                 return Row(
                                                   children: generateDots(
-                                                      snapshot.data),
+                                                      snapshot.data()),
                                                 );
                                               }
                                               return Padding(
