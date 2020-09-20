@@ -320,18 +320,19 @@ class SalfhTileState extends State<SalfhTile>
                                       Padding(
                                         padding: const EdgeInsets.only(
                                             bottom: 4.0, left: 2),
-                                        child: StreamBuilder(
+                                        child: StreamBuilder<DocumentSnapshot>(
                                             stream: firestore
                                                 .collection('Swalf')
                                                 .doc(widget.id)
                                                 .snapshots(),
                                             builder: (context, snapshot) {
+                                              print(snapshot.data);
                                               if (snapshot.hasData) {
-                                                colorsStatus = snapshot
-                                                    .data()['colorsStatus'];
+                                                Map data = snapshot.data.data();
+                                                colorsStatus =
+                                                    data['colorsStatus'];
                                                 return Row(
-                                                  children: generateDots(
-                                                      snapshot.data()),
+                                                  children: generateDots(data),
                                                 );
                                               }
                                               return Padding(

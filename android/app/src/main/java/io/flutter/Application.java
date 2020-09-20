@@ -1,4 +1,4 @@
-package com.example.solif;
+package io.flutter;
 
 import io.flutter.app.FlutterApplication;
 import io.flutter.plugin.common.PluginRegistry;
@@ -11,12 +11,12 @@ public class Application extends FlutterApplication implements PluginRegistrantC
   @Override
   public void onCreate() {
     super.onCreate();
-    // FlutterFirebaseMessagingService.setPluginRegistrant(this);
+    FlutterFirebaseMessagingService.setPluginRegistrant(this);
   }
 
   @Override
   public void registerWith(PluginRegistry registry) {
-    // FirebaseMessagingPlugin
-    // .registerWith(registry.registrarFor("io.flutter.plugins.firebasemessaging.FirebaseMessagingPlugin"));
+    FirebaseMessagingPlugin
+    .registerWith(registry.registrarFor("io.flutter.plugins.firebasemessaging.FirebaseMessagingPlugin"));
   }
 }

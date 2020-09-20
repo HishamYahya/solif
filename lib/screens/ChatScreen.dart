@@ -462,7 +462,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               child: StreamBuilder<QuerySnapshot>(
                 stream: firestore
                     .collection("chatRooms")
-                    .document(widget.salfhID)
+                    .doc(widget.salfhID)
                     .collection('messages')
                     .orderBy('timeSent')
                     .startAfter([timeofLastMessageSavedLocally]).snapshots(),
@@ -475,7 +475,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     return LoadingWidget("");
                   }
 
-                  final messages = snapshot.data.documents.reversed;
+                  final messages = snapshot.data.docs.reversed;
                   snapshotMessages = messages
                       .toList(); // this could be expensive in the long run, but easy to use.
                   // note to self: Use iterator instead if ever preformance issues occur.
@@ -492,9 +492,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     if (i < snapshotMessages.length) {
                       // snapshot message
 
-                      message = snapshotMessages[i];
+                      message = snapshotMessages[i].data();
                       cacheCounter++;
-                      isSending = message.metadata.hasPendingWrites;
+                      isSending = snapshotMessages[i].metadata.hasPendingWrites;
                     } else {
                       // local message
                       message = localMessages[i - snapshotMessages.length];
