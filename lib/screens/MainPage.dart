@@ -2,12 +2,15 @@ import 'dart:math';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/Services/FirebaseServices.dart';
 import 'package:solif/components/BottomBar.dart';
 import 'package:solif/components/ColoredDot.dart';
+import 'package:solif/components/MessageNotification.dart';
 import 'package:solif/components/SalfhTile.dart';
+import 'package:solif/models/CurrentOpenChat.dart';
 import 'package:solif/models/Preferences.dart';
 import 'package:solif/screens/MyChatsScreen.dart';
 import 'package:solif/screens/NotificationsScreen.dart';
@@ -73,6 +76,22 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       onMessage: (message) {
         print("onMessage $message");
         //  foregroundMessageHandler(message);
+        if (message['data'] != null) {
+          Map data = message['data'];
+          if (data['type'] == 'message') {
+            if (Provider.of<CurrentOpenChat>(context, listen: false)
+                    .currentOpenChatID !=
+                data['salfhID'])
+              showOverlayNotification(
+                (context) => MessageNotification(
+                  title: message['notification']['title'],
+                  subtitle: message['notification']['body'],
+                  color: data['color'],
+                  salfhID: data['salfhID'],
+                ),
+              );
+          }
+        }
       },
       onBackgroundMessage: backgroundMessageHandler,
     );

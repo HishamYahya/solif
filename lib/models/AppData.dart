@@ -24,6 +24,7 @@ class AppData with ChangeNotifier {
   List<SalfhTile> publicSalfhTiles;
   List<TagChip> tagsSavedLocally = [];
   List<NotificationTile> notificationTiles;
+  List<String> mutedSwalf = [];
   bool isTagslLoaded = false;
   String _searchTag;
   final Firestore firestore = Firestore.instance;
@@ -131,6 +132,7 @@ class AppData with ChangeNotifier {
         .collection('users')
         .document(currentUserID)
         .collection('notifications')
+        .orderBy('timeSent')
         .snapshots()
         .listen((snapshot) {
       notificationTiles = generateNotificationTiles(snapshot.documents);
@@ -173,10 +175,13 @@ class AppData with ChangeNotifier {
       final res = await auth.signInAnonymously();
       if (res != null) {
         currentUser = res.user;
-        await firestore
-            .collection('users')
-            .document(currentUserID)
-            .setData({'userSwalf': {}, 'id': currentUserID});
+        String token = await fcm.getToken();
+        await firestore.collection('users').document(currentUserID).setData({
+          'userSwalf': {},
+          'id': currentUserID,
+          'fcmToken': token,
+          'mutedSwalf': [],
+        });
         fcm.subscribeToTopic(currentUserID);
       }
     }
@@ -225,7 +230,13 @@ class AppData with ChangeNotifier {
         .document(currentUserID)
         .snapshots()
         .listen((snapshot) {
-      reloadUsersSalfhTiles();
+      if (usersSalfhTiles == null ||
+          snapshot.data['userSwalf'].length != usersSalfhTiles.length)
+        reloadUsersSalfhTiles();
+      if (snapshot.data['mutedSwalf'].length != mutedSwalf) {
+        mutedSwalf = snapshot.data['mutedSwalf'].cast<String>();
+        notifyListeners();
+      }
     });
   }
 

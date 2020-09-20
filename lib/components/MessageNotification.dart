@@ -1,21 +1,87 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import 'package:solif/components/ColoredDot.dart';
 import 'package:solif/constants.dart';
+import 'package:solif/models/AppData.dart';
 import 'package:solif/models/Preferences.dart';
+import 'package:solif/screens/ChatScreen.dart';
 
-class MessageNotification extends StatelessWidget {
+import 'LoadingWidget.dart';
+import 'OurErrorWidget.dart';
+
+final firestore = Firestore.instance;
+
+class MessageNotification extends StatefulWidget {
   final String title;
   final String subtitle;
   final String color;
+  final String salfhID;
 
-  MessageNotification({
-    @required this.title,
-    @required this.subtitle,
-    this.color,
-  });
+  MessageNotification(
+      {@required this.title,
+      @required this.subtitle,
+      this.color,
+      this.salfhID});
+
+  @override
+  _MessageNotificationState createState() => _MessageNotificationState();
+}
+
+class _MessageNotificationState extends State<MessageNotification> {
+  onTap() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      child: AlertDialog(
+        shape: RoundedRectangleBorder(
+          side: BorderSide(
+            color: Colors.transparent,
+            width: 0,
+          ),
+          borderRadius: BorderRadius.all(
+            Radius.circular(20),
+          ),
+        ),
+        content: LoadingWidget(''),
+      ),
+    );
+    final salfh =
+        await firestore.collection('Swalf').document(widget.salfhID).get();
+    if (salfh != null) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      String color;
+      salfh['colorsStatus'].forEach((colorName, id) {
+        if (id == Provider.of<AppData>(context, listen: false).currentUserID) {
+          color = colorName;
+        }
+      });
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            title: salfh['title'],
+            color: color,
+            colorsStatus: salfh['colorsStatus'],
+            salfhID: widget.salfhID,
+            adminID: salfh['adminID'],
+          ),
+        ),
+      );
+    } else {
+      Navigator.pop(context);
+      showDialog(
+        context: context,
+        child: AlertDialog(
+          content: OurErrorWidget(
+            errorMessage: 'salfh returned null',
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +93,7 @@ class MessageNotification extends StatelessWidget {
         onPanUpdate: (details) {
           if (details.delta.dy < 0) OverlaySupportEntry.of(context).dismiss();
         },
+        onTap: onTap,
         child: Material(
           color: Colors.transparent,
           child: Container(
@@ -40,7 +107,7 @@ class MessageNotification extends StatelessWidget {
               child: ListTile(
                 dense: true,
                 title: Text(
-                  title,
+                  widget.title,
                   style: TextStyle(
                     color: darkMode ? kDarkModeTextColor87 : Colors.black,
                     fontSize: 16,
@@ -50,7 +117,7 @@ class MessageNotification extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: Text(
-                  subtitle,
+                  widget.subtitle,
                   style: TextStyle(
                     color: darkMode ? kDarkModeTextColor87 : Colors.grey[850],
                     fontSize: 16,
@@ -58,9 +125,9 @@ class MessageNotification extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                leading: color != null
+                leading: widget.color != null
                     ? ColoredDot(
-                        colors[color],
+                        colors[widget.color],
                         height: 30,
                         width: 30,
                       )

@@ -1,6 +1,11 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tags/flutter_tags.dart';
+import 'package:localstorage/localstorage.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
+import 'package:solif/components/LoadingWidget.dart';
+import 'package:solif/models/AppData.dart';
 import 'package:solif/models/Preferences.dart';
 
 import '../constants.dart';
@@ -9,15 +14,22 @@ class DropdownCard extends StatefulWidget {
   final bool isOpen;
   final List tags;
   final String colorName;
+  final String salfhID;
 
-  DropdownCard({this.isOpen, this.tags, this.colorName});
+  DropdownCard({
+    @required this.isOpen,
+    @required this.tags,
+    @required this.colorName,
+    @required this.salfhID,
+  });
   @override
   _DropdownCardState createState() => _DropdownCardState();
 }
 
 class _DropdownCardState extends State<DropdownCard>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   bool isOpen = false;
+  bool loading = false;
 
   @override
   void initState() {
@@ -27,8 +39,34 @@ class _DropdownCardState extends State<DropdownCard>
     super.initState();
   }
 
+  toggleMute() async {
+    if (loading) return;
+    bool isArabic = Provider.of<Preferences>(context, listen: false).isArabic;
+    HttpsCallable callable =
+        CloudFunctions.instance.getHttpsCallable(functionName: 'toggleMute');
+
+    setState(() {
+      loading = true;
+    });
+    print(widget.salfhID);
+
+    try {
+      await callable.call({'salfhID': widget.salfhID});
+      toast(isArabic ? 'نجاح' : 'Success');
+    } catch (e) {
+      toast(isArabic ? 'فشل' : 'Failed');
+    }
+    if (mounted)
+      setState(() {
+        loading = false;
+      });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // muted if id in array
+    bool isMuted =
+        Provider.of<AppData>(context).mutedSwalf.indexOf(widget.salfhID) != -1;
     return AnimatedSize(
       vsync: this,
       duration: Duration(milliseconds: 150),
@@ -41,7 +79,12 @@ class _DropdownCardState extends State<DropdownCard>
             ? BoxConstraints(maxHeight: double.maxFinite)
             : BoxConstraints(maxHeight: 0),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.only(
+            left: 16.0,
+            bottom: 16.0,
+            right: 16.0,
+            top: 8,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.start,
@@ -53,18 +96,33 @@ class _DropdownCardState extends State<DropdownCard>
                 child: Wrap(
                   spacing: 16,
                   runSpacing: 8,
+                  alignment: WrapAlignment.spaceBetween,
                   children: [
-                    GestureDetector(
-                      behavior: HitTestBehavior.translucent,
-                      onTap: () {},
-                      child: Icon(
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () {},
+                      icon: Icon(
                         Icons.report,
                         color: Colors.white,
                       ),
                     ),
-                    Icon(
-                      Icons.notifications_active,
-                      color: Colors.white,
+                    IconButton(
+                      onPressed: toggleMute,
+                      visualDensity: VisualDensity.compact,
+                      icon: loading
+                          ? Container(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                backgroundColor: Colors.white,
+                              ),
+                            )
+                          : Icon(
+                              isMuted
+                                  ? Icons.notifications_off
+                                  : Icons.notifications_active,
+                              color: Colors.white,
+                            ),
                     ),
                   ],
                 ),

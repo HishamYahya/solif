@@ -1,4 +1,5 @@
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
@@ -58,7 +59,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading:
                       Icon(Icons.signal_cellular_connected_no_internet_4_bar),
                   onTap: () {
-                    print('tapped');
+                    print(FirebaseMessaging()
+                        .getToken()
+                        .then((value) => print(value)));
                     print(Provider.of<AppData>(context, listen: false)
                         .currentUserID);
                     showOverlayNotification(
@@ -70,12 +73,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   },
                 ),
-                // SettingsTile(
-                //   title: 'new user',
-                //   leading:
-                //       Icon(Icons.signal_cellular_connected_no_internet_4_bar),
-                //   onTap: Provider.of<AppData>(context).reset,
-                // ),
+                SettingsTile(
+                  title: 'new user',
+                  leading:
+                      Icon(Icons.signal_cellular_connected_no_internet_4_bar),
+                  onTap: Provider.of<AppData>(context).reset,
+                ),
                 SettingsTile(
                   title: 'invite self',
                   leading:

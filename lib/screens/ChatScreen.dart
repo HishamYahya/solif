@@ -78,10 +78,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void initState() {
+    super.initState();
+
     // initial status
     WidgetsBinding.instance.addObserver(this);
-    Provider.of<CurrentOpenChat>(context, listen: false)
-        .openChat(widget.salfhID);
+
     setState(() {
       colorsStatus = widget.colorsStatus;
       colorName = widget.color;
@@ -104,11 +105,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     listenToChatroomChanges();
     listenToColorStatusChanges();
-
-    super.initState();
   }
-
-  void _init() async {}
 
   Future<void> loadLocalStorageMessages() async {
     bool isReady = await storage.ready;
@@ -317,8 +314,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   void sendMessage() async {
     messageController.clear();
-    bool success = await addMessage(inputMessage, colorName, widget.salfhID,
-        Provider.of<AppData>(context, listen: false).currentUserID);
+    bool success = await addMessage(
+        inputMessage,
+        colorName,
+        widget.salfhID,
+        Provider.of<AppData>(context, listen: false).currentUserID,
+        widget.title);
     if (success) {
       messageCounter++;
     }
@@ -372,7 +373,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   void _onClose() async {
     print(storage.toString());
-    Provider.of<CurrentOpenChat>(context, listen: false).closeChat();
     setUserTimeLeft();
     colorStatusListener.cancel();
     timeLastLeftListener.cancel();
@@ -391,9 +391,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    super.dispose();
     _onClose();
     WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
   }
 
   @override

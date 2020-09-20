@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CurrentOpenChat with ChangeNotifier {
-  String _currentOpenChatID = null;
+  String _currentOpenChatID;
 
   openChat(String id) {
     _currentOpenChatID = id;
