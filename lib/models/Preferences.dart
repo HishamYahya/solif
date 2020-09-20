@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solif/constants.dart';
@@ -8,6 +9,7 @@ class Preferences with ChangeNotifier {
   SharedPreferences sharedPreferences;
   Map<String, Color> currentColors = kOurColorsLight;
 
+  final fcm = FirebaseMessaging();
   Preferences() {
     init();
   }
@@ -31,6 +33,15 @@ class Preferences with ChangeNotifier {
   get isEnglish => _language == 'en';
 
   set language(String lang) {
+    if (lang == 'en') {
+      fcm.subscribeToTopic('en');
+      fcm.unsubscribeFromTopic('ar');
+    } else if (lang == 'ar') {
+      fcm.subscribeToTopic('ar');
+      fcm.unsubscribeFromTopic('en');
+    } else {
+      return;
+    }
     _language = lang;
     sharedPreferences.setString('language', lang);
 

@@ -8,20 +8,24 @@ class Message {
   Timestamp timeSent;
   String color;
   String userID;
+  String salfhTitle;
 
-  Message(
-      {@required this.content,
-      this.serverTimeSent,
-      @required this.color,
-      this.userID,
-      this.timeSent});
+  Message({
+    @required this.content,
+    this.serverTimeSent,
+    @required this.color,
+    this.userID,
+    this.timeSent,
+    this.salfhTitle,
+  });
 
   Map<String, dynamic> toMap() {
     return {
       'content': content,
       'timeSent': serverTimeSent,
       'color': color,
-      'userID': userID
+      'userID': userID,
+      'salfhTitle': salfhTitle
     };
   }
 
@@ -43,8 +47,8 @@ Message fromJson(Map<String, dynamic> jsonMessage) {
 }
 
 // now returns whether it succeeded or not
-Future<bool> addMessage(
-    String messageContent, String color, String salfhID, String userID) async {
+Future<bool> addMessage(String messageContent, String color, String salfhID,
+    String userID, String salfhTitle) async {
   //print(salfhID);
   final firestore = Firestore.instance;
   bool success = false;
@@ -54,11 +58,12 @@ Future<bool> addMessage(
         .document(salfhID)
         .collection('messages')
         .add(Message(
-                content: messageContent,
-                serverTimeSent: FieldValue.serverTimestamp(),
-                color: color,
-                userID: userID)
-            .toMap())
+          content: messageContent,
+          serverTimeSent: FieldValue.serverTimestamp(),
+          color: color,
+          userID: userID,
+          salfhTitle: salfhTitle,
+        ).toMap())
         .then((value) {
           success = true;
         })
@@ -100,18 +105,18 @@ Future<bool> addMessage(
 //   salfhDoc.updateData(salfh);
 // }
 
-
- Future<void> setLocalStorage(List<Map<String,dynamic>> allTheMessages, var futureLastMessageSavedLocallyTime, LocalStorage storage) async {
+Future<void> setLocalStorage(List<Map<String, dynamic>> allTheMessages,
+    var futureLastMessageSavedLocallyTime, LocalStorage storage) async {
   //  print('here');
-  //  print(futureLastMessageSavedLocallyTime); 
-    if (futureLastMessageSavedLocallyTime != null) {
-      await storage.ready;
-      
-      storage.setItem('local_messages', allTheMessages.reversed.toList());
-      print("before saving $futureLastMessageSavedLocallyTime");
-      {
-        storage.setItem('last_message_time',
-            futureLastMessageSavedLocallyTime.toDate().toIso8601String());
-      }
+  //  print(futureLastMessageSavedLocallyTime);
+  if (futureLastMessageSavedLocallyTime != null) {
+    await storage.ready;
+
+    storage.setItem('local_messages', allTheMessages.reversed.toList());
+    print("before saving $futureLastMessageSavedLocallyTime");
+    {
+      storage.setItem('last_message_time',
+          futureLastMessageSavedLocallyTime.toDate().toIso8601String());
     }
   }
+}

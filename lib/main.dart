@@ -6,10 +6,12 @@ import 'package:catcher/model/catcher_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import 'package:solif/Services/UserAuthentication.dart';
 import 'package:solif/components/OurErrorWidget.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/CurrentOpenChat.dart';
 import 'package:solif/models/Preferences.dart';
 import 'package:solif/screens/MainPage.dart';
 
@@ -44,11 +46,16 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<Preferences>(
           create: (context) => Preferences(),
+        ),
+        ChangeNotifierProvider<CurrentOpenChat>(
+          create: (context) => CurrentOpenChat(),
         )
       ],
-      child: MaterialApp(
-        navigatorKey: Catcher.navigatorKey,
-        home: MainPage(),
+      child: OverlaySupport(
+        child: MaterialApp(
+          navigatorKey: Catcher.navigatorKey,
+          home: MainPage(),
+        ),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:solif/components/LoadingWidget.dart';
 import 'package:solif/components/OurErrorWidget.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/CurrentOpenChat.dart';
 import 'package:solif/models/Preferences.dart';
 import 'package:solif/screens/ChatScreen.dart';
 
@@ -106,6 +107,8 @@ class _NotificationTileState extends State<NotificationTile> {
                 color = colorName;
               }
             });
+            Provider.of<CurrentOpenChat>(context, listen: false)
+                .openChat(widget.payload['id']);
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -117,7 +120,9 @@ class _NotificationTileState extends State<NotificationTile> {
                   adminID: salfh['adminID'],
                 ),
               ),
-            );
+            ).then((value) =>
+                Provider.of<CurrentOpenChat>(context, listen: false)
+                    .closeChat());
           } else {
             Navigator.pop(context);
             showDialog(

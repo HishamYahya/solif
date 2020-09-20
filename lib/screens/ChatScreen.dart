@@ -14,6 +14,7 @@ import 'package:solif/components/ServerMessage.dart';
 import 'package:solif/components/TypingWidgetRow.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/CurrentOpenChat.dart';
 import 'package:solif/models/Message.dart';
 import 'package:solif/models/Preferences.dart';
 import 'package:solif/models/Salfh.dart';
@@ -77,8 +78,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void initState() {
+    super.initState();
+
     // initial status
     WidgetsBinding.instance.addObserver(this);
+
     setState(() {
       colorsStatus = widget.colorsStatus;
       colorName = widget.color;
@@ -101,11 +105,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     listenToChatroomChanges();
     listenToColorStatusChanges();
-
-    super.initState();
   }
-
-  void _init() async {}
 
   Future<void> loadLocalStorageMessages() async {
     bool isReady = await storage.ready;
@@ -313,13 +313,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   void sendMessage() async {
-    bool success = await addMessage(inputMessage, colorName, widget.salfhID,
-        Provider.of<AppData>(context, listen: false).currentUserID);
+    messageController.clear();
+    bool success = await addMessage(
+        inputMessage,
+        colorName,
+        widget.salfhID,
+        Provider.of<AppData>(context, listen: false).currentUserID,
+        widget.title);
     if (success) {
-      //TODO: display the message on screen only when it's been written to the database
       messageCounter++;
-
-      messageController.clear();
     }
 
     if (mounted)
@@ -389,9 +391,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    super.dispose();
     _onClose();
     WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
   }
 
   @override

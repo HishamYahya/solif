@@ -14,6 +14,7 @@ import 'package:solif/components/DropdownCard.dart';
 import 'package:solif/components/InviteSalfhTile.dart';
 import 'package:solif/constants.dart';
 import 'package:solif/models/AppData.dart';
+import 'package:solif/models/CurrentOpenChat.dart';
 import 'package:solif/models/Preferences.dart';
 import 'package:solif/models/Tag.dart';
 import 'package:solif/screens/ChatScreen.dart';
@@ -235,7 +236,10 @@ class SalfhTileState extends State<SalfhTile>
     return !widget.isInviteTile
         ? GestureDetector(
             onTap: () async {
+              print(this.widget.id);
               if (!isFull) {
+                Provider.of<CurrentOpenChat>(context, listen: false)
+                    .openChat(this.widget.id);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -248,6 +252,8 @@ class SalfhTileState extends State<SalfhTile>
                     ),
                   ),
                 ).then((value) {
+                  Provider.of<CurrentOpenChat>(context, listen: false)
+                      .closeChat();
                   setState(() {
                     notRead = false;
                   });
@@ -344,9 +350,11 @@ class SalfhTileState extends State<SalfhTile>
                               ),
                             ),
                             DropdownCard(
-                                isOpen: isDetailsOpen,
-                                tags: widget.tags,
-                                colorName: colorName),
+                              isOpen: isDetailsOpen,
+                              tags: widget.tags,
+                              colorName: colorName,
+                              salfhID: widget.id,
+                            ),
                           ],
                         ),
                       ),

@@ -32,40 +32,18 @@ enum NotificationType {
 
 }
 
+const HexColors = {
+    'purple': '#540d6e',
+    'green': '#2EBD7D',
+    'yellow': '#ECB22E',
+    'red': '#E01E5A',
+    'blue': '#36C5F0'
+};
 
 
 const kColorNames: Array<Color> = [ColorNames.blue, ColorNames.green, ColorNames.purple, ColorNames.red, ColorNames.yellow];
 
-exports.testNotification = functions.https.onCall(async (data, context) => {
-    const condition: string = `'${context.auth?.uid}' in topics`;
 
-    const dataPayload = {
-        data: {
-            click_action: 'FLUTTER_NOTIFICATION_CLICK',
-            id: 'DATA_ID',
-            test_field: 'TEST_FIELD_DATA',
-            type: 'test'
-
-        },
-        condition: condition
-    };
-    const notification = {
-        notification: {
-            title: "Test notification", // TODO: change message
-            body: 'Test notification body',
-        },
-        data: {
-            click_action: 'FLUTTER_NOTIFICATION_CLICK',
-            id: "NOTIFICATION_ID"
-        },
-        condition: condition
-    };
-    await admin.messaging().send(dataPayload).then(value => console.log(value)).catch(err => console.log(err));
-
-    await admin.messaging().send(notification).then(value => console.log(value)).catch(err => console.log(err));
-    return true;
-
-});
 
 exports.inviteUser = functions.https.onCall(async (data, context) => {
 
@@ -91,7 +69,7 @@ exports.inviteUser = functions.https.onCall(async (data, context) => {
         throw UnauthenticatedException;
     }
 
-    const notificationData = { "value": salfhID, 'type': 'invite' };
+    const notificationData = { "value": salfhID, 'type': 'invite', 'timeSent': FieldValue.serverTimestamp };
     console.log("userToAddID" + userToAddID);
     console.log("ourdata" + notificationData);
 
@@ -168,6 +146,8 @@ exports.joinSalfh = functions.https.onCall(async (data: {
                 throw new HttpsError('invalid-argument', 'Invalid input');
             }
 
+            const fcmToken: string = (await transaction.get(userRef)).data()?.fcmToken;
+
             if (Object.values(snapshot.data()?.colorsStatus).includes(userRef.id)) {
                 throw new HttpsError('already-exists', 'User already in salfh');
             }
@@ -185,9 +165,9 @@ exports.joinSalfh = functions.https.onCall(async (data: {
             newUserSwalf[`userSwalf.${salfhID}`] = color;
 
             transaction.update(userRef, newUserSwalf);
-            return true;
+            return fcmToken;
 
-        }).then(async (value) => {
+        }).then(async (fcmToken) => {
             if (userToAddID !== null) {
                 const id = userToAddID as string;
                 serverMessage = {
@@ -206,9 +186,16 @@ exports.joinSalfh = functions.https.onCall(async (data: {
                     timeSent: FieldValue.serverTimestamp()
                 }
 
+
             }
             console.log(serverMessage);
             await firestore.collection('chatRooms').doc(salfhID).collection('messages').add(serverMessage);
+            try {
+                await admin.messaging().subscribeToTopic(fcmToken, salfhID);
+            } catch (e) {
+                throw new HttpsError('not-found', 'invalid token', e);
+            }
+            return true;
         });
     } catch (err) {
         console.error(err);
@@ -246,6 +233,7 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
 
 
             const snapshotData = (await transaction.get(salfhRef)).data();
+            const fcmToken: string = (await transaction.get(userRef)).data()?.fcmToken;
 
             const updatedData = { colorsStatus: {} as any } as any;
 
@@ -305,11 +293,18 @@ exports.removeUser = functions.https.onCall(async (data, context) => {
             const deletedSalfh = {} as any;
             deletedSalfh[`userSwalf.${salfhID}`] = FieldValue.delete();
             transaction.update(userRef, deletedSalfh);
-            return true;
-        }).then(async (value) => {
+            return fcmToken;
+        }).then(async (fcmToken) => {
             if (!isGoingToBeDeleted) {
                 await firestore.collection('chatRooms').doc(salfhID).collection('messages').add(serverMessage);
+                try {
+                    await admin.messaging().unsubscribeFromTopic(fcmToken, salfhID);
+                } catch (e) {
+                    throw new HttpsError('not-found', 'invalid token', e);
+                }
             }
+
+
         });
 
     } catch (e) {
@@ -408,29 +403,120 @@ exports.onLikeOrDislike = functions.firestore.document('/likes/{likedUserID}').o
 
 })
 
-exports.messageSent = functions.firestore.document('/chatRooms/{salfhID}/messages/{messageID}').onCreate((snapshot, context) => {
-    const message = snapshot.data();
-    const condition = `'${context.params.salfhID}' in topics && !('${message['userID']}' in topics)`;
-    const payload = {
+exports.testNotification = functions.https.onCall(async (data, context) => {
+    // const condition: string = `'${context.auth?.uid}' in topics`;
+
+    // const notification: admin.messaging.Message = {
+    //     notification: {
+    //         title: "\uD83D\uDFE3 Test notification", // TODO: change message
+    //         body: 'Test notification body',
+    //     },
+    //     android: {
+    //         notification: {
+    //             title: 'Test notification',
+    //             color: HexColors['blue'],
+    //             icon: 'blue_dot',
+    //             imageUrl: 'https://i.ibb.co/wzGLgWV/Ellipse-2.png',
+    //         }
+    //     },
+    //     data: {
+    //         click_action: 'FLUTTER_NOTIFICATION_CLICK',
+    //         type: 'message',
+    //     },
+
+    //     condition: condition
+    // };
+
+    const condition = `'${context.auth?.uid}' in topics`;
+    const payload: admin.messaging.Message = {
         notification: {
-            title: message['color'],
-            body: message['content'],
-            tag: context.params.salfhID
+            title: 'Salfh title',
+            body: `${EMOJIS['red']}: hsduf asidufh asiduf `,
+        },
+        android: {
+            notification: {
+                body: 'osidjf sdoifj sdoif ',
+                color: HexColors['red'],
+                icon: 'red_dot',
+            }
         },
         data: {
             click_action: 'FLUTTER_NOTIFICATION_CLICK',
-            id: context.params.salfhID
+            salfhID: 'sp86WNVj6KUh5ALzolci',
+            type: 'message'
         },
         condition: condition
     };
-    // tslint:disable-next-line: no-floating-promises
-    firestore.collection('Swalf').doc(context.params.salfhID).update({ lastMessageSent: message });
-    admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
+
+    await admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
+
     return true;
 
-
-    // return "yo";
 });
+
+const EMOJIS = {
+    'red': '🔴',
+    'blue': '🔵',
+    'purple': '🟣',
+    'green': '🟢',
+    'yellow': '🟡'
+
+}
+
+interface Message {
+    color: Color,
+    userID: string,
+    serverTimeSent: admin.firestore.Timestamp,
+    salfhTitle: string
+}
+
+interface UserMessage extends Message {
+    content: string,
+}
+
+interface ImageMessage extends Message {
+    imageURL: string
+}
+
+exports.messageSent = functions.firestore.document('/chatRooms/{salfhID}/messages/{messageID}')
+    .onCreate((snapshot, context) => {
+        let message;
+        try {
+            message = snapshot.data() as UserMessage | ImageMessage;
+        } catch (e) {
+            throw new HttpsError('cancelled', 'server message', e)
+        }
+        const content = 'content' in message ? message.content : 'Sent an Image';
+        const condition = `'${context.params.salfhID}' in topics && !('${message['userID']}' in topics)`;
+        // const condition = `'${context.params.salfhID}' in topics`;
+        const payload: admin.messaging.Message = {
+            notification: {
+                title: message.salfhTitle,
+                body: `${EMOJIS[message.color]}: ${content}`,
+            },
+            android: {
+                notification: {
+                    body: content,
+                    color: HexColors[message.color],
+                    icon: `${message.color}_dot`,
+                }
+            },
+            data: {
+                click_action: 'FLUTTER_NOTIFICATION_CLICK',
+                salfhID: context.params.salfhID,
+                color: message.color,
+                type: 'message'
+            },
+            condition: condition
+        };
+        // tslint:disable-next-line: no-floating-promises
+        firestore.collection('Swalf').doc(context.params.salfhID).update({ lastMessageSent: message });
+        admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
+        return true;
+
+
+        // return "yo";
+    });
 
 
 
@@ -527,12 +613,18 @@ exports.createSalfh = functions.https.onCall(async (data: {
         colorsStatus: colorsStatus,
         adminID: context.auth.uid
     })
-    const userSwalf = {} as any;
-    userSwalf[salfhRef.id] = colorsStatus[(Object.keys(colorsStatus) as Array<Color>).find(key => colorsStatus[key] === context.auth?.uid) ?? 'blue'];
+    const userSwalf = {} as {
+        [id: string]: Color
+    };
+    userSwalf[salfhRef.id] = (Object.keys(colorsStatus) as Array<Color>).find(key => colorsStatus[key] === context.auth?.uid) ?? 'blue';
     // tslint:disable-next-line: no-floating-promises
     await firestore.collection('users').doc(context.auth.uid).set({
         userSwalf: userSwalf
     }, { merge: true });
+
+    await firestore.collection('users').doc(context.auth.uid).get().then((document) => {
+        admin.messaging().subscribeToTopic(document.data()?.fcmToken, salfhRef.id).catch();
+    })
 
     const chatRoomData = { lastLeftStatus: {} as any, typingStatus: {} as any };
     kColorNames.forEach(name => {
@@ -571,6 +663,50 @@ exports.createSalfh = functions.https.onCall(async (data: {
 
     admin.messaging().send(payload).then(value => console.log(value)).catch(err => console.log(err));
     return { salfhID: salfhRef.id };
+})
+
+interface UserDocumentData {
+    id: string,
+    userSwalf: {
+        [id: string]: Color
+    },
+    mutedSwalf: string[],
+    fcmToken: string
+}
+
+exports.toggleMute = functions.https.onCall(async (data: { salfhID: string }, context) => {
+    if (!context.auth)
+        throw UnauthenticatedException;
+    const { salfhID } = data;
+    const userRef = firestore.collection('users').doc(context.auth.uid);
+    await firestore.runTransaction(async (transaction) => {
+        const document = (await transaction.get(userRef) as admin.firestore.DocumentSnapshot<UserDocumentData>).data();
+        console.log(document);
+        if (!document)
+            throw new HttpsError('data-loss', 'user document returned null')
+        console.log(Object.keys(document.userSwalf));
+        if (Object.keys(document.userSwalf).indexOf(salfhID) === -1) {
+            throw new HttpsError('permission-denied', 'user not in salfh');
+        }
+        const isMuted: boolean = document.mutedSwalf.indexOf(salfhID) !== -1;
+        if (isMuted) {
+            transaction.update(userRef, { 'mutedSwalf': FieldValue.arrayRemove(salfhID) });
+        }
+        else {
+            transaction.update(userRef, { 'mutedSwalf': FieldValue.arrayUnion(salfhID) });
+        }
+        return {
+            fcmToken: document.fcmToken,
+            isMuted: !isMuted
+
+        };
+    }).then(async val => {
+        if (val.isMuted)
+            await admin.messaging().unsubscribeFromTopic(val.fcmToken, salfhID);
+        else
+            await admin.messaging().subscribeToTopic(val.fcmToken, salfhID);
+        return true;
+    }).catch(e => { throw new HttpsError('internal', 'error in transaction', e); });
 })
 
 // exports.salfhCreated = functions.firestore.document('/Swalf/{salfhID}').onCreate((snapshot, context) => {
