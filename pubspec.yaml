@@ -27,7 +27,7 @@ dependencies:
   cloud_functions: "^0.6.0"
   cloud_firestore: ^0.14.0+2
   firebase_core: ^0.5.0
-  firebase_messaging: ^7.0.0
+  firebase_messaging: ^6.0.16
   firebase_auth: ^0.18.0
 
   pull_to_refresh: ^1.5.7
