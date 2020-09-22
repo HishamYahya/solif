@@ -12,14 +12,22 @@ import 'package:solif/models/Preferences.dart';
 
 import '../constants.dart';
 
-final Firestore firestore = Firestore.instance;
+final firestore = FirebaseFirestore.instance;
 
 class TagSearchSelectDialog extends StatefulWidget {
   final List<String> tags;
   final Function(String) onAdd;
   final Function(String) onRemove;
+  final Function onDispose;
+  final bool isInterests;
 
-  TagSearchSelectDialog({this.onAdd, this.onRemove, this.tags});
+  TagSearchSelectDialog({
+    @required this.onAdd,
+    @required this.onRemove,
+    @required this.tags,
+    this.isInterests = false,
+    this.onDispose,
+  });
 
   @override
   _TagSearchSelectDialogState createState() => _TagSearchSelectDialogState();
@@ -71,13 +79,13 @@ class _TagSearchSelectDialogState extends State<TagSearchSelectDialog> {
             .where('searchKeys', arrayContains: searchTerm)
             .orderBy('tagCounter', descending: true)
             .limit(10)
-            .getDocuments();
+            .get();
       else {
         _tagListFuture = firestore
             .collection('tags')
             .orderBy('tagCounter', descending: true)
             .limit(10)
-            .getDocuments();
+            .get();
       }
     });
   }
@@ -91,7 +99,7 @@ class _TagSearchSelectDialogState extends State<TagSearchSelectDialog> {
   void addTag(String tagName) {
     if (isValidString &&
         tagName.isNotEmpty &&
-        tags.length < 5 &&
+        (tags.length < 5 || widget.isInterests) &&
         !tags.contains(tagName)) {
       setState(() {
         widget.onAdd(tagName);
@@ -104,6 +112,12 @@ class _TagSearchSelectDialogState extends State<TagSearchSelectDialog> {
     super.dispose();
     _textfieldFocusNode.dispose();
   }
+
+  // @override
+  // void deactivate() {
+  //   widget.onDispose();
+  //   super.deactivate();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -265,19 +279,21 @@ class _TagSearchSelectDialogState extends State<TagSearchSelectDialog> {
                                 ),
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                '${widget.tags.length}/5',
-                                style: TextStyle(
-                                  color: widget.tags.length == 5
-                                      ? kCancelRedColor
-                                      : darkMode
-                                          ? kDarkModeTextColor87
-                                          : Colors.grey[800],
-                                ),
-                              ),
-                            ),
+                            !widget.isInterests
+                                ? Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      '${widget.tags.length}/5',
+                                      style: TextStyle(
+                                        color: widget.tags.length == 5
+                                            ? kCancelRedColor
+                                            : darkMode
+                                                ? kDarkModeTextColor87
+                                                : Colors.grey[800],
+                                      ),
+                                    ),
+                                  )
+                                : SizedBox(),
                           ],
                         )
                       : SizedBox(),

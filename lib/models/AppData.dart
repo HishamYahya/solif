@@ -22,7 +22,6 @@ class AppData with ChangeNotifier {
   User currentUser;
   List<SalfhTile> usersSalfhTiles;
   List<SalfhTile> publicSalfhTiles;
-  List<TagChip> tagsSavedLocally = [];
   List<NotificationTile> notificationTiles;
   List<String> mutedSwalf = [];
   bool isTagslLoaded = false;
@@ -130,12 +129,12 @@ class AppData with ChangeNotifier {
   void listenForNewNotifications() {
     firestore
         .collection('users')
-        .document(currentUserID)
+        .doc(currentUserID)
         .collection('notifications')
         .orderBy('timeSent')
         .snapshots()
         .listen((snapshot) {
-      notificationTiles = generateNotificationTiles(snapshot.documents);
+      notificationTiles = generateNotificationTiles(snapshot.docs);
       print(notificationTiles);
       notifyListeners();
     });
@@ -181,6 +180,7 @@ class AppData with ChangeNotifier {
           'id': currentUserID,
           'fcmToken': token,
           'mutedSwalf': [],
+          'subscribedTags': [],
         });
         fcm.subscribeToTopic(currentUserID);
       }
@@ -303,47 +303,6 @@ class AppData with ChangeNotifier {
   //     }
   //   });
   // }
-
-  void deleteTag(String tag) {
-    tagsSavedLocally.removeWhere((element) => element.tagName == tag);
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(currentUserID)
-        .collection('userTags')
-        .doc(tag)
-        .delete();
-    tag = ValidFireBaseStringConverter.convertString(tag);
-    fcm.unsubscribeFromTopic("${tag}TAG");
-
-    tagsSavedLocally = tagsSavedLocally.map((e) => e).toList();
-
-    notifyListeners();
-  }
-
-  void addTag(String tag) {
-    if (tag == null || tag == '') return;
-    tagsSavedLocally.add(TagChip(
-      tagName: tag,
-      // onCancelPressed: deleteTag,)
-    ));
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(currentUserID)
-        .collection('userTags')
-        .doc(tag)
-        .set({'tagName': tag, 'timeAdded': DateTime.now()});
-    tag = ValidFireBaseStringConverter.convertString(tag);
-    print(tag);
-    fcm.subscribeToTopic(
-        "${tag}TAG"); // without  an ending ID for tag topic, a salfh topic and a tag topic could have the same name. two topics same name = bad.
-
-    tagsSavedLocally = tagsSavedLocally.map((e) => e).toList();
-    notifyListeners();
-  }
-
-  bool isTagsLoadedLocally() {
-    return isTagslLoaded;
-  }
 
   // Future<void> trigger() async {
   //   print('triggered');

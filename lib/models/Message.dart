@@ -50,12 +50,12 @@ Message fromJson(Map<String, dynamic> jsonMessage) {
 Future<bool> addMessage(String messageContent, String color, String salfhID,
     String userID, String salfhTitle) async {
   //print(salfhID);
-  final firestore = Firestore.instance;
+  final firestore = FirebaseFirestore.instance;
   bool success = false;
   if (salfhID != null) {
     await firestore
         .collection("chatRooms")
-        .document(salfhID)
+        .doc(salfhID)
         .collection('messages')
         .add(Message(
           content: messageContent,
