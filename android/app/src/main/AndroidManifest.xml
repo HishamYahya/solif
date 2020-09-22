@@ -8,7 +8,7 @@
     <application
         android:name=".Application"
 
-        android:label="solif"
+        android:label="Solif"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

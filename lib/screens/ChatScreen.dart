@@ -179,18 +179,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
     for (var message in snapshotMessages.reversed) {
       // if (messageCounter == 0) return;
+      Map<String, dynamic> messageMap = message.data();
       if (message.metadata.hasPendingWrites) {
         continue;
       }
 
       bool isCurrentMessageGreater =
-          lastMessageSentTime.compareTo(message['timeSent']) < 0;
+          lastMessageSentTime.compareTo(messageMap['timeSent']) < 0;
       if (isCurrentMessageGreater)
-        futureLastMessageSavedLocallyTime = message['timeSent'];
+        futureLastMessageSavedLocallyTime = messageMap['timeSent'];
 
       allTheMessages.add({
-        ...message.data,
-        'timeSent': message.data['timeSent'].toDate().toIso8601String(),
+        ...message.data(),
+        'timeSent': messageMap['timeSent'].toDate().toIso8601String(),
       });
     }
   }
@@ -199,12 +200,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void listenToColorStatusChanges() {
     colorStatusListener = firestore
         .collection('Swalf')
-        .document(widget.salfhID)
+        .doc(widget.salfhID)
         .snapshots()
         .listen((snapshot) {
       // print("HERE@#@!");
       // print(snapshot.data);
-      Map newColorsStatus = snapshot.data['colorsStatus'];
+      Map<String, dynamic> newColorsStatus = snapshot.data()['colorsStatus'];
       if (!mapEquals(colorsStatus, newColorsStatus)) {
         setState(() {
           colorsStatus = newColorsStatus;
@@ -238,11 +239,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void listenToChatroomChanges() {
     timeLastLeftListener = firestore
         .collection('chatRooms')
-        .document(widget.salfhID)
+        .doc(widget.salfhID)
         .snapshots()
         .listen((event) {
       Map<String, Timestamp> newLastLeftStatus =
-          Map<String, Timestamp>.from(event.data['lastLeftStatus']);
+          Map<String, Timestamp>.from(event.data()['lastLeftStatus']);
       // print("hereeee${event.data}");
       if (!mapEquals(lastLeftStatus, newLastLeftStatus)) {
         setState(() {
@@ -250,9 +251,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         });
       }
 
-      if (!mapEquals(typingStatus, event.data['typingStatus'])) {
+      if (!mapEquals(typingStatus, event.data()['typingStatus'])) {
         setState(() {
-          typingStatus = event.data['typingStatus'];
+          typingStatus = event.data()['typingStatus'];
         });
       }
     });
@@ -338,29 +339,29 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       'lastLeftStatus': {
         colorName: DateTime.now(),
       }
-    }, merge: true);
+    }, SetOptions(merge: true));
   }
 
   setTimeLeftInfinity() async {
     await Future.delayed(Duration(seconds: 1));
     if (mounted) {
-      final firestore = Firestore.instance;
-      await firestore.collection("chatRooms").document(widget.salfhID).setData({
+      final firestore = FirebaseFirestore.instance;
+      await firestore.collection("chatRooms").doc(widget.salfhID).set({
         'lastLeftStatus': {
           colorName: DateTime.now().add(
             Duration(days: 3650),
           ), // when the user is in, set the time he last left to infinity.
         },
-      }, merge: true);
+      }, SetOptions(merge: true));
     }
   }
 
   void _changeTypingTo(bool isTyping) {
-    firestore.collection('chatRooms').document(widget.salfhID).setData({
+    firestore.collection('chatRooms').doc(widget.salfhID).set({
       'typingStatus': {
         colorName: isTyping,
       }
-    }, merge: true);
+    }, SetOptions(merge: true));
   }
 
   void updateTyping(String newInputMessage) {
@@ -461,7 +462,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               child: StreamBuilder<QuerySnapshot>(
                 stream: firestore
                     .collection("chatRooms")
-                    .document(widget.salfhID)
+                    .doc(widget.salfhID)
                     .collection('messages')
                     .orderBy('timeSent')
                     .startAfter([timeofLastMessageSavedLocally]).snapshots(),
@@ -474,7 +475,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     return LoadingWidget("");
                   }
 
-                  final messages = snapshot.data.documents.reversed;
+                  final messages = snapshot.data.docs.reversed;
                   snapshotMessages = messages
                       .toList(); // this could be expensive in the long run, but easy to use.
                   // note to self: Use iterator instead if ever preformance issues occur.
@@ -491,9 +492,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     if (i < snapshotMessages.length) {
                       // snapshot message
 
-                      message = snapshotMessages[i];
+                      message = snapshotMessages[i].data();
                       cacheCounter++;
-                      isSending = message.metadata.hasPendingWrites;
+                      isSending = snapshotMessages[i].metadata.hasPendingWrites;
                     } else {
                       // local message
                       message = localMessages[i - snapshotMessages.length];

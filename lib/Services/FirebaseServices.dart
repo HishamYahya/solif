@@ -14,22 +14,24 @@ final firestore = Firestore.instance;
 Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
   try {
     int x = 1;
-    final salfhDoc = await firestore.collection('users').document(userID).get();
+    final salfhDoc = await firestore.collection('users').doc(userID).get();
+    Map<String, dynamic> salfhMap = salfhDoc.data();
     List<SalfhTile> salfhTiles = [];
-    Map<String, dynamic> userSwalf = salfhDoc['userSwalf'];
+    Map<String, dynamic> userSwalf = salfhMap['userSwalf'];
     if (userSwalf == null) return [];
     for (var entry in userSwalf.entries) {
       var currentSalfh =
-          await firestore.collection('Swalf').document(entry.key).get();
+          await firestore.collection('Swalf').doc(entry.key).get();
+      Map<String, dynamic> currentSalfhMap = currentSalfh.data();
 
       salfhTiles.add(SalfhTile(
         key: UniqueKey(),
-        colorsStatus: currentSalfh['colorsStatus'],
-        title: currentSalfh['title'],
-        id: currentSalfh.documentID,
-        adminID: currentSalfh['adminID'],
-        tags: currentSalfh['tags'] ?? [], //////// TODO: remove null checking
-        lastMessageSent: currentSalfh['lastMessageSent'],
+        colorsStatus: currentSalfhMap['colorsStatus'],
+        title: currentSalfhMap['title'],
+        id: currentSalfh.id,
+        adminID: currentSalfhMap['adminID'],
+        tags: currentSalfhMap['tags'] ?? [], //////// TODO: remove null checking
+        lastMessageSent: currentSalfhMap['lastMessageSent'],
       ));
     }
 
@@ -39,7 +41,7 @@ Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
     });
 
     return salfhTiles;
-  } on AuthException catch (e) {
+  } on FirebaseAuthException catch (e) {
     print(e.toString());
     throw ("Permission Denied");
   } catch (e) {
@@ -50,14 +52,14 @@ Future<List<SalfhTile>> getUsersChatScreenTiles(String userID) async {
 
 Future<List<SalfhTile>> getPublicChatScreenTiles(String userID,
     {String tag}) async {
-  // final salfhDocs = await firestore
+  // final salfhMaps = await firestore
   //     .collection('Swalf')
   //     .orderBy('timeCreated', descending: true)
   //     .getDocuments();
 
   // List<SalfhTile> salfhTiles = [];
   // Random random = Random();
-  // for (var salfh in salfhDocs.documents) {
+  // for (var salfh in salfhMaps.documents) {
   //   if (salfh['adminID'] != userID) {
   //     bool isFull = true;
   //     salfh['colorsStatus'].forEach((name, statusMap) {
@@ -80,10 +82,11 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID,
       .where('visible', isEqualTo: true)
       .orderBy('timeCreated', descending: true)
       .limit(kMinimumSalfhTiles);
-  final salfhDocs = await first.getDocuments();
+  final salfhMaps = await first.get();
   List<SalfhTile> salfhTiles = [];
   Random random = Random();
-  for (var salfh in salfhDocs.documents) {
+  for (var salfhDoc in salfhMaps.docs) {
+    Map<String, dynamic> salfh = salfhDoc.data();
     if (salfh['adminID'] != userID) {
       bool isFull = true;
       salfh['colorsStatus'].forEach((name, id) {
@@ -96,7 +99,7 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID,
           colorsStatus: salfh['colorsStatus'],
           adminID: salfh['adminID'],
           title: salfh['title'],
-          id: salfh.documentID,
+          id: salfhDoc.id,
           tags: salfh['tags'] ?? [],
           lastMessageSent:
               salfh['lastMessageSent'], //////// TODO: remove null checking
@@ -105,7 +108,7 @@ Future<List<SalfhTile>> getPublicChatScreenTiles(String userID,
   }
   if (salfhTiles.isNotEmpty) {
     final Timestamp lastVisibleSalfhTime =
-        salfhDocs.documents[salfhDocs.documents.length - 1]['timeCreated'];
+        salfhMaps.docs[salfhMaps.docs.length - 1].data()['timeCreated'];
     // next batch starts after the last document
     AppData.nextPublicTiles = firestore
         .collection('Swalf')

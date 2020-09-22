@@ -119,12 +119,12 @@ class _TagSearchResultsListState extends State<TagSearchResultsList> {
                   child: LoadingWidget(""),
                 );
               case ConnectionState.done:
-                if (snapshot.hasData && snapshot.data.documents.length != 0) {
-                  final List<DocumentSnapshot> docs = snapshot.data.documents;
+                if (snapshot.hasData && snapshot.data.docs.length != 0) {
+                  final List<DocumentSnapshot> docs = snapshot.data.docs;
                   return ListView.builder(
-                    itemCount: snapshot.data.documents.length,
+                    itemCount: snapshot.data.docs.length,
                     itemBuilder: (context, index) {
-                      final doc = docs[index].data;
+                      final doc = docs[index].data();
                       return Container(
                         decoration: darkMode
                             ? BoxDecoration(

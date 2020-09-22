@@ -3,5 +3,6 @@
     "liveshare.allowGuestTaskControl": true,
     "liveshare.increasedGuestLimit": false,
     "liveshare.languages.allowGuestCommandControl": true,
-    "openhab.useRestApi": false
+    "openhab.useRestApi": false,
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

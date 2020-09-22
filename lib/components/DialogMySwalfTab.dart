@@ -37,16 +37,17 @@ class _DialogMySwalfTabState extends State<DialogMySwalfTab> {
         .where('adminID',
             isEqualTo:
                 Provider.of<AppData>(context, listen: false).currentUserID)
-        .getDocuments();
+        .get();
 
-    for (DocumentSnapshot doc in snapshot.documents) {
+    for (DocumentSnapshot doc in snapshot.docs) {
+      Map<String, dynamic> docMap = doc.data();
       tiles.add(SalfhTile(
-        title: doc['title'],
+        title: docMap['title'],
         id: doc.documentID,
-        colorsStatus: doc['colorsStatus'],
-        lastMessageSent: doc['lastMessageSent'],
-        tags: doc['tags'],
-        adminID: doc['adminID'],
+        colorsStatus: docMap['colorsStatus'],
+        lastMessageSent: docMap['lastMessageSent'],
+        tags: docMap['tags'],
+        adminID: docMap['adminID'],
         isInviteTile: true,
       ));
     }

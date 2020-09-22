@@ -19,7 +19,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:localstorage/localstorage.dart';
 
 class AppData with ChangeNotifier {
-  FirebaseUser currentUser;
+  User currentUser;
   List<SalfhTile> usersSalfhTiles;
   List<SalfhTile> publicSalfhTiles;
   List<TagChip> tagsSavedLocally = [];
@@ -27,7 +27,7 @@ class AppData with ChangeNotifier {
   List<String> mutedSwalf = [];
   bool isTagslLoaded = false;
   String _searchTag;
-  final Firestore firestore = Firestore.instance;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final fcm = FirebaseMessaging();
   final auth = FirebaseAuth.instance;
 
@@ -167,7 +167,7 @@ class AppData with ChangeNotifier {
     // }
     // notifyListeners();
 
-    final user = await auth.currentUser();
+    final user = auth.currentUser;
 
     if (user != null) {
       currentUser = user;
@@ -176,7 +176,7 @@ class AppData with ChangeNotifier {
       if (res != null) {
         currentUser = res.user;
         String token = await fcm.getToken();
-        await firestore.collection('users').document(currentUserID).setData({
+        await firestore.collection('users').doc(currentUserID).set({
           'userSwalf': {},
           'id': currentUserID,
           'fcmToken': token,
@@ -227,14 +227,14 @@ class AppData with ChangeNotifier {
   listenForNewUserSwalf() {
     firestore
         .collection('users')
-        .document(currentUserID)
+        .doc(currentUserID)
         .snapshots()
         .listen((snapshot) {
       if (usersSalfhTiles == null ||
-          snapshot.data['userSwalf'].length != usersSalfhTiles.length)
+          snapshot.data()['userSwalf'].length != usersSalfhTiles.length)
         reloadUsersSalfhTiles();
-      if (snapshot.data['mutedSwalf'].length != mutedSwalf) {
-        mutedSwalf = snapshot.data['mutedSwalf'].cast<String>();
+      if (snapshot.data()['mutedSwalf'].length != mutedSwalf) {
+        mutedSwalf = snapshot.data()['mutedSwalf'].cast<String>();
         notifyListeners();
       }
     });
@@ -251,32 +251,33 @@ class AppData with ChangeNotifier {
 
   loadNextPublicSalfhTiles() async {
     if (nextPublicTiles == null) return;
-    final salfhDocs = await nextPublicTiles.getDocuments();
+    final salfhDocs = await nextPublicTiles.get();
     List<SalfhTile> newSalfhTiles = [];
     Random random = Random();
-    for (var salfh in salfhDocs.documents) {
-      if (salfh['adminID'] != currentUserID) {
+    for (var salfh in salfhDocs.docChanges) {
+      Map<String, dynamic> salfhMap = salfh.doc.data();
+      if (salfhMap['adminID'] != currentUserID) {
         bool isFull = true;
-        salfh['colorsStatus'].forEach((color, id) {
+        salfhMap['colorsStatus'].forEach((color, id) {
           if (id == null) isFull = false;
         });
         if (!isFull)
           newSalfhTiles.add(SalfhTile(
             // color now generated in SalfhTile
             key: UniqueKey(),
-            colorsStatus: salfh['colorsStatus'],
-            title: salfh['title'],
-            adminID: salfh['adminID'],
-            id: salfh.documentID,
-            lastMessageSent: salfh['lastMessageSent'],
-            tags: salfh['tags'] ?? [], //////// TODO: remove null checking
+            colorsStatus: salfhMap['colorsStatus'],
+            title: salfhMap['title'],
+            adminID: salfhMap['adminID'],
+            id: salfh.doc.id,
+            lastMessageSent: salfhMap['lastMessageSent'],
+            tags: salfhMap['tags'] ?? [], //////// TODO: remove null checking
           ));
       }
     }
     newSalfhTiles.insertAll(0, publicSalfhTiles);
-    if (salfhDocs.documents.isNotEmpty) {
+    if (salfhDocs.docs.isNotEmpty) {
       final Timestamp lastVisibleSalfhTime =
-          salfhDocs.documents[salfhDocs.documents.length - 1]['timeCreated'];
+          salfhDocs.docs[salfhDocs.docs.length - 1].data()['timeCreated'];
       // next batch starts after the last document
       nextPublicTiles = firestore
           .collection('Swalf')
@@ -305,11 +306,11 @@ class AppData with ChangeNotifier {
 
   void deleteTag(String tag) {
     tagsSavedLocally.removeWhere((element) => element.tagName == tag);
-    Firestore.instance
+    FirebaseFirestore.instance
         .collection('users')
-        .document(currentUserID)
+        .doc(currentUserID)
         .collection('userTags')
-        .document(tag)
+        .doc(tag)
         .delete();
     tag = ValidFireBaseStringConverter.convertString(tag);
     fcm.unsubscribeFromTopic("${tag}TAG");
@@ -325,12 +326,12 @@ class AppData with ChangeNotifier {
       tagName: tag,
       // onCancelPressed: deleteTag,)
     ));
-    Firestore.instance
+    FirebaseFirestore.instance
         .collection('users')
-        .document(currentUserID)
+        .doc(currentUserID)
         .collection('userTags')
-        .document(tag)
-        .setData({'tagName': tag, 'timeAdded': DateTime.now()});
+        .doc(tag)
+        .set({'tagName': tag, 'timeAdded': DateTime.now()});
     tag = ValidFireBaseStringConverter.convertString(tag);
     print(tag);
     fcm.subscribeToTopic(

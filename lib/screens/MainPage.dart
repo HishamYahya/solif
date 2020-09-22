@@ -93,7 +93,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           }
         }
       },
-      onBackgroundMessage: backgroundMessageHandler,
+      // onBackgroundMessage: backgroundMessageHandler,
     );
 
     _animationController =

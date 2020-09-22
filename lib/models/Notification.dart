@@ -6,11 +6,12 @@ const notificationTypes = ['invite'];
 List<NotificationTile> generateNotificationTiles(List<DocumentSnapshot> docs) {
   List<NotificationTile> notifications = [];
   for (DocumentSnapshot doc in docs) {
-    if (notificationTypes.contains(doc['type'])) {
+    Map<String, dynamic> notifcationMap = doc.data();
+    if (notificationTypes.contains(notifcationMap['type'])) {
       notifications.add(
         NotificationTile(
-          type: doc['type'],
-          payload: doc['value'],
+          type: notifcationMap['type'],
+          payload: notifcationMap['value'],
         ),
       );
     }

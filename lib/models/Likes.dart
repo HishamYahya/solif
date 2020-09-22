@@ -5,43 +5,34 @@ import 'package:solif/models/AppData.dart';
 final firestore = Firestore.instance;
 final deleteKey = FieldValue.delete();
 
-likeUser(String currentUserID, String likedUserID){
+likeUser(String currentUserID, String likedUserID) {
   print('like');
-  firestore.collection('likes').document(likedUserID).setData({
-    'usersVotes':{
+  firestore.collection('likes').doc(likedUserID).set({
+    'usersVotes': {
       currentUserID: 'like',
       //'otherUserID': 'like'  --> PERMISSION_DENIED
     },
     // 'likes': 30 --> PERMISSION_DENIED
-  },merge: true);
-  
+  }, SetOptions(merge: true));
 }
-unLikeUser(String currentUserID, String likedUserID){
+
+unLikeUser(String currentUserID, String likedUserID) {
   print("unlike");
 
-
-  firestore.collection('likes').document(likedUserID).setData({
-        'usersVotes':{  
-      currentUserID: deleteKey
-    }
-  },merge: true);
-  
+  firestore.collection('likes').doc(likedUserID).set({
+    'usersVotes': {currentUserID: deleteKey}
+  }, SetOptions(merge: true));
 }
 
-
-dislikeUser(String currentUserID, String likedUserID){
-
+dislikeUser(String currentUserID, String likedUserID) {
   print("dis");
 
-
-  firestore.collection('likes').document(likedUserID).setData({
-    'usersVotes':{
-      currentUserID: 'dislike'
-    }
-  },merge: true);
-  
+  firestore.collection('likes').doc(likedUserID).set({
+    'usersVotes': {currentUserID: 'dislike'}
+  }, SetOptions(merge: true));
 }
-unDislikeUser(String currentUserID, String likedUserID){
+
+unDislikeUser(String currentUserID, String likedUserID) {
   print('unDis');
-  unLikeUser(currentUserID, likedUserID); 
+  unLikeUser(currentUserID, likedUserID);
 }

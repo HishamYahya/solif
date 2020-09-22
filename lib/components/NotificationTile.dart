@@ -95,13 +95,13 @@ class _NotificationTileState extends State<NotificationTile> {
           );
           final salfh = await firestore
               .collection('Swalf')
-              .document(widget.payload['id'])
+              .doc(widget.payload['id'])
               .get();
-          print(salfh['colorsStatus'].runtimeType);
+          print(salfh.data()['colorsStatus'].runtimeType);
           if (salfh != null) {
             Navigator.pop(context);
             String color;
-            salfh['colorsStatus'].forEach((colorName, id) {
+            salfh.data()['colorsStatus'].forEach((colorName, id) {
               if (id ==
                   Provider.of<AppData>(context, listen: false).currentUserID) {
                 color = colorName;
@@ -113,11 +113,11 @@ class _NotificationTileState extends State<NotificationTile> {
               context,
               MaterialPageRoute(
                 builder: (context) => ChatScreen(
-                  title: salfh['title'],
+                  title: salfh.data()['title'],
                   color: color,
-                  colorsStatus: salfh['colorsStatus'],
+                  colorsStatus: salfh.data()['colorsStatus'],
                   salfhID: widget.payload['id'],
-                  adminID: salfh['adminID'],
+                  adminID: salfh.data()['adminID'],
                 ),
               ),
             ).then((value) =>
