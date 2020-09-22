@@ -9,5 +9,3 @@
 //     return {"tagName": this.tagName};
 //   }
 // } // for (int i = 0; i < tags.length; i++) {
-
-
